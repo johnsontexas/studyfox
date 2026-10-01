@@ -50,6 +50,9 @@ const P = {
   scroll: '<path d="M8 4.5h10a2 2 0 0 1 2 2V8h-4M8 4.5a2 2 0 0 0-2 2v11a2.5 2.5 0 0 1-2.5 2.5h11A2.5 2.5 0 0 0 17 17.5V6.5a2 2 0 0 0-2-2M9.5 9.5h4M9.5 13h4"/>',
   users: '<circle cx="9" cy="8.5" r="3.5"/><path d="M3 19.5c.5-3.5 3-5.5 6-5.5s5.5 2 6 5.5M15.5 5a3.5 3.5 0 0 1 0 7M17.5 14.2c2 .7 3.2 2.6 3.5 5.3"/>',
   search: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
+  home: '<path d="M4 11l8-6.5 8 6.5M6 9.5V20h4.5v-5.5h3V20H18V9.5"/>',
+  instagram: '<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17" cy="7" r=".9" fill="currentColor"/>',
+  arrow: '<path d="M7 17L17 7M9 7h8v8"/>',
   grid: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>',
 };
 

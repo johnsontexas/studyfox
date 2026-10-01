@@ -5,3 +5,5 @@ export const SUPABASE_URL = 'https://xibimlvnjdkwayqmsmms.supabase.co';
 export const SUPABASE_ANON_KEY = 'sb_publishable_LkuPn46HCjJP9HZrWOgxcA_JjqLx-EG';
 export const CONTACT_EMAIL = 'danieljohnsonhtx@gmail.com';
 export const CREATOR = 'Daniel Johnson';
+export const INSTAGRAM = 'txdanieljohnson';
+export const SITE_URL = 'https://studyfox.org';

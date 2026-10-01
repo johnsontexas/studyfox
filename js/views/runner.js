@@ -3,6 +3,7 @@ import { icon } from '../icons.js';
 import { $, $$, tex, esc, fmtTime, toast, uid, checkSpr, parseSpr } from '../util.js';
 import { store } from '../store.js';
 import { regen } from '../gen/index.js';
+import { bankNo } from '../gen/bank.js';
 import { ensureModule, scoreExam, isCorrect } from '../exams.js';
 import { toggleCalculator, destroyCalculator, openReference, modal } from '../tools.js';
 import { L, diffPill } from '../qview.js';
@@ -108,7 +109,7 @@ export function runnerView(root) {
 
     tr.innerHTML = `
       <header class="tr-top">
-        <div class="tr-left"><div class="tr-title">${esc(m.name)}</div><button class="link sm" data-act="directions">Directions ${icon('down')}</button></div>
+        <div class="tr-left"><button class="icon-btn tr-home" data-act="home" title="Home" aria-label="Go home">${icon('home')}</button><div><div class="tr-title">${esc(m.name)}</div><button class="link sm" data-act="directions">Directions ${icon('down')}</button></div></div>
         <div class="tr-mid">${ui.hideTimer ? `<span class="tr-timer hidden-timer">${icon('timer')}</span>` : `<span class="tr-timer ${m.timeLeft != null && m.timeLeft <= 300 ? 'warn' : ''}">${fmtTime(m.timeLeft ?? m.elapsed ?? 0)}</span>`}<button class="pill sm" data-act="timer">${ui.hideTimer ? 'Show' : 'Hide'}</button></div>
         <div class="tr-right">
           ${split ? `<button class="tool ${ui.hlMode ? 'on' : ''}" data-act="hl" title="Highlight text in the passage"><span>${icon('highlighter')}</span>Highlight</button>` : ''}
@@ -124,6 +125,7 @@ export function runnerView(root) {
             <span class="qnum">${run.qi + 1}</span>
             <button class="markrev ${marked ? 'on' : ''}" data-act="mark">${icon('bookmark', { fill: marked })} Mark for Review</button>
             <span class="grow"></span>
+            ${bankNo(q.id) ? `<span class="qno" title="Question bank number">${q.test} #${bankNo(q.id)}</span>` : ''}
             ${run.showMeta ? diffPill(q.difficulty) : ''}
             ${q.type === 'mc' ? `<button class="abc ${ui.elimMode ? 'on' : ''}" data-act="elim" title="Answer eliminator"><s>ABC</s></button>` : ''}
           </div>
@@ -192,7 +194,7 @@ export function runnerView(root) {
     const unanswered = m.questions.filter((_, i) => m.answers[i] == null || m.answers[i] === '').length;
     const last = run.current === lastModuleIndex();
     tr.innerHTML = `
-      <header class="tr-top"><div class="tr-left"><div class="tr-title">${esc(m.name)}</div></div>
+      <header class="tr-top"><div class="tr-left"><button class="icon-btn tr-home" data-act="home" title="Home" aria-label="Go home">${icon('home')}</button><div class="tr-title">${esc(m.name)}</div></div>
       <div class="tr-mid"><span class="tr-timer">${fmtTime(m.timeLeft ?? m.elapsed ?? 0)}</span></div><div class="tr-right"></div></header>
       <div class="tr-rule"></div>
       <main class="tr-body single"><section class="check">
@@ -320,6 +322,18 @@ export function runnerView(root) {
         persist(true); render(); break;
       }
       case 'reveal': $('#revealed', tr).innerHTML = `<div class="feedback"><b>Answer:</b> ${curQ().type === 'spr' ? tex(`$${curQ().answerDisplay}$`) : L(curQ().answer)}<div class="expl">${tex(curQ().expl)}</div>${explainHelp(curQ().expl)}</div>`; break;
+      case 'home': {
+        const exam = run.kind === 'exam';
+        const hm = modal(`<p>Going home will <b>end this ${exam ? 'practice test' : 'practice session'}</b>. ${run.feedback ? 'Answers you already checked stay in your progress, but' : 'Your answers in'} this ${exam ? 'test' : 'set'} won't be saved or scored.</p>
+          <p class="muted small">Want to come back to it later? Use <b>More → Save and exit</b> instead.</p>
+          <div class="row gap end wrap"><button class="btn" data-x="stay">Keep going</button><button class="btn danger primary" data-x="leave">End session and go home</button></div>`, { title: 'Leave this session?' });
+        hm.el.addEventListener('click', (ev) => {
+          const x = ev.target.closest('[data-x]')?.dataset.x;
+          if (x === 'stay') hm.close();
+          if (x === 'leave') { hm.close(); run = null; store.data().inProgress = null; store.save(); cleanup(); location.hash = '#/'; }
+        });
+        break;
+      }
       case 'directions': modal(directions(curQ()), { title: 'Directions' }); break;
       case 'more': {
         const mm = modal(`<div class="stack">

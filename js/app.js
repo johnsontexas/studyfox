@@ -16,7 +16,7 @@ import { speedView } from './views/speed.js';
 import { learnHubView, courseView, lessonView } from './views/learn.js';
 import { privacyView, termsView } from './views/legal.js';
 import { initCloud } from './cloud.js';
-import { CREATOR } from './config.js';
+import { CREATOR, INSTAGRAM } from './config.js';
 
 export const BRAND = 'StudyFox';
 
@@ -90,8 +90,12 @@ function router() {
 
 function boot() {
   document.body.innerHTML = `<header id="nav" class="nav"></header><main id="main"></main>
-    <footer class="site-foot"><div><b>${BRAND}</b> is free study material for school and the SAT and ACT, created by ${CREATOR}. Free forever: no ads, no paywalls, no limits. SAT® and ACT® are trademarks of their respective owners, which are not affiliated with and do not endorse this site. Questions are original and generated for practice; scores are estimates.</div>
-      <div class="foot-links"><a href="#/privacy">Privacy Policy</a><a href="#/terms">Terms of Use</a></div></footer>`;
+    <footer class="site-foot"><div class="foot-inner">
+      <div class="foot-brand"><b>${BRAND}</b><p>Free study material for school and the SAT and ACT, made by ${CREATOR}. No ads, no paywalls, no limits.</p>
+        <a class="foot-ig" href="https://instagram.com/${INSTAGRAM}" target="_blank" rel="noopener">${icon('instagram')}@${INSTAGRAM}</a></div>
+      <nav class="foot-links" aria-label="Footer"><a href="#/learn">Courses</a><a href="#/practice">SAT &amp; ACT</a><a href="#/flashcards">Flashcards</a><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a></nav>
+      <p class="foot-legal">SAT® and ACT® are trademarks of their respective owners, which are not affiliated with and do not endorse this site. Questions are original and generated for practice; scores are estimates.</p>
+    </div></footer>`;
   applyTheme();
   initI18n();
   initCloud();

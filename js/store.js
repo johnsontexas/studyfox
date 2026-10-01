@@ -1,6 +1,7 @@
 // Local persistence + accounts. Everything lives in this browser's localStorage.
 // Swap this module for a real backend (e.g. Supabase) to sync across devices.
 import { uid, hashStr } from './util.js';
+import { bankNo } from './gen/bank.js';
 
 const K_USERS = 'fm_users', K_SESSION = 'fm_session', K_CLOUD = 'fm_cloud_users';
 const read = (k, def) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch { return def; } };
@@ -18,7 +19,7 @@ async function hashPw(email, pw) {
 const blank = () => ({
   attempts: [], mistakes: {}, saved: {}, stats: {}, skillStats: {}, activity: {},
   sets: [], setProgress: {}, settings: { theme: 'system', target: { SAT: 1400, ACT: 30 }, testDate: '', focus: 'SAT', lang: 'en', english: '' },
-  inProgress: null, speed: { best: {}, runs: [] }, learned: {},
+  inProgress: null, speed: { best: {}, runs: [] }, learned: {}, bank: {},
 });
 
 // Combine two progress blobs (e.g. this device + the cloud copy) without losing either side's work.
@@ -42,6 +43,8 @@ function merge(a, b) {
   for (const k in sa.best) out.speed.best[k] = Math.max(sa.best[k], out.speed.best[k] || 0);
   out.settings = Object.assign(blank().settings, b.settings, a.settings);
   out.learned = { ...b.learned, ...a.learned };
+  out.bank = { ...b.bank };
+  for (const k in a.bank) if (!out.bank[k] || a.bank[k].ts > out.bank[k].ts) out.bank[k] = a.bank[k];
   out.inProgress = a.inProgress || b.inProgress;
   return out;
 }
@@ -115,6 +118,8 @@ export const store = {
       const s = (obj[k] ||= { c: 0, t: 0 }); s.t++; if (correct) s.c++;
     }
     d.activity[today()] = (d.activity[today()] || 0) + 1;
+    // Numbered bank questions remember their latest result so the bank can show what's done
+    if (bankNo(q.id)) d.bank[q.id] = { c: correct ? 1 : 0, ts: Date.now() };
     if (correct) delete d.mistakes[q.id];
     else d.mistakes[q.id] = { ts: Date.now(), test: q.test, section: q.section, domain: q.domain, skill: q.skill, difficulty: q.difficulty };
   },

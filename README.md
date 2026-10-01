@@ -25,6 +25,10 @@ Any static host works: Netlify (drag the folder onto app.netlify.com/drop), GitH
 
 Before launch, get a free production key at https://www.desmos.com/api and replace `DESMOS_KEY` in `js/tools.js`. The current key is Desmos's public demo key, which shows a "Trial Key" badge.
 
+## Google Search
+
+`sitemap.xml` and `robots.txt` sit at the site root. In Google Search Console, add the property `https://studyfox.org`, verify it, then submit `https://studyfox.org/sitemap.xml` under Sitemaps. Pages use hash URLs (`#/learn`) and most need sign-in, so the sitemap lists the homepage only.
+
 ## Google and Apple sign-in (cross-device progress)
 
 Every page except Home, Log in, Sign up, Privacy, and Terms requires an account. Without setup, the site works fully offline: email accounts save progress in the browser. To turn on Google/Apple sign-in and cloud sync:
@@ -46,6 +50,7 @@ Signing in merges any guest progress on the device into the account. After that,
 | Reading/Writing + ACT English/Reading | `js/gen/rw.js`, `js/content/rw-bank.js`, `js/content/act-reading.js` |
 | ACT Science (procedural experiments with tables and graphs) | `js/gen/science.js` |
 | Registry, taxonomy, practice-set builder | `js/gen/index.js` |
+| Numbered question bank (SAT #1, ACT #1, ...; fixed seeds so numbers are stable) | `js/gen/bank.js` |
 | Practice tests (adaptive SAT modules, ACT sections, scoring) | `js/exams.js` |
 | Test-day interface (timer, navigator, eliminator, highlighter, mark for review) | `js/views/runner.js` |
 | Desmos, reference sheet, modals | `js/tools.js` |

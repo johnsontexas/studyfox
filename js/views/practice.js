@@ -1,7 +1,8 @@
 import { sticker } from '../icons.js';
-import { $, $$, esc, toast, newSeed, timeAgo, DIFF_LABEL } from '../util.js';
+import { $, $$, esc, toast, newSeed, rng, timeAgo, DIFF_LABEL } from '../util.js';
 import { store } from '../store.js';
-import { taxonomy, SECTIONS, keysFor, buildSet, regen } from '../gen/index.js';
+import { taxonomy, SECTIONS, buildSet, regen } from '../gen/index.js';
+import { bank, bankNo } from '../gen/bank.js';
 import { startRun } from './runner.js';
 import { reviewHTML } from '../qview.js';
 
@@ -18,19 +19,39 @@ export function launchPractice({ test, section, keys, count = 10, difficulty = '
 
 export function practiceView(root) {
   const s = store.data().settings;
-  const st = { test: s.focus || 'SAT', section: null, diff: 'mixed', count: 10, mode: 'tutor', off: new Set() };
+  const st = { test: s.focus || 'SAT', section: null, diff: 'mixed', count: 10, mode: 'tutor', pool: 'new', off: new Set(), showAll: false };
   const stats = store.data().skillStats;
+  const done = store.data().bank;
+
+  // Bank entries for the current section that match the selected skills and difficulty
+  const matching = () => bank(st.test).filter((e) => e.section === st.section && !st.off.has(`${e.domain}|${e.skill}`) && (st.diff === 'mixed' || e.difficulty === +st.diff));
+  const status = (e) => (done[e.id] ? (done[e.id].c ? 'right' : 'miss') : 'new');
 
   function draw() {
     const tax = taxonomy(st.test);
     if (!st.section || !tax[st.section]) st.section = Object.keys(tax)[0];
     const doms = tax[st.section];
+    const all = bank(st.test);
+    const did = all.filter((e) => done[e.id]);
+    const right = did.filter((e) => done[e.id].c).length;
+    const secTotal = (k) => all.filter((e) => e.section === k).length;
+    const secDone = (k) => all.filter((e) => e.section === k && done[e.id]).length;
+    const list = matching();
+    const avail = list.filter((e) => st.pool === 'all' || (st.pool === 'new' ? !done[e.id] : status(e) === 'miss')).length;
+    const shown = st.showAll ? list : list.slice(0, 240);
     root.innerHTML = `
     <div class="page">
-      <div class="row between wrap gap"><div><h1>Question bank</h1><p class="muted">Pick the skills and difficulty. Every set is freshly generated, so you'll never run out.</p></div>
+      <div class="row between wrap gap"><div><h1>${st.test} question bank</h1><p class="muted">${all.length.toLocaleString()} numbered questions, every one with a worked explanation. Pick skills to build a set, or open any question by its number.</p></div>
       <div class="seg" id="testSeg">${['SAT', 'ACT'].map((t) => `<button data-t="${t}" class="${st.test === t ? 'on' : ''}">${t}</button>`).join('')}</div></div>
 
-      <div class="tabs" id="secTabs">${Object.keys(tax).map((k) => `<button data-s="${k}" class="${k === st.section ? 'on' : ''}">${SECTIONS[st.test][k]}</button>`).join('')}</div>
+      <div class="bank-progress">
+        <div><span class="bp-num">${did.length.toLocaleString()}</span><span class="bp-of"> / ${all.length.toLocaleString()}</span><span class="bp-label">questions done</span></div>
+        <div><span class="bp-num">${right.toLocaleString()}</span><span class="bp-label">answered correctly</span></div>
+        <div><span class="bp-num">${(did.length - right).toLocaleString()}</span><span class="bp-label">missed, worth a retry</span></div>
+        <div class="bp-bar"><div class="bar"><i style="width:${all.length ? (100 * did.length) / all.length : 0}%"></i></div></div>
+      </div>
+
+      <div class="tabs" id="secTabs">${Object.keys(tax).map((k) => `<button data-s="${k}" class="${k === st.section ? 'on' : ''}">${SECTIONS[st.test][k]} <span class="tab-count">${secDone(k)}/${secTotal(k)}</span></button>`).join('')}</div>
 
       <div class="bank">
         <div class="stack">
@@ -50,40 +71,56 @@ export function practiceView(root) {
         </div>
         <aside class="card sticky stack">
           <div><b>Difficulty</b><div class="seg full" id="diffSeg">${['mixed', '1', '2', '3'].map((d) => `<button data-d="${d}" class="${st.diff === d ? 'on' : ''}">${d === 'mixed' ? 'Mixed' : DIFF_LABEL[d]}</button>`).join('')}</div></div>
+          <div><b>Which questions</b><div class="seg full" id="poolSeg">${[['new', 'New'], ['miss', 'Missed'], ['all', 'Any']].map(([k, v]) => `<button data-p="${k}" class="${st.pool === k ? 'on' : ''}">${v}</button>`).join('')}</div>
+            <p class="muted small" style="margin:.4rem 0 0">${avail} available with these filters.</p></div>
           <div><b>Number of questions</b><div class="seg full" id="countSeg">${[5, 10, 20, 30].map((c) => `<button data-c="${c}" class="${st.count === c ? 'on' : ''}">${c}</button>`).join('')}</div></div>
           <div><b>Mode</b>
             <label class="radio"><input type="radio" name="mode" value="tutor" ${st.mode === 'tutor' ? 'checked' : ''}><span><b>Tutor</b><br><span class="muted small">Check each answer and see the explanation right away. Untimed.</span></span></label>
             <label class="radio"><input type="radio" name="mode" value="timed" ${st.mode === 'timed' ? 'checked' : ''}><span><b>Timed</b><br><span class="muted small">Test pacing (~${Math.round((SEC_PER_Q[st.section] || 70) / 6) / 10} min/question). Answers at the end.</span></span></label>
           </div>
-          <button class="btn primary lg block" id="go">Start ${st.count} questions</button>
-          <p class="muted small center">Tools available in every question: Desmos calculator, reference sheet, answer eliminator, highlighter, and mark for review.</p>
+          <button class="btn primary lg block" id="go" ${avail ? '' : 'disabled'}>Start ${Math.min(st.count, avail) || ''} question${Math.min(st.count, avail) === 1 ? '' : 's'}</button>
+          <p class="muted small center">Every question has the Desmos calculator, reference sheet, answer eliminator, highlighter, and mark for review.</p>
         </aside>
       </div>
+
+      <div class="qgrid-head">
+        <div><h2>All ${SECTIONS[st.test][st.section]} questions</h2><p class="muted small">${list.length} match your skills and difficulty. Tap a number to try that question.</p></div>
+        <div class="legend"><span><i class="lgd q-new"></i>Not done</span><span><i class="lgd q-right"></i>Correct</span><span><i class="lgd q-miss"></i>Missed</span></div>
+      </div>
+      <div class="qgrid">${shown.map((e) => `<button class="qn q-${status(e)}" data-no="${e.no}" title="${esc(e.skill)} · ${DIFF_LABEL[e.difficulty]}">${e.no}</button>`).join('')}</div>
+      ${list.length > shown.length ? `<div class="center"><button class="btn" id="showAll">Show all ${list.length}</button></div>` : ''}
     </div>`;
     $$('[data-mixed]', root).forEach((c) => (c.indeterminate = true));
   }
 
-  function selectedKeys() {
-    const tax = taxonomy(st.test)[st.section];
-    const keys = new Set();
-    for (const [dom, skills] of Object.entries(tax)) for (const [sk, ks] of Object.entries(skills)) if (!st.off.has(`${dom}|${sk}`)) ks.forEach((k) => keys.add(k));
-    return [...keys];
-  }
-
   root.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-t],[data-s],[data-d],[data-c],#go,#allOn,#allOff');
+    const t = e.target.closest('[data-t],[data-s],[data-d],[data-c],[data-p],[data-no],#go,#allOn,#allOff,#showAll');
     if (!t) return;
-    if (t.dataset.t) { st.test = t.dataset.t; st.section = null; st.off.clear(); }
-    else if (t.dataset.s) { st.section = t.dataset.s; st.off.clear(); }
+    const secName = SECTIONS[st.test][st.section];
+    if (t.dataset.no) {
+      const ent = bank(st.test)[+t.dataset.no - 1];
+      return launchPractice({ test: st.test, section: st.section, questions: [regen(ent.id)], title: `${st.test} question #${ent.no}`, feedback: true });
+    }
+    if (t.dataset.t) { st.test = t.dataset.t; st.section = null; st.off.clear(); st.showAll = false; }
+    else if (t.dataset.s) { st.section = t.dataset.s; st.off.clear(); st.showAll = false; }
     else if (t.dataset.d) st.diff = t.dataset.d;
     else if (t.dataset.c) st.count = +t.dataset.c;
+    else if (t.dataset.p) st.pool = t.dataset.p;
+    else if (t.id === 'showAll') st.showAll = true;
     else if (t.id === 'allOn') st.off.clear();
     else if (t.id === 'allOff') { const tax = taxonomy(st.test)[st.section]; for (const [d, sk] of Object.entries(tax)) for (const k of Object.keys(sk)) st.off.add(`${d}|${k}`); }
     else if (t.id === 'go') {
-      const keys = selectedKeys();
-      if (!keys.length) return toast('Select at least one skill.');
-      const secName = SECTIONS[st.test][st.section];
-      return launchPractice({ test: st.test, section: st.section, keys, count: st.count, difficulty: st.diff, feedback: st.mode === 'tutor', timed: st.mode === 'timed', title: `${st.test} ${secName} practice` });
+      const pool = matching().filter((x) => st.pool === 'all' || (st.pool === 'new' ? !done[x.id] : status(x) === 'miss'));
+      if (!pool.length) return toast('No questions match those filters.');
+      // Spread the set across skills, then keep bank order so numbers read naturally
+      const r = rng(newSeed());
+      const bySkill = {};
+      for (const x of r.shuffle(pool)) (bySkill[x.skill] ||= []).push(x);
+      const pick = [];
+      const lists = Object.values(bySkill);
+      for (let i = 0; pick.length < st.count && lists.some((l) => l.length); i++) { const l = lists[i % lists.length]; if (l.length) pick.push(l.pop()); }
+      pick.sort((a, b) => a.no - b.no);
+      return launchPractice({ test: st.test, section: st.section, questions: pick.map((x) => regen(x.id)).filter(Boolean), feedback: st.mode === 'tutor', timed: st.mode === 'timed', title: `${st.test} ${secName} practice` });
     }
     draw();
   });
@@ -110,7 +147,7 @@ export function reviewView(root) {
       <div class="seg" id="tseg">${['SAT', 'ACT'].map((t) => `<button data-t="${t}" class="${st.test === t ? 'on' : ''}">${t}</button>`).join('')}</div></div>
       <div class="tabs">${[['all', 'All'], ...Object.entries(SECTIONS[st.test])].map(([k, v]) => `<button data-s="${k}" class="${st.section === k ? 'on' : ''}">${v}</button>`).join('')}</div>
       ${items.length ? `<div class="row between wrap gap"><span class="muted">${items.length} question${items.length > 1 ? 's' : ''} to review</span><button class="btn primary" id="retry">Retry ${Math.min(items.length, 30)} in tutor mode</button></div>
-      <div class="stack">${items.slice(0, 60).map(([id, m]) => `<details class="card mistake" data-id="${esc(id)}"><summary><span><b>${esc(m.skill)}</b><span class="muted small"> · ${esc(m.domain)} · ${DIFF_LABEL[m.difficulty] || ''}</span></span><span class="muted small">${timeAgo(m.ts)}</span></summary><div class="mbody"></div><div class="row end"><button class="btn xs ghost" data-rm="${esc(id)}">Remove from log</button></div></details>`).join('')}</div>`
+      <div class="stack">${items.slice(0, 60).map(([id, m]) => `<details class="card mistake" data-id="${esc(id)}"><summary><span>${bankNo(id) ? `<span class="qno">#${bankNo(id)}</span> ` : ''}<b>${esc(m.skill)}</b><span class="muted small"> · ${esc(m.domain)} · ${DIFF_LABEL[m.difficulty] || ''}</span></span><span class="muted small">${timeAgo(m.ts)}</span></summary><div class="mbody"></div><div class="row end"><button class="btn xs ghost" data-rm="${esc(id)}">Remove from log</button></div></details>`).join('')}</div>`
       : `<div class="empty card"><div class="big-emoji">${sticker('party')}</div><h2>Nothing to review</h2><p class="muted">Missed questions will show up here automatically.</p><a class="btn primary" href="#/practice">Practice questions</a></div>`}
     </div>`;
   }
