@@ -35,7 +35,7 @@ function authPage(root, mode) {
   root.innerHTML = `
   <div class="auth-wrap">
     <div class="auth card">
-      <div class="auth-logo"><svg class="logo" viewBox="-2 2 70 62" aria-hidden="true"><path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#fff" stroke="#fff" stroke-width="6" stroke-linejoin="round"/><path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#f9a825"/><path d="M10 36l22 24 22-24-12-4-10 9-10-9z" fill="#fff8ec"/><path d="M26.5 54h11L32 60z" fill="#1a1a1a"/><circle cx="23" cy="26" r="3" fill="#1a1a1a"/><circle cx="41" cy="26" r="3" fill="#1a1a1a"/></svg></div>
+      <div class="auth-logo"><svg class="logo" viewBox="-2 2 70 62" aria-hidden="true"><path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#fff" stroke="#fff" stroke-width="6" stroke-linejoin="round"/><path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#f9a825"/><path d="M10 36l22 24 22-24-12-4-10 9-10-9z" fill="#fff8ec"/><path d="M26.5 54h11L32 60z" fill="#1a1a1a"/><circle cx="23" cy="28" r="3" fill="#1a1a1a"/><circle cx="41" cy="28" r="3" fill="#1a1a1a"/></svg></div>
       <h1>${signup ? 'Create your free account' : 'Sign in'}</h1>
       <p class="muted center">${signup ? 'Save your scores, mistakes, and flashcards. Free forever.' : 'Welcome back. Pick up where you left off.'}</p>
       ${socialHTML()}
