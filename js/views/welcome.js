@@ -96,14 +96,16 @@ export function welcomeView(root) {
     }
 
     const goals = [...f.querySelectorAll('[name=goals]:checked')].map((x) => x.value);
-    store.updateProfile({ name: f.name.value.trim() });
-    Object.assign(s, {
+    // Re-read settings: a cloud sync may have replaced the data object since this page rendered.
+    const cur = store.data().settings;
+    Object.assign(cur, {
       onboarded: new Date().toISOString(), dob, goals, grade: f.grade.value,
       emails: f.emails.checked, emailsAt: new Date().toISOString(),
-      focus: goals.includes('act') && !goals.includes('sat') ? 'ACT' : (s.focus || 'SAT'),
+      focus: goals.includes('act') && !goals.includes('sat') ? 'ACT' : (cur.focus || 'SAT'),
       lang: f.lang.value, english: f.lang.value === 'en' ? '' : f.english.value,
     });
-    recordAgreement();
+    recordAgreement(); // also saves
+    store.updateProfile({ name: f.name.value.trim() });
     toast(`Welcome to StudyFox, ${f.name.value.trim()}!`, 'good');
     location.hash = takeAfterLogin();
   });
