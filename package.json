@@ -1,0 +1,10 @@
+{
+  "name": "studyfox",
+  "private": true,
+  "type": "module",
+  "description": "Free SAT & ACT prep: generated practice questions, adaptive practice tests, Desmos, and flashcards.",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "test": "node tests/courses.test.js && node tests/generators.test.js"
+  }
+}

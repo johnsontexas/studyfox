@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StudyFox Simple Foxes</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fffaf0;--card:#fff;--ink:#1a1a1a;--muted:#555;--fox:#f9a825}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Space Grotesk',sans-serif;padding:32px 16px}
+h1{margin:0 0 4px;font-size:2rem}p.lead{color:var(--muted);margin:0 0 28px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px;max-width:1100px}
+.card{background:var(--card);border:3px solid var(--ink);box-shadow:6px 6px 0 var(--ink);border-radius:14px;padding:20px}
+.card h2{margin:0 0 2px;font-size:1.15rem}.card p{margin:0 0 16px;color:var(--muted);font-size:.92rem}
+.lockup{display:flex;align-items:center;gap:12px;font-weight:700;font-size:2.1rem;letter-spacing:-1px;padding:14px;border-radius:10px}
+.lockup svg{width:56px;height:56px;flex:none}
+.dark{background:var(--ink);color:#fff;margin-top:10px}
+.sizes{display:flex;align-items:end;gap:14px;margin-top:14px}.sizes svg{display:block}
+.o{color:var(--fox)}
+</style></head><body>
+<h1>Flat fox</h1>
+<p class="lead">Six simpler edits of the fox you picked. The first one is what's on the site now.</p>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+ <!-- S0: current -->
+ <symbol id="s0" viewBox="0 0 66 66">
+  <path d="M8 6l16 14h16l16-14-2 26 6 6-28 22L4 38l6-6z" fill="#1a1a1a" transform="translate(3 3)"/>
+  <path d="M8 6l16 14h16l16-14-2 26 6 6-28 22L4 38l6-6z" fill="#ff8a3d" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M12.5 12.5l8 7.5-6.5 4zM51.5 12.5l-8 7.5 6.5 4z" fill="#1a1a1a"/>
+  <path d="M4 38l28 22 28-22-16-4-12 10-12-10z" fill="#fff8ec" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M18 29q5-5 10 0q-5 3-10 0zM46 29q-5-5-10 0q5 3 10 0z" fill="#1a1a1a"/>
+  <path d="M28 51h8q0 4-4 5.5q-4-1.5-4-5.5z" fill="#1a1a1a"/>
+ </symbol>
+ <!-- S1: dot eyes, no inner ears, no tufts -->
+ <symbol id="s1" viewBox="0 0 66 66">
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#1a1a1a" transform="translate(3 3)"/>
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#ff8a3d" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M10 36l22 24 22-24-12-4-10 9-10-9z" fill="#fff8ec" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>
+  <circle cx="23" cy="29" r="3" fill="#1a1a1a"/><circle cx="41" cy="29" r="3" fill="#1a1a1a"/>
+  <circle cx="32" cy="55" r="3" fill="#1a1a1a"/>
+ </symbol>
+ <!-- S2: no face at all, just head + mask -->
+ <symbol id="s2" viewBox="0 0 66 66">
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#1a1a1a" transform="translate(3 3)"/>
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#ff8a3d" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M10 36l22 24 22-24-12-4-10 9-10-9z" fill="#fff8ec" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>
+ </symbol>
+ <!-- S3: flat, no outline, no shadow -->
+ <symbol id="s3" viewBox="0 0 66 66">
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#ff8a3d"/>
+  <path d="M10 36l22 24 22-24-12-4-10 9-10-9z" fill="#fff8ec"/>
+  <circle cx="23" cy="29" r="3" fill="#1a1a1a"/><circle cx="41" cy="29" r="3" fill="#1a1a1a"/>
+  <circle cx="32" cy="55" r="3" fill="#1a1a1a"/>
+ </symbol>
+ <!-- S4: soft rounded corners -->
+ <symbol id="s4" viewBox="0 0 66 66">
+  <g stroke-linejoin="round" stroke-linecap="round">
+  <path d="M10 8l14 12h16l14-12-1 28-21 22-21-22z" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="7" transform="translate(3 3)"/>
+  <path d="M10 8l14 12h16l14-12-1 28-21 22-21-22z" fill="#ff8a3d" stroke="#1a1a1a" stroke-width="7"/>
+  <path d="M10 8l14 12h16l14-12-1 28-21 22-21-22z" fill="#ff8a3d" stroke="#ff8a3d" stroke-width="1"/>
+  <path d="M12 37l20 20 20-20-11-4-9 8-9-8z" fill="#fff8ec" stroke="#1a1a1a" stroke-width="3"/>
+  </g>
+  <circle cx="23" cy="29" r="3" fill="#1a1a1a"/><circle cx="41" cy="29" r="3" fill="#1a1a1a"/>
+  <circle cx="32" cy="53" r="3" fill="#1a1a1a"/>
+ </symbol>
+ <!-- S5: one-colour outline -->
+ <symbol id="s5" viewBox="0 0 66 66">
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M10 36l12-4 10 9 10-9 12 4" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="23" cy="27" r="3" fill="currentColor"/><circle cx="41" cy="27" r="3" fill="currentColor"/>
+ </symbol>
+ <!-- S6: orange head + ink outline, no mask -->
+ <symbol id="s6" viewBox="0 0 66 66">
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#1a1a1a" transform="translate(3 3)"/>
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#ff8a3d" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>
+  <circle cx="23" cy="31" r="3" fill="#1a1a1a"/><circle cx="41" cy="31" r="3" fill="#1a1a1a"/>
+  <path d="M28 45h8l-4 5z" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="2" stroke-linejoin="round"/>
+ </symbol>
+
+ <symbol id="p1" viewBox="0 0 66 66">
+  <path d="M8 6l16 14h16l16-14-2 26 6 6-28 22L4 38l6-6z" fill="#1a1a1a" transform="translate(3 3)"/>
+  <path d="M8 6l16 14h16l16-14-2 26 6 6-28 22L4 38l6-6z" fill="#ff8a3d" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M12.5 12.5l8 7.5-6.5 4zM51.5 12.5l-8 7.5 6.5 4z" fill="#1a1a1a"/>
+  <path d="M4 38l28 22 28-22-16-4-12 10-12-10z" fill="#fff8ec" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M16.7 48l3.8-2.5 3.8 2.5 3.8-2.5 3.9 2.5 3.9-2.5 3.8 2.5 3.8-2.5 3.8 2.5L32 60z" fill="#f3c98b" stroke="#1a1a1a" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M25.6 55L32 60l6.4-5z" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M18 26q5-5 10 0q-5 3-10 0zM46 26q-5-5-10 0q5 3 10 0z" fill="#1a1a1a"/>
+ </symbol>
+ <symbol id="p2" viewBox="0 0 66 66">
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#1a1a1a" transform="translate(3 3)"/>
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#ff8a3d" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M10 36l22 24 22-24-12-4-10 9-10-9z" fill="#fff8ec" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M21 48l2.75-2.5 2.75 2.5 2.75-2.5 2.75 2.5 2.75-2.5 2.75 2.5 2.75-2.5 2.75 2.5L32 60z" fill="#f3c98b" stroke="#1a1a1a" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M27.4 55L32 60l4.6-5z" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="23" cy="26" r="3" fill="#1a1a1a"/><circle cx="41" cy="26" r="3" fill="#1a1a1a"/>
+ </symbol>
+
+ <symbol id="n1" viewBox="0 0 66 66">
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#ff8a3d"/>
+  <path d="M10 36l22 24 22-24-12-4-10 9-10-9z" fill="#fff8ec"/>
+  <path d="M26.5 54h11L32 60z" fill="#1a1a1a"/>
+  <circle cx="23" cy="26" r="3" fill="#1a1a1a"/><circle cx="41" cy="26" r="3" fill="#1a1a1a"/>
+ </symbol>
+ <symbol id="n2" viewBox="0 0 66 66">
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#ff8a3d"/>
+  <path d="M10 36l22 24 22-24-12-4-10 9-10-9z" fill="#ffe2bf"/>
+  <path d="M26.5 54h11L32 60z" fill="#1a1a1a"/>
+  <circle cx="23" cy="26" r="3" fill="#1a1a1a"/><circle cx="41" cy="26" r="3" fill="#1a1a1a"/>
+ </symbol>
+
+ <symbol id="o1" viewBox="-2 2 70 62">
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#fff" stroke="#fff" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#ff8a3d"/>
+  <path d="M10 36l22 24 22-24-12-4-10 9-10-9z" fill="#fff8ec"/>
+  <path d="M26.5 54h11L32 60z" fill="#1a1a1a"/>
+  <circle cx="23" cy="26" r="3" fill="#1a1a1a"/><circle cx="41" cy="26" r="3" fill="#1a1a1a"/>
+ </symbol>
+ <symbol id="o2" viewBox="-2 2 70 62">
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#fff" stroke="#fff" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#f9a825"/>
+  <path d="M10 36l22 24 22-24-12-4-10 9-10-9z" fill="#fff8ec"/>
+  <path d="M26.5 54h11L32 60z" fill="#1a1a1a"/>
+  <circle cx="23" cy="26" r="3" fill="#1a1a1a"/><circle cx="41" cy="26" r="3" fill="#1a1a1a"/>
+ </symbol>
+ <symbol id="o3" viewBox="-2 2 70 62">
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#fff" stroke="#fff" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#ffbf1f"/>
+  <path d="M10 36l22 24 22-24-12-4-10 9-10-9z" fill="#fff8ec"/>
+  <path d="M26.5 54h11L32 60z" fill="#1a1a1a"/>
+  <circle cx="23" cy="26" r="3" fill="#1a1a1a"/><circle cx="41" cy="26" r="3" fill="#1a1a1a"/>
+ </symbol>
+</defs></svg>
+
+<div class="grid" id="grid"></div>
+<script>
+const concepts=[
+ ['o2','Pencil orange','Warmer yellow-orange, like a classic pencil, with the white outline.'],
+ ['o3','Pencil yellow','Brighter, closer to a #2 pencil yellow, with the white outline.'],
+ ['o1','S3 flat, v2 + outline','White outline around the outside, on every background.'],
+ ['n1','S3 flat, v2','Bigger triangle nose that forms the bottom point of the face. Eyes higher, well clear of the cream.'],
+ ['n2','S3 flat, v2 tinted','Same, with a warmer cream so the face shape still shows on light backgrounds.'],
+ ['p1','P1. Pencil (current)','The current fox: the bottom of the snout is now a sharpened pencil tip, and the eyes sit higher.'],
+ ['p2','P2. Pencil (S1)','Same pencil tip on the simpler S1 fox, eyes moved up.'],
+ ['s0','Current','What the site uses now, for comparison.'],
+ ['s1','S1. Clean','Dot eyes and nose, no inner ears or cheek tufts. Simplest version that still has a face.'],
+ ['s2','S2. Faceless','Just the head and the white mask. Very iconic, very minimal.'],
+ ['s3','S3. Flat','No outline and no shadow. Calm and modern.'],
+ ['s4','S4. Soft','Rounded corners everywhere, so it feels friendlier.'],
+ ['s5','S5. Line','A single-colour outline. Matches the text colour, light or dark.'],
+ ['s6','S6. Solid','All orange with dot eyes and a nose, no white mask.'],
+];
+document.getElementById('grid').innerHTML=concepts.map(([id,t,d])=>`
+ <div class="card"><h2>${t}</h2><p>${d}</p>
+  <div class="lockup"><svg><use href="#${id}"/></svg><span>Study<span class="o">Fox</span></span></div>
+  <div class="lockup dark"><svg><use href="#${id}"/></svg><span>Study<span class="o">Fox</span></span></div>
+  <div class="sizes"><svg width="64" height="64"><use href="#${id}"/></svg><svg width="32" height="32"><use href="#${id}"/></svg><svg width="16" height="16"><use href="#${id}"/></svg></div>
+ </div>`).join('');
+</script>
+</body></html>
