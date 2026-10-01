@@ -52,7 +52,7 @@ export function termsView(root) {
   <p>You must be at least 13 years old. If you are under 18, you confirm that a parent or guardian has agreed to these terms for you.</p>
 
   <h2>2. Your account</h2>
-  <p>You can use StudyFox as a guest, with a device-only email account, or by signing in with Google or Apple. Keep your sign-in secure; you're responsible for activity on your account. Guest and email-account progress lives only on your device, so clearing your browser data will erase it.</p>
+  <p>You need an account to use StudyFox: a device-only email account, or by signing in with Google or Apple. Keep your sign-in secure; you're responsible for activity on your account. Email-account progress lives only on your device, so clearing your browser data will erase it.</p>
 
   <h2>3. Free service</h2>
   <p>StudyFox is free. We may add, change, or remove features at any time, and we may suspend or end the service.</p>

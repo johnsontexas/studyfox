@@ -63,9 +63,18 @@ function navHTML(path) {
   </div>`;
 }
 
+// Everything except these pages needs an account; guests are sent to sign in, then returned.
+const PUBLIC = ['/', '/login', '/signup', '/privacy', '/terms'];
+export const AFTER_LOGIN = 'sf_after_login';
+
 let cleanup = null;
 function router() {
   const path = (location.hash.slice(1) || '/').split('?')[0];
+  if (!store.user() && !PUBLIC.includes(path)) {
+    try { sessionStorage.setItem(AFTER_LOGIN, location.hash); } catch {}
+    location.replace('#/login');
+    return;
+  }
   const m = match(path) || match('/');
   if (cleanup) { try { cleanup(); } catch (e) { console.error(e); } cleanup = null; }
   document.body.classList.remove('testing', 'nav-open');

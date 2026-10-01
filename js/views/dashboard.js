@@ -43,7 +43,6 @@ export function dashboardView(root) {
       <div><h1>${u ? `Hi, ${esc(u.name)}` : 'Your dashboard'}</h1><p class="muted">${focus} prep · ${d.activity[today()] || 0} questions today</p></div>
       <div class="seg" id="focusSeg"><button data-f="SAT" class="${focus === 'SAT' ? 'on' : ''}">SAT</button><button data-f="ACT" class="${focus === 'ACT' ? 'on' : ''}">ACT</button></div>
     </div>
-    ${!u ? `<div class="banner">You're practicing as a guest. <a href="#/signup">Create a free account</a> to keep your progress under your name.</div>` : ''}
     ${hasInProgress() ? `<div class="banner accent row between wrap gap"><span>${icon('pause')} You have a test in progress: <b>${esc(d.inProgress.title)}</b></span><span class="row gap"><a class="btn primary sm" href="#/test">Resume</a><button class="btn sm ghost" id="discard">Discard</button></span></div>` : ''}
 
     <div class="kpis">

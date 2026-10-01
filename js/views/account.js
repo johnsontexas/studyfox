@@ -4,6 +4,13 @@ import { confirmBox } from '../tools.js';
 import { langOptions, profOptions } from '../i18n.js';
 import { cloudEnabled, signInWith, cloudSignOut, deleteCloudData } from '../cloud.js';
 
+// Where to go after signing in: the page a guest was bounced from, else the dashboard.
+export function takeAfterLogin() {
+  let h = null;
+  try { h = sessionStorage.getItem('sf_after_login'); sessionStorage.removeItem('sf_after_login'); } catch {}
+  return h && !/^#\/(login|signup)?$/.test(h) ? h : '#/dashboard';
+}
+
 const GOOGLE = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.5 12.3c0-.8-.1-1.5-.2-2.2H12v4.2h5.9a5 5 0 0 1-2.2 3.3v2.7h3.5c2.1-1.9 3.3-4.7 3.3-8z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.2-2.7l-3.5-2.7c-1 .7-2.2 1.1-3.7 1.1-2.9 0-5.3-1.9-6.2-4.5H2.2v2.8A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.8 14.2a6.6 6.6 0 0 1 0-4.3V7.1H2.2a11 11 0 0 0 0 9.9z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.1-3.1A11 11 0 0 0 2.2 7.1l3.6 2.8C6.7 7.3 9.1 5.4 12 5.4z"/></svg>';
 const APPLE = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8s2 .8 3.4.8c1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.7-1-2.7-4.1zM13.9 5c.7-.9 1.2-2 1.1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.2.1 2.3-.6 3-1.5z"/></svg>';
 const socialHTML = () => `
@@ -58,7 +65,7 @@ function authPage(root, mode) {
     try {
       if (signup) { await store.signup(f); Object.assign(store.data().settings, { focus: f.focus, lang: f.lang, english: f.lang === 'en' ? '' : f.english }); store.save(); toast(`Welcome to StudyFox, ${f.name || 'friend'}!`, 'good'); }
       else { await store.login(f.email, f.password); toast('Signed in.', 'good'); }
-      location.hash = '#/dashboard';
+      location.hash = takeAfterLogin();
     } catch (ex) { err.textContent = ex.message; }
   });
 }
@@ -73,7 +80,7 @@ export function settingsView(root) {
     <h1>Settings</h1>
     <div class="card stack">
       <h2 class="h3">Profile</h2>
-      ${u ? `<label>Name<input id="name" value="${esc(u.name)}"></label><p class="muted small">Signed in as ${esc(u.email || u.name)}${u.cloud ? ` with ${u.provider === 'apple' ? 'Apple' : 'Google'}. Progress syncs across your devices.` : ' (this device only).'}</p>` : `<p>You're using StudyFox as a guest. <a href="#/signup">Create an account</a> to keep your progress under your name.</p>`}
+      ${u ? `<label>Name<input id="name" value="${esc(u.name)}"></label><p class="muted small">Signed in as ${esc(u.email || u.name)}${u.cloud ? ` with ${u.provider === 'apple' ? 'Apple' : 'Google'}. Progress syncs across your devices.` : ' (this device only).'}</p>` : ''}
       <div class="grid2">
         <label>Main test<select id="focus"><option ${s.focus === 'SAT' ? 'selected' : ''}>SAT</option><option ${s.focus === 'ACT' ? 'selected' : ''}>ACT</option></select></label>
         <label>Test date<input id="testDate" type="date" value="${esc(s.testDate || '')}"></label>

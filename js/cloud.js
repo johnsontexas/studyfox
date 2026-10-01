@@ -2,6 +2,7 @@
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 import { store } from './store.js';
 import { toast } from './util.js';
+import { takeAfterLogin } from './views/account.js';
 
 export const cloudEnabled = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 let sb = null, pushTimer = null, ready = null;
@@ -48,15 +49,25 @@ export function initCloud() {
   if (!cloudEnabled) return;
   ready = (async () => {
     const c = await client();
-    c.auth.onAuthStateChange((event, session) => {
-      const user = session?.user;
-      if (event === 'SIGNED_OUT') { if (store.user()?.cloud) store.logout(); return; }
-      if (!user || store.user()?.id === user.id) return;
-      const m = user.user_metadata || {};
-      store.cloudLogin({ id: user.id, email: user.email || '', name: m.full_name || m.name || (user.email || 'Student').split('@')[0], provider: user.app_metadata?.provider });
-      setTimeout(() => pull(user).then(() => { toast('Signed in. Your progress is synced.', 'good'); if (!location.hash || location.hash === '#/login' || location.hash === '#/signup') location.hash = '#/dashboard'; }), 0);
-    });
+    // Finish the OAuth code exchange before touching the URL; stripping ?code= early loses the sign-in.
+    const { data: { session } } = await c.auth.getSession();
     if (location.search.includes('code=')) history.replaceState(null, '', location.pathname + (location.hash || '#/dashboard'));
+    const adopt = (user, fresh) => {
+      const m = user.user_metadata || {};
+      store.cloudLogin({ id: user.id, email: user.email || '', name: store.user()?.id === user.id ? store.user().name : (m.full_name || m.name || (user.email || 'Student').split('@')[0]), provider: user.app_metadata?.provider });
+      // Defer: Supabase calls made inside the auth callback can deadlock.
+      setTimeout(() => pull(user).then(() => {
+        if (!fresh) return;
+        toast('Signed in. Your progress is synced.', 'good');
+        if (!location.hash || location.hash === '#/' || location.hash === '#/login' || location.hash === '#/signup') location.hash = takeAfterLogin();
+      }), 0);
+    };
+    // Every load with a session pulls the latest cloud copy, so other devices' progress shows up.
+    if (session?.user) adopt(session.user, store.user()?.id !== session.user.id);
+    c.auth.onAuthStateChange((event, s) => {
+      if (event === 'SIGNED_OUT') { if (store.user()?.cloud) store.logout(); return; }
+      if (event === 'SIGNED_IN' && s?.user && store.user()?.id !== s.user.id) adopt(s.user, true);
+    });
   })();
   // Debounced push after every local save; flush when the tab is hidden.
   store.onSave(() => { clearTimeout(pushTimer); pushTimer = setTimeout(push, 2000); });

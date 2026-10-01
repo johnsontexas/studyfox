@@ -27,7 +27,7 @@ Before launch, get a free production key at https://www.desmos.com/api and repla
 
 ## Google and Apple sign-in (cross-device progress)
 
-Without setup, the site works fully offline: guest and email accounts save progress in the browser. To turn on Google/Apple sign-in and cloud sync:
+Every page except Home, Log in, Sign up, Privacy, and Terms requires an account. Without setup, the site works fully offline: email accounts save progress in the browser. To turn on Google/Apple sign-in and cloud sync:
 
 1. Create a free project at https://supabase.com.
 2. In the SQL editor, run `supabase/schema.sql` (creates the `progress` table with per-user access rules).
