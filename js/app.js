@@ -4,7 +4,7 @@ import { $, esc } from './util.js';
 import { store } from './store.js';
 import { initI18n } from './i18n.js';
 import { homeView } from './views/home.js';
-import { loginView, signupView, settingsView } from './views/account.js';
+import { loginView, signupView, settingsView, requireAgreement } from './views/account.js';
 import { dashboardView } from './views/dashboard.js';
 import { practiceView, reviewView } from './views/practice.js';
 import { examsView } from './views/exams.js';
@@ -75,6 +75,7 @@ function router() {
     location.replace('#/login');
     return;
   }
+  if (!['/privacy', '/terms'].includes(path)) requireAgreement();
   const m = match(path) || match('/');
   if (cleanup) { try { cleanup(); } catch (e) { console.error(e); } cleanup = null; }
   document.body.classList.remove('testing', 'nav-open');
@@ -94,7 +95,7 @@ function boot() {
       <div class="foot-brand"><b>${BRAND}</b><p>Free study material for school and the SAT and ACT, made by ${CREATOR}. No ads, no paywalls, no limits.</p>
         <a class="foot-ig" href="https://instagram.com/${INSTAGRAM}" target="_blank" rel="noopener">${icon('instagram')}@${INSTAGRAM}</a></div>
       <nav class="foot-links" aria-label="Footer"><a href="#/learn">Courses</a><a href="#/practice">SAT &amp; ACT</a><a href="#/flashcards">Flashcards</a><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a></nav>
-      <p class="foot-legal">SAT® and ACT® are trademarks of their respective owners, which are not affiliated with and do not endorse this site. Questions are original and generated for practice; scores are estimates.</p>
+      <p class="foot-legal">SAT®, AP®, and ACT® are trademarks of their respective owners, which are not affiliated with and do not endorse this site. Questions are original and generated for practice; scores are estimates.</p>
     </div></footer>`;
   applyTheme();
   initI18n();
@@ -108,7 +109,7 @@ function boot() {
     if (e.target.closest('#menuBtn')) document.body.classList.toggle('nav-open');
     else if (e.target.closest('#navLinks a')) document.body.classList.remove('nav-open');
   });
-  store.onChange(() => { applyTheme(); $('#nav').innerHTML = navHTML((location.hash.slice(1) || '/').split('?')[0]); });
+  store.onChange(() => { applyTheme(); const p = (location.hash.slice(1) || '/').split('?')[0]; if (!['/privacy', '/terms', '/login', '/signup'].includes(p)) requireAgreement(); $('#nav').innerHTML = navHTML((location.hash.slice(1) || '/').split('?')[0]); });
   addEventListener('hashchange', router);
   router();
 }

@@ -2,6 +2,7 @@ import { $, esc, toast } from '../util.js';
 import { store } from '../store.js';
 import { confirmBox } from '../tools.js';
 import { langOptions, profOptions } from '../i18n.js';
+import { TERMS_VERSION } from './legal.js';
 import { cloudEnabled, signInWith, cloudSignOut, deleteCloudData } from '../cloud.js';
 
 // Where to go after signing in: the page a guest was bounced from, else the dashboard.
@@ -19,7 +20,11 @@ const socialHTML = () => `
     <button class="btn block lg apple" type="button" data-oauth="apple">${APPLE}Continue with Apple</button>
   </div>
   <div class="or"><span>or use email</span></div>`;
-const agreeHTML = (signup) => `<p class="muted small center">By ${signup ? 'creating an account' : 'continuing'}, you agree to the <a href="#/terms">Terms of Use</a> and <a href="#/privacy">Privacy Policy</a>.</p>`;
+const agreeHTML = (signup) => signup
+  ? `<label class="check agree"><input type="checkbox" id="agree" required> <span>I'm 13 or older, and I agree to the <a href="#/terms" target="_blank">Terms of Use</a> and <a href="#/privacy" target="_blank">Privacy Policy</a>.</span></label>`
+  : `<p class="muted small center">By continuing, you agree to the <a href="#/terms">Terms of Use</a> and <a href="#/privacy">Privacy Policy</a>.</p>`;
+export const recordAgreement = () => { store.data().settings.legal = { version: TERMS_VERSION, at: new Date().toISOString() }; store.save(); };
+const needAgree = (root) => { const a = $('#agree', root); if (a && !a.checked) { $('#err', root).textContent = 'Please confirm you are 13 or older and agree to the Terms and Privacy Policy.'; a.focus(); return true; } return false; };
 
 // English speakers aren't asked about English proficiency.
 const langFields = (lang, prof) => `
@@ -36,6 +41,7 @@ function authPage(root, mode) {
       <div class="auth-logo"><svg class="logo" viewBox="-2 2 70 62" aria-hidden="true"><path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#fff" stroke="#fff" stroke-width="6" stroke-linejoin="round"/><path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#f9a825"/><path d="M10 36l22 24 22-24-12-4-10 9-10-9z" fill="#fff8ec"/><path d="M26.5 54h11L32 60z" fill="#1a1a1a"/><circle cx="23" cy="26" r="3" fill="#1a1a1a"/><circle cx="41" cy="26" r="3" fill="#1a1a1a"/></svg></div>
       <h1>${signup ? 'Create your free account' : 'Sign in'}</h1>
       <p class="muted center">${signup ? 'Save your scores, mistakes, and flashcards. Free forever.' : 'Welcome back. Pick up where you left off.'}</p>
+      ${signup ? agreeHTML(true) : ''}
       ${socialHTML()}
       <form id="authForm" class="stack" novalidate>
         ${signup ? '<label>Name<input name="name" autocomplete="name" required placeholder="Your first name"></label>' : ''}
@@ -46,14 +52,15 @@ function authPage(root, mode) {
         <button class="btn primary block lg" type="submit">${signup ? 'Create account' : 'Sign in'}</button>
       </form>
       <p class="center small">${signup ? 'Already have an account? <a href="#/login">Sign in</a>' : 'New here? <a href="#/signup">Create a free account</a>'}</p>
-      ${agreeHTML(signup)}
+      ${signup ? '' : agreeHTML(false)}
       <p class="note">${cloudEnabled ? 'Google and Apple accounts sync your progress across devices. Email accounts are stored on this device only.' : 'Email accounts are stored on this device only. Use <b>Settings → Export</b> to move your progress to another device.'}</p>
     </div>
   </div>`;
   if (signup) wireLang(root);
   root.querySelectorAll('[data-oauth]').forEach((b) => b.addEventListener('click', async () => {
     const err = $('#err', root); err.textContent = '';
-    if (signup) { const f = $('#authForm', root); const lang = f.lang.value; Object.assign(store.data().settings, { focus: f.focus.value, lang, english: lang === 'en' ? '' : f.english.value }); store.save(); }
+    if (needAgree(root)) return;
+    if (signup) { const f = $('#authForm', root); const lang = f.lang.value; Object.assign(store.data().settings, { focus: f.focus.value, lang, english: lang === 'en' ? '' : f.english.value }); recordAgreement(); }
     try { b.disabled = true; await signInWith(b.dataset.oauth); } catch (ex) { err.textContent = ex.message; b.disabled = false; }
   }));
   $('#authForm', root).addEventListener('submit', async (e) => {
@@ -61,9 +68,10 @@ function authPage(root, mode) {
     const f = Object.fromEntries(new FormData(e.target));
     const err = $('#err', root);
     err.textContent = '';
+    if (needAgree(root)) return;
     if (!/^\S+@\S+\.\S+$/.test(f.email || '')) { err.textContent = 'Please enter a valid email address.'; return; }
     try {
-      if (signup) { await store.signup(f); Object.assign(store.data().settings, { focus: f.focus, lang: f.lang, english: f.lang === 'en' ? '' : f.english }); store.save(); toast(`Welcome to StudyFox, ${f.name || 'friend'}!`, 'good'); }
+      if (signup) { await store.signup(f); Object.assign(store.data().settings, { focus: f.focus, lang: f.lang, english: f.lang === 'en' ? '' : f.english }); recordAgreement(); toast(`Welcome to StudyFox, ${f.name || 'friend'}!`, 'good'); }
       else { await store.login(f.email, f.password); toast('Signed in.', 'good'); }
       location.hash = takeAfterLogin();
     } catch (ex) { err.textContent = ex.message; }
@@ -128,4 +136,21 @@ export function settingsView(root) {
   $('#resetBtn', root).onclick = async () => {
     if (await confirmBox('This permanently deletes your scores, mistake log, and flashcard sets on this device.', { ok: 'Reset everything', danger: true })) { store.resetAll(); toast('Progress reset.'); settingsView(root); }
   };
+}
+
+// Blocking prompt for signed-in users who haven't accepted the current Terms (OAuth sign-ins, or after a policy update).
+export function requireAgreement() {
+  const s = store.data().settings;
+  if (!store.user() || s.legal?.version === TERMS_VERSION || document.querySelector('.agree-gate')) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'modal-wrap agree-gate';
+  wrap.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-label="Terms of Use"><div class="modal-head"><h3>${s.legal ? 'We updated our Terms' : 'One more step'}</h3></div><div class="modal-body stack">
+    <p>${s.legal ? 'Our Terms of Use or Privacy Policy changed. Please review and accept them to keep using StudyFox.' : 'Before you start, please review and accept our Terms of Use and Privacy Policy.'}</p>
+    <label class="check agree"><input type="checkbox" id="gateAgree"> <span>I'm 13 or older, and I agree to the <a href="#/terms" target="_blank">Terms of Use</a> and <a href="#/privacy" target="_blank">Privacy Policy</a>.</span></label>
+    <div class="row end gap"><button class="btn ghost" data-out>Sign out</button><button class="btn primary" data-ok disabled>Continue</button></div></div></div>`;
+  const box = wrap.querySelector('#gateAgree'), ok = wrap.querySelector('[data-ok]');
+  box.onchange = () => { ok.disabled = !box.checked; };
+  ok.onclick = () => { recordAgreement(); wrap.remove(); };
+  wrap.querySelector('[data-out]').onclick = async () => { if (store.user()?.cloud) await cloudSignOut(); store.logout(); wrap.remove(); location.hash = '#/'; };
+  document.body.appendChild(wrap);
 }

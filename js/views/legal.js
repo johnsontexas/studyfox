@@ -1,7 +1,9 @@
 // Privacy Policy and Terms of Use.
 import { CONTACT_EMAIL } from '../config.js';
 
-const UPDATED = 'September 29, 2026';
+const UPDATED = 'October 1, 2026';
+// Bump when the Terms or Privacy Policy change materially; signed-in users are asked to accept again.
+export const TERMS_VERSION = '2026-10-01';
 const mail = `<a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a>`;
 const page = (title, body) => `<div class="page narrow legal"><h1>${title}</h1><p class="muted">Last updated ${UPDATED}</p>${body}</div>`;
 
@@ -19,6 +21,9 @@ export function privacyView(root) {
   <h2>What we don't collect</h2>
   <p>We don't use advertising, analytics trackers, or tracking cookies, and we don't build profiles about you. We don't ask for your school, grades, address, or phone number.</p>
 
+  <h2>Cookies and local storage</h2>
+  <p>StudyFox does not use advertising or analytics cookies. We use your browser's local storage, and our sign-in provider may set a session token, only to keep you signed in and to save your progress and settings. These are strictly necessary for the site to work, so we don't show a cookie banner. When pages load fonts, code libraries, or the Desmos calculator from the providers below, those providers receive your IP address as part of the normal web request.</p>
+
   <h2>How we use your information</h2>
   <p>Only to run the site: to sign you in, save and sync your progress, and keep the service secure. We do not sell, rent, or share your personal information for marketing.</p>
 
@@ -27,6 +32,9 @@ export function privacyView(root) {
 
   <h2>Students and children</h2>
   <p>StudyFox is intended for students and other learners aged 13 and older. We do not knowingly collect personal information from children under 13. If you believe a child under 13 has created an account, contact us and we will delete it. Users under 18 should use StudyFox with the permission of a parent or guardian.</p>
+
+  <h2>Parents and guardians</h2>
+  <p>A parent or guardian can ask us to see or delete a student's data by emailing ${mail} from, or about, the account's email address.</p>
 
   <h2>Keeping and deleting your data</h2>
   <p>We keep synced progress until you delete it. You can delete it at any time in <a href="#/settings">Settings → Delete account data</a>, which removes it from our database and your device. You can also export a copy of your data in Settings. Local-only data can be erased with <b>Reset all progress</b> or by clearing your browser's site data.</p>
@@ -64,7 +72,7 @@ export function termsView(root) {
   <p>The practice questions, explanations, and site design are owned by StudyFox and are provided for your personal, non-commercial study. Flashcard sets you create belong to you; by sharing a set link, you let anyone with the link view and copy it.</p>
 
   <h2>6. Not affiliated with the test makers</h2>
-  <p>SAT® is a trademark of the College Board, and ACT® is a trademark of ACT, Inc. Neither is affiliated with or endorses StudyFox. Our questions are original practice material, and score estimates are approximations that may differ from your official scores.</p>
+  <p>SAT® is a trademark of the College Board, and ACT® is a trademark of ACT, Inc. AP® and Advanced Placement® are trademarks of the College Board. None of these organizations is affiliated with or endorses StudyFox. Our questions are original practice material, and score estimates are approximations that may differ from your official scores.</p>
 
   <h2>7. No warranty</h2>
   <p>StudyFox is provided "as is" without warranties of any kind. We don't guarantee that the site will be error-free or always available, or that using it will improve your score.</p>
@@ -72,12 +80,18 @@ export function termsView(root) {
   <h2>8. Limitation of liability</h2>
   <p>To the fullest extent allowed by law, StudyFox is not liable for any indirect, incidental, or consequential damages, or for any loss of data, arising from your use of the site.</p>
 
-  <h2>9. Ending your use</h2>
+  <h2>9. Copyright complaints</h2>
+  <p>If you believe something on StudyFox infringes your copyright, email ${mail} with the material, where it appears, and your contact information, and we will review and remove it if appropriate.</p>
+
+  <h2>10. Ending your use</h2>
   <p>You can stop using StudyFox and delete your data at any time from <a href="#/settings">Settings</a>.</p>
 
-  <h2>10. Changes</h2>
-  <p>We may update these terms. Continuing to use StudyFox after an update means you accept the new terms.</p>
+  <h2>11. Changes</h2>
+  <p>We may update these terms. If the changes are significant, we'll ask you to accept the new terms the next time you sign in.</p>
 
-  <h2>11. Contact</h2>
+  <h2>12. Governing law</h2>
+  <p>These terms are governed by the laws of the State of Texas, USA, without regard to conflict-of-law rules, except where the law of your home country requires otherwise.</p>
+
+  <h2>13. Contact</h2>
   <p>Questions? Email ${mail}. See also our <a href="#/privacy">Privacy Policy</a>.</p>`);
 }
