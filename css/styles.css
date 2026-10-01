@@ -258,8 +258,14 @@ mark.hl { background: var(--accent); color: #111; border-radius: 2px; cursor: po
 .auth-wrap { min-height: 75vh; display: grid; place-items: center; padding: 2rem 1rem; }
 .auth { width: min(420px, 100%); } .auth h1 { text-align: center; font-size: 1.6rem; }
 .auth-logo { display: flex; justify-content: center; } .auth-logo .logo { width: 56px; height: 56px; }
-.check.agree { display: flex; gap: .6rem; align-items: flex-start; font-size: .9rem; color: var(--ink-2); margin: .4rem 0 .8rem; cursor: pointer; }
-.check.agree input { width: 1.1rem; height: 1.1rem; margin-top: .15rem; flex: none; accent-color: var(--brand); }
+.welcome fieldset { border: 0; padding: 0; margin: 0; } .welcome legend { font-weight: 600; margin-bottom: .5rem; padding: 0; }
+.goals { display: flex; flex-wrap: wrap; gap: .45rem; }
+.goal { display: inline-flex !important; align-items: center; gap: .4rem; padding: .4rem .75rem; border: 1px solid var(--line-strong); border-radius: 6px; font-size: .9rem; cursor: pointer; font-weight: 500 !important; }
+.goal:has(input:checked) { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-2); }
+.goal input { accent-color: var(--brand); margin: 0; width: auto; }
+.consents { border-top: 1px solid var(--line); padding-top: .8rem; }
+.consent { display: flex; gap: .6rem; align-items: flex-start; font-size: .9rem; color: var(--ink-2); margin: .4rem 0 .8rem; cursor: pointer; }
+.consent input { width: 1.1rem; height: 1.1rem; margin-top: .15rem; flex: none; accent-color: var(--brand); }
 .form-err { color: var(--bad); font-size: .9rem; min-height: 1.2em; }
 
 /* ---------- dashboard ---------- */

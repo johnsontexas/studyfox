@@ -16,6 +16,7 @@ import { speedView } from './views/speed.js';
 import { learnHubView, courseView, lessonView } from './views/learn.js';
 import { privacyView, termsView } from './views/legal.js';
 import { initCloud } from './cloud.js';
+import { welcomeView, ageBlockedView, ageBlockedUntil, needsOnboarding } from './views/welcome.js';
 import { CREATOR, INSTAGRAM } from './config.js';
 
 export const BRAND = 'StudyFox';
@@ -28,7 +29,7 @@ const routes = [
   ['/flashcards/:id/learn', learnView], ['/flashcards/:id/test', testView], ['/flashcards/:id/match', matchView], ['/share/:data', importView],
   ['/learn', learnHubView], ['/learn/:course', courseView], ['/learn/:course/:lesson', lessonView],
   ['/formulas', formulasView], ['/calculator', calculatorView], ['/speed', speedView],
-  ['/privacy', privacyView], ['/terms', termsView],
+  ['/privacy', privacyView], ['/terms', termsView], ['/welcome', welcomeView], ['/too-young', ageBlockedView],
 ];
 
 function match(path) {
@@ -64,7 +65,7 @@ function navHTML(path) {
 }
 
 // Everything except these pages needs an account; guests are sent to sign in, then returned.
-const PUBLIC = ['/', '/login', '/signup', '/privacy', '/terms'];
+const PUBLIC = ['/', '/login', '/signup', '/privacy', '/terms', '/too-young'];
 export const AFTER_LOGIN = 'sf_after_login';
 
 let cleanup = null;
@@ -76,6 +77,14 @@ function router() {
     return;
   }
   if (!['/privacy', '/terms'].includes(path)) requireAgreement();
+  // Under-13 sign-ups are blocked on this device until their 13th birthday.
+  if (ageBlockedUntil() && ['/login', '/signup', '/welcome'].includes(path)) { location.replace('#/too-young'); return; }
+  // New accounts finish onboarding (age, goals, terms) before using the site.
+  if (needsOnboarding() && !['/welcome', '/privacy', '/terms'].includes(path)) {
+    if (!['/', '/login', '/signup'].includes(path)) try { sessionStorage.setItem(AFTER_LOGIN, location.hash); } catch {}
+    location.replace('#/welcome');
+    return;
+  }
   const m = match(path) || match('/');
   if (cleanup) { try { cleanup(); } catch (e) { console.error(e); } cleanup = null; }
   document.body.classList.remove('testing', 'nav-open');
@@ -85,7 +94,7 @@ function router() {
   scrollTo(0, 0);
   try { cleanup = m.view(main, m.params) || null; }
   catch (e) { console.error(e); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><pre class="err">${esc(e.stack || e)}</pre><a class="btn" href="#/">Go home</a></div>`; }
-  const title = { '/': 'Free Study Material for School', '/learn': 'Free Courses', '/privacy': 'Privacy Policy', '/terms': 'Terms of Use', '/speed': 'Speed Practice' }[path] || (path.startsWith('/learn') ? 'Free Courses' : null) || path.split('/')[1]?.replace(/^\w/, (c) => c.toUpperCase());
+  const title = { '/': 'Free Study Material for School', '/learn': 'Free Courses', '/privacy': 'Privacy Policy', '/terms': 'Terms of Use', '/speed': 'Speed Practice', '/welcome': 'Welcome', '/too-young': 'Welcome' }[path] || (path.startsWith('/learn') ? 'Free Courses' : null) || path.split('/')[1]?.replace(/^\w/, (c) => c.toUpperCase());
   document.title = `${BRAND} · ${title || 'Free Study Material for School'}`;
 }
 
@@ -109,7 +118,7 @@ function boot() {
     if (e.target.closest('#menuBtn')) document.body.classList.toggle('nav-open');
     else if (e.target.closest('#navLinks a')) document.body.classList.remove('nav-open');
   });
-  store.onChange(() => { applyTheme(); const p = (location.hash.slice(1) || '/').split('?')[0]; if (!['/privacy', '/terms', '/login', '/signup'].includes(p)) requireAgreement(); $('#nav').innerHTML = navHTML((location.hash.slice(1) || '/').split('?')[0]); });
+  store.onChange(() => { applyTheme(); const p = (location.hash.slice(1) || '/').split('?')[0]; if (!['/privacy', '/terms', '/login', '/signup', '/welcome'].includes(p)) requireAgreement(); if (needsOnboarding() && !['/welcome', '/privacy', '/terms'].includes(p)) location.replace('#/welcome'); $('#nav').innerHTML = navHTML((location.hash.slice(1) || '/').split('?')[0]); });
   addEventListener('hashchange', router);
   router();
 }

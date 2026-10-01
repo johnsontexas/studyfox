@@ -15,17 +15,19 @@ export function privacyView(root) {
   <ul>
     <li><b>If you use StudyFox without an account or with an email account:</b> your progress (answers, scores, mistake log, flashcards, and settings) is stored only in your browser's local storage on your device. It is not sent to us. Email-account passwords are stored on your device as a salted hash.</li>
     <li><b>If you sign in with Google or Apple:</b> we receive your name, email address, and an account ID from that provider. If you use Apple's "Hide My Email," we receive a relay address instead. We store your progress on our database provider so it syncs across your devices.</li>
+    <li><b>When you set up your account:</b> your date of birth (to confirm you are 13 or older), your grade, what you're studying for, your language, and whether you want emails from us. This is saved with your progress.</li>
+    <li><b>If you're under 13:</b> we don't create an account. We delete what you entered and only remember on your device the date you can come back.</li>
     <li><b>Technical data:</b> our hosting and database providers may keep standard server logs (such as IP address, browser type, and time of request) for security and reliability.</li>
   </ul>
 
   <h2>What we don't collect</h2>
-  <p>We don't use advertising, analytics trackers, or tracking cookies, and we don't build profiles about you. We don't ask for your school, grades, address, or phone number.</p>
+  <p>We don't use advertising, analytics trackers, or tracking cookies, and we don't build profiles about you. We don't ask for your school, address, or phone number.</p>
 
   <h2>Cookies and local storage</h2>
   <p>StudyFox does not use advertising or analytics cookies. We use your browser's local storage, and our sign-in provider may set a session token, only to keep you signed in and to save your progress and settings. These are strictly necessary for the site to work, so we don't show a cookie banner. When pages load fonts, code libraries, or the Desmos calculator from the providers below, those providers receive your IP address as part of the normal web request.</p>
 
   <h2>How we use your information</h2>
-  <p>Only to run the site: to sign you in, save and sync your progress, and keep the service secure. We do not sell, rent, or share your personal information for marketing.</p>
+  <p>To run the site: to sign you in, save and sync your progress, tailor what you see to your goals, and keep the service secure. If you opt in, we use your email address to send occasional news about StudyFox and study opportunities; every email has a way to stop them, and you can turn them off in Settings. We do not sell, rent, or share your personal information for marketing.</p>
 
   <h2>Service providers</h2>
   <p>We rely on a small number of providers to operate StudyFox: Supabase (authentication and database), Google and Apple (sign-in), our website host, and content delivery networks that serve fonts and code libraries (Google Fonts, jsDelivr). The built-in calculator is provided by Desmos and loads from their servers. Each provider handles data under its own privacy policy.</p>

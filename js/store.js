@@ -98,6 +98,14 @@ export const store = {
   },
   mergeIn(remote) { cache = merge(this.data(), remote); cacheKey = dataKey(); write(dataKey(), cache); this.emit(); },
   logout() { localStorage.removeItem(K_SESSION); cache = null; this.emit(); },
+  // Removes the signed-in account and all of its data from this device, then signs out.
+  forgetAccount() {
+    const e = read(K_SESSION, null); if (!e) return;
+    const key = e.startsWith('cloud:') ? K_CLOUD : K_USERS;
+    const all = read(key, {}); delete all[e]; write(key, all);
+    localStorage.removeItem('fm_data_' + e); localStorage.removeItem('fm_data_guest');
+    this.logout();
+  },
   updateProfile({ name }) {
     const e = read(K_SESSION, null); if (!e) return;
     if (e.startsWith('cloud:')) { const c = read(K_CLOUD, {}); c[e].name = name; write(K_CLOUD, c); this.emit(); return; }
