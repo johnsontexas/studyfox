@@ -1,4 +1,5 @@
 // Original Reading & Writing items written for StudyFox.
+import { VOCAB_2, TRANSITIONS_2, CONVENTIONS_2, PASSAGES_2, SYNTHESIS_2 } from './rw-bank-2.js';
 // a = correct answer, w = wrong answers, x = explanation, d = difficulty (1-3)
 
 export const VOCAB = [
@@ -125,3 +126,5 @@ export const QUANT_TOPICS = [
   { unit: 'breeding pairs', what: 'breeding pairs of a shorebird counted', a: 'North Island', b: 'South Island', claim: 'the shorebird population', noun: 'the count' },
   { unit: 'million dollars', what: 'annual revenue from ticket sales', a: 'Theater Company X', b: 'Theater Company Y', claim: 'ticket revenue', noun: 'revenue' },
 ];
+
+VOCAB.push(...VOCAB_2); TRANSITIONS.push(...TRANSITIONS_2); CONVENTIONS.push(...CONVENTIONS_2); PASSAGES.push(...PASSAGES_2); SYNTHESIS.push(...SYNTHESIS_2);

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Returning to StudyFox</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; font: 17px -apple-system, system-ui, sans-serif; background: #f5f7f2; color: #14231a; text-align: center; padding: 24px; box-sizing: border-box; }
+  @media (prefers-color-scheme: dark) { body { background: #0a0f0c; color: #e8efe9; } }
+  a { display: inline-block; margin-top: 16px; padding: 14px 22px; border-radius: 14px; background: #1f6b47; color: #fff; text-decoration: none; font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <p id="msg">Signing you in to the StudyFox app…</p>
+  <a id="open" href="#" hidden>Open StudyFox</a>
+</main>
+<script>
+  // Google sign-in for the iOS app returns here (studyfox.org is always an allowed Supabase redirect),
+  // then this page hands the one-time sign-in code back to the app. Only app links are allowed as targets.
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var to = q.get('to') || '';
+    if (!/^(studyfox|exp|exps):\/\//.test(to)) { document.getElementById('msg').textContent = 'This link only works from the StudyFox app.'; return; }
+    q.delete('to');
+    var h = new URLSearchParams(location.hash.slice(1));
+    h.forEach(function (v, k) { if (!q.has(k)) q.set(k, v); });
+    var target = to + (to.indexOf('?') < 0 ? '?' : '&') + q.toString();
+    var a = document.getElementById('open');
+    a.href = target;
+    location.replace(target);
+    setTimeout(function () { a.hidden = false; document.getElementById('msg').textContent = 'Tap below if the app didn’t open.'; }, 1200);
+  })();
+</script>
+</body>
+</html>

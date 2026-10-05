@@ -6,6 +6,7 @@ import { L, tagLine } from '../qview.js';
 import { COURSES, SUBJECTS, lessonCount } from '../content/courses.js';
 import { CREATOR, INSTAGRAM } from '../config.js';
 import { bank } from '../gen/bank.js';
+import { newsWidget } from './news.js';
 
 export function qotdWidget(root, test) {
   const q = questionOfTheDay(test);
@@ -82,7 +83,10 @@ export function homeView(root) {
     </div>
   </section>
 
+  <div class="marquee" aria-hidden="true"><div>${[0, 1].map(() => COURSES.map((c) => `<span>${esc(c.title)}</span>`).join('')).join('')}</div></div>
+
   <section class="page home2">
+    <div id="newsSlot"></div>
     <h2 class="sec-title">What's inside</h2>
     <div class="feature-pair">
       <a class="feat feat-courses" href="#/learn">
@@ -132,10 +136,10 @@ export function homeView(root) {
     </ol>
 
     <h2 class="sec-title">Subjects</h2>
-    <ul class="subjects">
+    <ul class="subj-tiles">
       ${SUBJECTS.map((sub) => {
         const cs = COURSES.filter((c) => c.subject === sub);
-        return `<li><a href="#/learn?s=${encodeURIComponent(sub)}"><b>${esc(sub)}</b> <span class="sub-n">${cs.length}</span><span class="muted small">${tileList(cs)}</span></a></li>`;
+        return `<li><a href="#/learn?s=${encodeURIComponent(sub)}"><span class="subj-ic">${icon(SUBJECT_ICON[sub] || 'book')}</span><span><b>${esc(sub)}</b> <span class="sub-n">${cs.length}</span><span class="muted small">${tileList(cs)}</span></span></a></li>`;
       }).join('')}
     </ul>
 
@@ -151,7 +155,7 @@ export function homeView(root) {
         <details><summary>Do I need an account?</summary><p>A free account is needed to study, so your progress has somewhere to live. Sign in with Google or Apple to sync across devices, or use email to keep it on this device.</p></details>
         <details><summary>What subjects are covered?</summary><p>Math from Algebra 1 through Calculus and Statistics, Biology, Chemistry, Physics, English, history, study skills, every AP course, and SAT and ACT prep.</p></details>
         <details><summary>Where do the SAT and ACT questions come from?</summary><p>Math and science questions are generated from templates that follow each official skill. Reading and writing questions come from an original, hand-written bank. Nothing is copied from official tests, and scores are estimates.</p></details>
-        <details><summary>Where is my data stored?</summary><p>Email accounts are saved in this browser. Google and Apple accounts sync to the cloud. You can export a backup any time from Settings.</p></details>
+        <details><summary>Where is my data stored?</summary><p>Every account, email, Google, or Apple, saves your progress to the cloud, so it syncs across your devices and the StudyFox app. You can also export a backup any time from Settings.</p></details>
       </div>
       <div class="note-from">
         <span class="avatar" aria-hidden="true">${esc(CREATOR[0])}</span>
@@ -164,4 +168,5 @@ export function homeView(root) {
       </div>
     </div>
   </section>`;
+  newsWidget(root.querySelector('#newsSlot'));
 }

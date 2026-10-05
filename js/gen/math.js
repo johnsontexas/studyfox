@@ -465,7 +465,9 @@ add({
   act: { domain: 'Number and Quantity', skill: 'Exponents and radicals' },
   gen(r, d) {
     if (d === 1) {
-      const m = r.int(2, 9), n = r.int(2, 9);
+      const m = r.int(2, 9);
+      let n = r.int(2, 9);
+      while (m * n === m + n) n = r.int(2, 9); // 2 and 2 would make two choices x^4
       return {
         stem: `Which expression is equivalent to ${T(`x^{${m}} \\cdot x^{${n}}`)}, where ${T('x > 0')}?`,
         mc: buildMC(r, T(`x^{${m + n}}`), [T(`x^{${m * n}}`), T(`2x^{${m + n}}`), T(`x^{${Math.abs(m - n) || m + n + 1}}`)]),

@@ -6,4 +6,8 @@ export const SUPABASE_ANON_KEY = 'sb_publishable_LkuPn46HCjJP9HZrWOgxcA_JjqLx-EG
 export const CONTACT_EMAIL = 'danieljohnsonhtx@gmail.com';
 export const CREATOR = 'Daniel Johnson';
 export const INSTAGRAM = 'txdanieljohnson';
+export const KOFI = 'https://ko-fi.com/studyfox';
 export const SITE_URL = 'https://studyfox.org';
+export const SUPPORT_EMAIL = 'support@studyfox.org';
+// Paste the Google Form link here (the .../viewform URL) to show it on the Contact page.
+export const SUPPORT_FORM_URL = '';

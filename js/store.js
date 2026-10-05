@@ -19,7 +19,7 @@ async function hashPw(email, pw) {
 const blank = () => ({
   attempts: [], mistakes: {}, saved: {}, stats: {}, skillStats: {}, activity: {},
   sets: [], setProgress: {}, settings: { theme: 'system', target: { SAT: 1400, ACT: 30 }, testDate: '', focus: 'SAT', lang: 'en', english: '' },
-  inProgress: null, speed: { best: {}, runs: [] }, learned: {}, bank: {},
+  inProgress: null, speed: { best: {}, runs: [] }, learned: {}, bank: {}, deletedSets: {},
 });
 
 // Combine two progress blobs (e.g. this device + the cloud copy) without losing either side's work.
@@ -30,7 +30,10 @@ function merge(a, b) {
   const bigger = (x = {}, y = {}) => { const o = { ...y }; for (const k in x) if (!o[k] || x[k].t > o[k].t) o[k] = x[k]; return o; };
   const out = Object.assign(blank(), b, a);
   out.attempts = byId(a.attempts, b.attempts).sort((p, q) => (q.date || 0) - (p.date || 0)).slice(0, 200);
-  out.sets = byId(a.sets, b.sets);
+  // Deleted sets leave a timestamp so another device's older copy can't bring them back.
+  out.deletedSets = { ...b.deletedSets };
+  for (const k in a.deletedSets) out.deletedSets[k] = Math.max(a.deletedSets[k], out.deletedSets[k] || 0);
+  out.sets = byId(a.sets, b.sets).filter((s) => !(out.deletedSets[s.id] >= (s.updated || 0)));
   out.mistakes = { ...b.mistakes, ...a.mistakes };
   out.saved = { ...b.saved, ...a.saved };
   out.setProgress = { ...b.setProgress, ...a.setProgress };
@@ -94,7 +97,20 @@ export const store = {
     write(K_CLOUD, all);
     const guest = read('fm_data_guest', null);
     if (guest) { write('fm_data_' + key, merge(read('fm_data_' + key, null), guest)); localStorage.removeItem('fm_data_guest'); }
+    // An older device-only email account with the same address moves into this cloud account, so nothing is lost.
+    const em = (email || '').trim().toLowerCase(), users = read(K_USERS, {});
+    if (em && users[em]) {
+      write('fm_data_' + key, merge(read('fm_data_' + key, null), read('fm_data_' + em, null)));
+      delete users[em]; write(K_USERS, users); localStorage.removeItem('fm_data_' + em);
+    }
     write(K_SESSION, key); cache = null; this.emit();
+  },
+  localName(email) { return read(K_USERS, {})[email.trim().toLowerCase()]?.name || ''; },
+  // True if this device has an older device-only email account with this email and password.
+  async hasLocalAccount(email, password) {
+    email = email.trim().toLowerCase();
+    const u = read(K_USERS, {})[email];
+    return !!u && u.pw === (await hashPw(email, password));
   },
   mergeIn(remote) { cache = merge(this.data(), remote); cacheKey = dataKey(); write(dataKey(), cache); this.emit(); },
   logout() { localStorage.removeItem(K_SESSION); cache = null; this.emit(); },
@@ -152,7 +168,7 @@ export const store = {
     if (i >= 0) d.sets[i] = set; else { set.id ||= uid(); set.created = Date.now(); d.sets.unshift(set); }
     this.save(); return set.id;
   },
-  deleteSet(id) { const d = this.data(); d.sets = d.sets.filter((s) => s.id !== id); delete d.setProgress[id]; this.save(); },
+  deleteSet(id) { const d = this.data(); d.sets = d.sets.filter((s) => s.id !== id); delete d.setProgress[id]; (d.deletedSets ||= {})[id] = Date.now(); this.save(); },
   progress(setId) {
     const p = (this.data().setProgress[setId] ||= { starred: [], mastery: {}, matchBest: null, studied: 0 });
     return p;

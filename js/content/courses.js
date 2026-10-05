@@ -13,6 +13,7 @@ import { AP_ENGLISH_COURSES } from './courses-ap-english.js';
 import { AP_MATH_COURSES } from './courses-ap-math.js';
 import { AP_CS_COURSES } from './courses-ap-cs.js';
 import { AP_ARTS_COURSES, AP_LANGUAGE_COURSES } from './courses-ap-arts.js';
+import { TEST_PREP_COURSES } from './courses-test-prep.js';
 
 // Subjects in display order. Each course has a subject from this list.
 export const SUBJECTS = ['Math', 'Science', 'English', 'History', 'Social Science', 'Computer Science', 'Arts', 'World Languages', 'Study Skills', 'SAT & ACT'];
@@ -465,7 +466,7 @@ export const COURSES = [
   ...SCIENCE_COURSES, ...AP_SCIENCE_COURSES,
   ...HUMANITIES_COURSES, ...AP_ENGLISH_COURSES, ...AP_HISTORY_COURSES, ...AP_SOCIAL_COURSES,
   ...AP_CS_COURSES, ...AP_ARTS_COURSES, ...AP_LANGUAGE_COURSES,
-  ...TEST_PREP,
+  ...TEST_PREP, ...TEST_PREP_COURSES,
 ];
 export const getCourse = (id) => COURSES.find((c) => c.id === id);
 export const lessonCount = () => COURSES.reduce((n, c) => n + c.lessons.length, 0);

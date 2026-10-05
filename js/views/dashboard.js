@@ -6,6 +6,35 @@ import { launchPractice } from './practice.js';
 import { hasInProgress, discardInProgress } from './runner.js';
 import { qotdWidget } from './home.js';
 import { confirmBox } from '../tools.js';
+import { COURSES } from '../content/courses.js';
+import { BUILTIN_DECKS } from '../content/decks.js';
+import { newsWidget } from './news.js';
+import { cloudEnabled } from '../cloud.js';
+
+const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; };
+
+// The most recent course a lesson was finished in, with the next lesson to open.
+function lastCourse(learned) {
+  const [key] = Object.entries(learned).sort((a, b) => b[1] - a[1])[0] || [];
+  const c = key && COURSES.find((x) => x.id === key.split('/')[0]);
+  if (!c) return null;
+  const done = c.lessons.filter((l) => learned[`${c.id}/${l.id}`]).length;
+  const next = c.lessons.find((l) => !learned[`${c.id}/${l.id}`]);
+  return { c, done, href: next ? `#/learn/${c.id}/${next.id}` : `#/learn/${c.id}` };
+}
+
+function recentSets(d) {
+  const seen = (s) => d.setProgress[s.id]?.last || s.updated || 0;
+  return [...d.sets, ...BUILTIN_DECKS.filter((s) => d.setProgress[s.id]?.last)].sort((a, b) => seen(b) - seen(a)).slice(0, 3);
+}
+
+const QUICK = [
+  ['#/learn', 'book', 'Courses', 'Lessons for every class'],
+  ['#/flashcards', 'cards', 'Flashcards', 'Make and study sets'],
+  ['#/practice', 'target', 'SAT & ACT', 'Question bank'],
+  ['#/exams', 'clipboard', 'Practice tests', 'Timed and scored'],
+  ['#/speed', 'timer', 'Speed', 'Beat your best'],
+];
 
 const pct = (s) => (s && s.t ? Math.round((100 * s.c) / s.t) : null);
 const barColor = (p) => (p == null ? 'none' : p >= 80 ? 'good' : p >= 60 ? 'mid' : 'low');
@@ -37,14 +66,42 @@ export function dashboardView(root) {
   const week = [...Array(7)].map((_, i) => { const dt = new Date(); dt.setDate(dt.getDate() - (6 - i)); const k = dt.toISOString().slice(0, 10); return { k, n: d.activity[k] || 0, lbl: dt.toLocaleDateString(undefined, { weekday: 'narrow' }) }; });
   const maxN = Math.max(10, ...week.map((w) => w.n));
 
+  const lc = lastCourse(d.learned || {});
+  const sets = recentSets(d);
+  const todayN = d.activity[today()] || 0, goal = 20;
+
   root.innerHTML = `
-  <div class="page">
-    <div class="row between wrap gap">
-      <div><h1>${u ? `Hi, ${esc(u.name)}` : 'Your dashboard'}</h1><p class="muted">${focus} prep · ${d.activity[today()] || 0} questions today</p></div>
-      <div class="seg" id="focusSeg"><button data-f="SAT" class="${focus === 'SAT' ? 'on' : ''}">SAT</button><button data-f="ACT" class="${focus === 'ACT' ? 'on' : ''}">ACT</button></div>
-    </div>
+  <div class="page dash">
+    <section class="dash-hero">
+      <div>
+        <p class="kicker">${greeting()}</p>
+        <h1>${u ? esc(u.name.split(' ')[0]) : 'Welcome back'}</h1>
+        <p>${streak ? `You're on a ${streak}-day streak. Keep it going.` : 'Answer a few questions today to start a streak.'}</p>
+      </div>
+      <div class="dash-ring" style="--p:${Math.min(100, Math.round((100 * todayN) / goal))}">
+        <div><b>${todayN}</b><span>of ${goal} today</span></div>
+      </div>
+    </section>
     ${hasInProgress() ? `<div class="banner accent row between wrap gap"><span>${icon('pause')} You have a test in progress: <b>${esc(d.inProgress.title)}</b></span><span class="row gap"><a class="btn primary sm" href="#/test">Resume</a><button class="btn sm ghost" id="discard">Discard</button></span></div>` : ''}
 
+    <nav class="quick" aria-label="Study tools">${QUICK.map(([href, ic, t, sub]) => `<a href="${href}">${icon(ic)}<b>${t}</b><span>${sub}</span></a>`).join('')}</nav>
+
+    ${u && !u.cloud && cloudEnabled ? `<div class="banner accent row between wrap gap"><span>${icon('upload')} Your progress is saved on this device only. Sign in again to back it up to the cloud and sync it everywhere.</span><button class="btn primary sm" id="moveCloud">Back up my progress</button></div>` : ''}
+
+    <div id="newsSlot"></div>
+
+    <h2 class="dash-title">Pick up where you left off</h2>
+    <div class="resume">
+      ${lc ? `<a class="card hover resume-card" href="${lc.href}"><span class="kpi-label">Course</span><b>${esc(lc.c.title)}</b><div class="bar thin"><i class="good" style="width:${(100 * lc.done) / lc.c.lessons.length}%"></i></div><span class="muted small">${lc.done} of ${lc.c.lessons.length} lessons done</span></a>`
+        : `<a class="card hover resume-card empty" href="#/learn"><span class="kpi-label">Course</span><b>Start a course</b><span class="muted small">Pick any class. Lessons take about 10 minutes.</span></a>`}
+      ${sets.map((st) => `<a class="card hover resume-card" href="#/flashcards/${encodeURIComponent(st.id)}"><span class="kpi-label">Flashcards</span><b>${esc(st.title)}</b><span class="muted small">${st.cards.length} terms</span></a>`).join('')
+        || `<a class="card hover resume-card empty" href="#/flashcards/new"><span class="kpi-label">Flashcards</span><b>Make your first set</b><span class="muted small">Paste your notes and they turn into cards.</span></a>`}
+    </div>
+
+    <div class="row between wrap gap dash-title">
+      <h2>${focus} prep</h2>
+      <div class="seg" id="focusSeg"><button data-f="SAT" class="${focus === 'SAT' ? 'on' : ''}">SAT</button><button data-f="ACT" class="${focus === 'ACT' ? 'on' : ''}">ACT</button></div>
+    </div>
     <div class="kpis">
       <div class="kpi card"><span class="kpi-label">Latest ${focus} score</span><b class="kpi-val">${latest ? latest.headline : '—'}</b><span class="muted small">${latest ? `Target ${target}` : `<a href="#/exams">Take a practice test</a>`}</span>${sparkline(exams.slice(0, 10).reverse().map((a) => a.headline), focus === 'SAT' ? 400 : 1, focus === 'SAT' ? 1600 : 36)}</div>
       <div class="kpi card"><span class="kpi-label">Accuracy</span><b class="kpi-val">${totals.t ? Math.round((100 * totals.c) / totals.t) + '%' : '—'}</b><span class="muted small">${totals.t.toLocaleString()} questions answered</span></div>
@@ -81,6 +138,8 @@ export function dashboardView(root) {
   </div>`;
 
   qotdWidget(root.querySelector('#qotd'), focus);
+  newsWidget(root.querySelector('#newsSlot'));
+  root.querySelector('#moveCloud')?.addEventListener('click', () => { const em = u.email; store.logout(); location.hash = '#/login'; setTimeout(() => { const f = document.querySelector('[name=email]'); if (f) f.value = em; }, 50); });
   root.querySelector('#focusSeg').onclick = (e) => { const f = e.target.dataset.f; if (f) { d.settings.focus = f; store.save(); dashboardView(root); } };
   root.querySelector('#discard')?.addEventListener('click', async () => { if (await confirmBox('Discard your in-progress test? Your answers will be lost.', { ok: 'Discard', danger: true })) { discardInProgress(); dashboardView(root); } });
   root.addEventListener('click', (e) => {

@@ -1,9 +1,9 @@
 // Privacy Policy and Terms of Use.
 import { CONTACT_EMAIL } from '../config.js';
 
-const UPDATED = 'October 1, 2026';
+const UPDATED = 'October 5, 2026';
 // Bump when the Terms or Privacy Policy change materially; signed-in users are asked to accept again.
-export const TERMS_VERSION = '2026-10-01';
+export const TERMS_VERSION = '2026-10-05';
 const mail = `<a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a>`;
 const page = (title, body) => `<div class="page narrow legal"><h1>${title}</h1><p class="muted">Last updated ${UPDATED}</p>${body}</div>`;
 
@@ -13,8 +13,9 @@ export function privacyView(root) {
 
   <h2>What we collect</h2>
   <ul>
-    <li><b>If you use StudyFox without an account or with an email account:</b> your progress (answers, scores, mistake log, flashcards, and settings) is stored only in your browser's local storage on your device. It is not sent to us. Email-account passwords are stored on your device as a salted hash.</li>
-    <li><b>If you sign in with Google or Apple:</b> we receive your name, email address, and an account ID from that provider. If you use Apple's "Hide My Email," we receive a relay address instead. We store your progress on our database provider so it syncs across your devices.</li>
+    <li><b>If you make an email account:</b> we store your name, email address, and password with our database provider (Supabase). Passwords are stored as a secure hash, never in plain text. We email you only to confirm your address or reset your password, unless you opt in to updates.</li>
+    <li><b>If you sign in with Google or Apple:</b> we receive your name, email address, and an account ID from that provider. If you use Apple's "Hide My Email," we receive a relay address instead.</li>
+    <li><b>Your progress:</b> for every account, your answers, scores, mistake log, flashcards, streak, and settings are stored with our database provider so they sync across your devices and the StudyFox app. A copy is also kept in your browser or on your phone.</li>
     <li><b>When you set up your account:</b> your date of birth (to confirm you are 13 or older), your grade, what you're studying for, your language, and whether you want emails from us. This is saved with your progress.</li>
     <li><b>If you're under 13:</b> we don't create an account. We delete what you entered and only remember on your device the date you can come back.</li>
     <li><b>Technical data:</b> our hosting and database providers may keep standard server logs (such as IP address, browser type, and time of request) for security and reliability.</li>
@@ -62,7 +63,7 @@ export function termsView(root) {
   <p>You must be at least 13 years old. If you are under 18, you confirm that a parent or guardian has agreed to these terms for you.</p>
 
   <h2>2. Your account</h2>
-  <p>You need an account to use StudyFox: a device-only email account, or by signing in with Google or Apple. Keep your sign-in secure; you're responsible for activity on your account. Email-account progress lives only on your device, so clearing your browser data will erase it.</p>
+  <p>You need an account to use StudyFox: an email account, or by signing in with Google or Apple. Keep your sign-in secure; you're responsible for activity on your account. Your progress is backed up to your account, so it is kept even if you clear your browser data.</p>
 
   <h2>3. Free service</h2>
   <p>StudyFox is free. We may add, change, or remove features at any time, and we may suspend or end the service.</p>

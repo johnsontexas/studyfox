@@ -5,6 +5,8 @@
   "description": "Free SAT & ACT prep: generated practice questions, adaptive practice tests, Desmos, and flashcards.",
   "scripts": {
     "start": "python3 -m http.server 8080",
-    "test": "node tests/courses.test.js && node tests/generators.test.js"
+    "test": "node tests/courses.test.js && node tests/generators.test.js && node mobile/scripts/check-shared.mjs",
+    "app": "npm --prefix mobile run phone",
+    "tunnel": "npm --prefix mobile run tunnel"
   }
 }

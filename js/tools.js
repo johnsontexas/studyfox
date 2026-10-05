@@ -3,7 +3,7 @@ import { icon } from './icons.js';
 import { tex, $ } from './util.js';
 
 // Desmos's public demo key. Request a free production key at desmos.com/api before launch.
-const DESMOS_KEY = 'dcb31709b452b1cf9dc26972add0fda6';
+export const DESMOS_KEY = 'dcb31709b452b1cf9dc26972add0fda6';
 let desmosPromise = null;
 export function loadDesmos() {
   if (window.Desmos) return Promise.resolve(window.Desmos);

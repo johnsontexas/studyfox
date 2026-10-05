@@ -17,14 +17,22 @@ function progressBar(c) {
   return `<div class="course-prog"><div class="bar thin"><i class="good" style="width:${(100 * n) / c.lessons.length}%"></i></div><span class="muted small">${n} of ${c.lessons.length} lessons done</span></div>`;
 }
 
-export const courseCard = (c, { progress = true } = {}) => `<a class="card hover course-card" href="#/learn/${c.id}">
-  <div class="f-icon">${icon(c.icon)}</div>
-  <span class="tag subtle">${esc(c.level)}</span>
+// Each subject gets its own accent so the catalog doesn't read as one wall of identical cards.
+const SUBJECT_ICON = { Math: 'integral', Science: 'flask', English: 'book', History: 'landmark', 'Social Science': 'users', 'Computer Science': 'code', Arts: 'palette', 'World Languages': 'globe', 'Study Skills': 'brain', 'SAT & ACT': 'target' };
+const tone = (s) => `tone-${Math.max(0, SUBJECTS.indexOf(s)) % 6}`;
+
+export const courseCard = (c, { progress = true } = {}) => {
+  const n = doneCount(c);
+  return `<a class="course-card ${tone(c.subject)}${n ? ' started' : ''}" href="#/learn/${c.id}">
+  <div class="cc-top"><span class="cc-icon">${icon(c.icon)}</span><span class="cc-level">${esc(c.level)}</span></div>
   <h3>${esc(c.title)}</h3>
-  <p class="muted small">${esc(c.blurb)}</p>
-  <p class="small muted">${c.lessons.length} lessons · about ${totalMins(c)} min</p>
-  ${progress ? progressBar(c) : ''}
+  <p class="cc-blurb">${esc(c.blurb)}</p>
+  <ol class="cc-peek">${c.lessons.slice(0, 3).map((l) => `<li>${esc(l.title)}</li>`).join('')}${c.lessons.length > 3 ? `<li class="more">+${c.lessons.length - 3} more</li>` : ''}</ol>
+  <div class="cc-foot"><span>${c.lessons.length} lessons</span><span>${Math.round(totalMins(c) / 6) / 10 >= 1 ? `${Math.round(totalMins(c) / 6) / 10} hr` : `${totalMins(c)} min`}</span>
+    ${progress && n ? `<span class="cc-done">${n === c.lessons.length ? `${icon('check')} Done` : `${Math.round((100 * n) / c.lessons.length)}%`}</span>` : `<span class="cc-go">${icon('right')}</span>`}</div>
+  ${progress && n ? `<i class="cc-bar" style="--w:${(100 * n) / c.lessons.length}%"></i>` : ''}
 </a>`;
+};
 
 // Searchable text for a course: title, blurb, level, and lesson titles.
 const haystack = (c) => [c.title, c.blurb, c.level, c.subject, ...c.lessons.map((l) => l.title)].join(' ').toLowerCase();
@@ -34,11 +42,19 @@ export function learnHubView(root) {
   const FILTERS = ['All', 'AP', ...SUBJECTS];
   let subject = FILTERS.includes(q.get('s')) ? q.get('s') : 'All';
   let query = '';
+  const lessons = COURSES.reduce((n, c) => n + c.lessons.length, 0);
+  const started = COURSES.filter((c) => doneCount(c) && doneCount(c) < c.lessons.length).slice(0, 3);
   root.innerHTML = `
-    <div class="page">
-      <h1>Free courses</h1>
-      <p class="muted">Short lessons for school subjects, every major AP class, and test prep, each with examples and a quick check. Free, like everything on StudyFox.</p>
-      <label class="course-search">${icon('search')}<input id="courseSearch" type="search" placeholder="Search courses and lessons, like &quot;APUSH&quot; or &quot;photosynthesis&quot;" aria-label="Search courses"></label>
+    <div class="courses-head"><div class="page">
+      <div class="ch-text">
+        <h1>Courses</h1>
+        <p>Short lessons for school, every major AP class, and the SAT and ACT. Each one has worked examples and a quick check at the end.</p>
+        <label class="course-search">${icon('search')}<input id="courseSearch" type="search" placeholder="Search courses and lessons, like &quot;APUSH&quot; or &quot;photosynthesis&quot;" aria-label="Search courses"></label>
+      </div>
+      <dl class="ch-stats"><div><dt>${COURSES.length}</dt><dd>courses</dd></div><div><dt>${lessons}</dt><dd>lessons</dd></div><div><dt>${COURSES.filter((c) => c.ap).length}</dt><dd>AP classes</dd></div></dl>
+    </div></div>
+    <div class="page courses-body">
+      ${started.length ? `<section class="cc-continue"><h2 class="cc-sec">Keep going</h2><div class="course-grid">${started.map((c) => courseCard(c)).join('')}</div></section>` : ''}
       <div class="subject-filter" role="tablist">${FILTERS.map((s) => `<button class="pill" data-s="${esc(s)}" role="tab">${s === 'AP' ? 'AP courses' : esc(s)}</button>`).join('')}</div>
       <div id="courseList"></div>
     </div>`;
@@ -49,7 +65,7 @@ export function learnHubView(root) {
     const list = subject === 'All' || subject === 'AP' ? SUBJECTS : [subject];
     const html = list.map((s) => {
       const cs = COURSES.filter((c) => c.subject === s && match(c));
-      return cs.length ? `<h2 class="subject-title">${esc(s)}</h2><div class="course-grid">${cs.map((c) => courseCard(c)).join('')}</div>` : '';
+      return cs.length ? `<section class="subject-block ${tone(s)}"><h2 class="subject-title"><span class="st-icon">${icon(SUBJECT_ICON[s] || 'book')}</span>${esc(s)}<span class="st-count">${cs.length}</span></h2><div class="course-grid">${cs.map((c) => courseCard(c)).join('')}</div></section>` : '';
     }).join('');
     $('#courseList', root).innerHTML = html || `<p class="muted empty-note">No courses match "${esc(query)}". Try a different word, or pick All.</p>`;
   };

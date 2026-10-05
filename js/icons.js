@@ -2,6 +2,10 @@
 // icon(name) -> small line icon; sticker(name) -> large outlined illustration with pastel fills.
 
 const P = {
+  news: '<path d="M4 6h12v12a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2z"/><path d="M16 10h4v8a2 2 0 0 1-4 0"/><path d="M7.5 9.5h5M7.5 13h5M7.5 16.5h3"/>',
+  mail: '<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/>',
+  shield: '<path d="M12 3.5l7 2.5v5.5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  power: '<path d="M12 3.5v8"/><path d="M7 6.5a7.5 7.5 0 1 0 10 0"/>',
   x: '<path d="M6 6l12 12M18 6L6 18"/>',
   check: '<path d="M4.5 12.5l5 5L19.5 7"/>',
   menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
@@ -51,10 +55,14 @@ const P = {
   users: '<circle cx="9" cy="8.5" r="3.5"/><path d="M3 19.5c.5-3.5 3-5.5 6-5.5s5.5 2 6 5.5M15.5 5a3.5 3.5 0 0 1 0 7M17.5 14.2c2 .7 3.2 2.6 3.5 5.3"/>',
   search: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
   home: '<path d="M4 11l8-6.5 8 6.5M6 9.5V20h4.5v-5.5h3V20H18V9.5"/>',
+  heart: '<path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/>',
   instagram: '<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17" cy="7" r=".9" fill="currentColor"/>',
   arrow: '<path d="M7 17L17 7M9 7h8v8"/>',
   grid: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>',
 };
+
+/** Every icon name (for pickers, like the course icon in the admin console). */
+export const ICON_NAMES = Object.keys(P);
 
 export function icon(name, { fill = false, cls = '' } = {}) {
   return `<svg class="ico ${cls}" viewBox="0 0 24 24" fill="${fill ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name] || ''}</svg>`;

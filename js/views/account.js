@@ -1,9 +1,10 @@
 import { $, esc, toast } from '../util.js';
+import { icon } from '../icons.js';
 import { store } from '../store.js';
 import { confirmBox } from '../tools.js';
 import { langOptions, profOptions } from '../i18n.js';
 import { TERMS_VERSION } from './legal.js';
-import { cloudEnabled, signInWith, cloudSignOut, deleteCloudData } from '../cloud.js';
+import { cloudEnabled, signInWith, cloudSignOut, deleteCloudData, linkedProviders, linkProvider, emailSignUp, emailSignIn, resetPassword, updatePassword } from '../cloud.js';
 
 // Where to go after signing in: the page a guest was bounced from, else the dashboard.
 export function takeAfterLogin() {
@@ -43,12 +44,13 @@ function authPage(root, mode) {
         ${signup ? '<label>Name<input name="name" autocomplete="name" required placeholder="Your first name"></label>' : ''}
         <label>Email<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
         <label>Password<input name="password" type="password" autocomplete="${signup ? 'new-password' : 'current-password'}" required minlength="6" placeholder="${signup ? 'At least 6 characters' : ''}"></label>
+        ${signup ? '' : '<button class="link-btn small" type="button" id="forgot">Forgot your password?</button>'}
         <div class="form-err" id="err"></div>
         <button class="btn primary block lg" type="submit">${signup ? 'Create account' : 'Sign in'}</button>
       </form>
       <p class="center small">${signup ? 'Already have an account? <a href="#/login">Sign in</a>' : 'New here? <a href="#/signup">Create a free account</a>'}</p>
       ${agreeHTML(false)}
-      <p class="note">${cloudEnabled ? 'Google and Apple accounts sync your progress across devices. Email accounts are stored on this device only.' : 'Email accounts are stored on this device only. Use <b>Settings → Export</b> to move your progress to another device.'}</p>
+      <p class="note">${cloudEnabled ? 'Every account, including email, saves your progress to the cloud so it syncs across devices and the StudyFox app.' : 'Email accounts are stored on this device only. Use <b>Settings → Export</b> to move your progress to another device.'}</p>
     </div>
   </div>`;
   root.querySelectorAll('[data-oauth]').forEach((b) => b.addEventListener('click', async () => {
@@ -61,11 +63,28 @@ function authPage(root, mode) {
     const err = $('#err', root);
     err.textContent = '';
     if (!/^\S+@\S+\.\S+$/.test(f.email || '')) { err.textContent = 'Please enter a valid email address.'; return; }
+    if ((f.password || '').length < 6) { err.textContent = 'Password must be at least 6 characters.'; return; }
+    const btn = e.target.querySelector('[type=submit]'); btn.disabled = true;
     try {
-      if (signup) { await store.signup(f); location.hash = '#/welcome'; return; }
-      else { await store.login(f.email, f.password); toast('Signed in.', 'good'); }
-      location.hash = takeAfterLogin();
-    } catch (ex) { err.textContent = ex.message; }
+      if (!cloudEnabled) {
+        if (signup) { await store.signup(f); location.hash = '#/welcome'; return; }
+        await store.login(f.email, f.password); toast('Signed in.', 'good'); location.hash = takeAfterLogin(); return;
+      }
+      // Cloud accounts: cloud.js picks up the new session, downloads progress, and moves on from this page.
+      const r = signup ? await emailSignUp(f) : await emailSignIn(f.email, f.password);
+      if (r.confirm) {
+        $('#authForm', root).innerHTML = `<div class="banner"><b>Check your email.</b> We sent a link to ${esc(f.email)}. Open it to ${r.moved ? 'finish moving your account to the cloud' : 'confirm your account'}, then sign in.</div>`;
+        // An existing device-only account keeps working here while they confirm.
+        if (r.moved) await store.login(f.email, f.password);
+        return;
+      }
+      if (signup) location.hash = '#/welcome';
+    } catch (ex) { err.textContent = ex.message; btn.disabled = false; }
+  });
+  $('#forgot', root)?.addEventListener('click', async () => {
+    const email = $('[name=email]', root).value.trim(), err = $('#err', root);
+    if (!/^\S+@\S+\.\S+$/.test(email)) { err.textContent = 'Type your email above first, then tap "Forgot your password?"'; return; }
+    try { await resetPassword(email); toast('If that email has an account, a reset link is on its way.', 'good'); } catch (ex) { err.textContent = ex.message; }
   });
 }
 export const loginView = (root) => authPage(root, 'login');
@@ -79,7 +98,7 @@ export function settingsView(root) {
     <h1>Settings</h1>
     <div class="card stack">
       <h2 class="h3">Profile</h2>
-      ${u ? `<label>Name<input id="name" value="${esc(u.name)}"></label><p class="muted small">Signed in as ${esc(u.email || u.name)}${u.cloud ? ` with ${u.provider === 'apple' ? 'Apple' : 'Google'}. Progress syncs across your devices.` : ' (this device only).'}</p>` : ''}
+      ${u ? `<label>Name<input id="name" value="${esc(u.name)}"></label><p class="muted small">Signed in as ${esc(u.email || u.name)}${u.cloud ? `${u.provider === 'email' ? '' : ` with ${u.provider === 'apple' ? 'Apple' : 'Google'}`}. Progress syncs across your devices.` : ' (this device only). Sign out and sign back in to move this account to the cloud.'}</p>` : ''}
       <div class="grid2">
         <label>Main test<select id="focus"><option ${s.focus === 'SAT' ? 'selected' : ''}>SAT</option><option ${s.focus === 'ACT' ? 'selected' : ''}>ACT</option></select></label>
         <label>Test date<input id="testDate" type="date" value="${esc(s.testDate || '')}"></label>
@@ -91,6 +110,16 @@ export function settingsView(root) {
       <label>Theme<select id="theme"><option value="system">Match system</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
       <div class="row gap"><button class="btn primary" id="saveBtn">Save changes</button>${u ? '<button class="btn ghost" id="logout">Sign out</button>' : ''}</div>
     </div>
+    ${u?.cloud && u.provider === 'email' ? `<form class="card stack" id="pwForm">
+      <h2 class="h3">Password</h2>
+      <label>New password<input type="password" name="pw" autocomplete="new-password" minlength="6" required placeholder="At least 6 characters"></label>
+      <div><button class="btn">Change password</button></div>
+    </form>` : ''}
+    ${u?.cloud ? `<div class="card stack" id="linkCard">
+      <h2 class="h3">Sign-in methods</h2>
+      <p class="muted small">Connect both Google and Apple so either one opens this same account with the same progress.</p>
+      <div id="links" class="stack"><p class="muted small">Loading...</p></div>
+    </div>` : ''}
     <div class="card stack">
       <h2 class="h3">Your data</h2>
       <p class="muted">${u?.cloud ? 'Your progress is saved in this browser and backed up to your account automatically.' : 'Everything is stored in this browser. Export a backup to keep it safe, or sign in with Google or Apple to sync across devices.'}</p>
@@ -103,7 +132,21 @@ export function settingsView(root) {
     </div>
   </div>`;
   $('#theme', root).value = s.theme;
+  $('#pwForm', root)?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try { await updatePassword(e.target.pw.value); e.target.reset(); toast('Password changed.', 'good'); } catch (ex) { toast(ex.message, 'bad'); }
+  });
+  if (/reset=1/.test(location.hash)) $('#pwForm', root)?.scrollIntoView();
   wireLang(root);
+  if (u?.cloud) linkedProviders().then((have) => {
+    const box = $('#links', root); if (!box) return;
+    box.innerHTML = [['google', 'Google', GOOGLE], ['apple', 'Apple', APPLE]].map(([id, name, logo]) => `<div class="row between gap"><span class="row gap">${logo}<b>${name}</b></span>${have.includes(id)
+      ? `<span class="tag">${icon('check')} Connected</span>` : `<button class="btn sm" data-link="${id}">Connect ${name}</button>`}</div>`).join('');
+    box.onclick = async (e) => {
+      const b = e.target.closest('[data-link]'); if (!b) return;
+      try { b.disabled = true; await linkProvider(b.dataset.link); } catch (ex) { toast(ex.message, 'bad'); b.disabled = false; }
+    };
+  }).catch(() => { const box = $('#links', root); if (box) box.innerHTML = '<p class="muted small">Could not load sign-in methods.</p>'; });
   $('#saveBtn', root).onclick = () => {
     if (u) store.updateProfile({ name: $('#name', root).value.trim() || u.name });
     const em = $('#emails', root).checked; if (em !== !!s.emails) { s.emails = em; s.emailsAt = new Date().toISOString(); }

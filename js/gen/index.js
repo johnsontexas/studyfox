@@ -3,6 +3,7 @@ import { rng, newSeed } from '../util.js';
 import { mathGens } from './math.js';
 import { rwGens, actPassageQ, ACT_PASSAGES } from './rw.js';
 import { scienceGens, scienceQuestion } from './science.js';
+import { live } from '../content/live.js';
 
 export const SECTIONS = {
   SAT: { rw: 'Reading and Writing', math: 'Math' },
@@ -80,11 +81,24 @@ export function makeActPassageQ(pid, i, seed) {
   return finalize({ id: `actp|ACT|${pid}|${i}|${seed}`, section: 'reading', domain: out.domainOverride, skill: 'Long passage' }, out, { key: 'actp', test: 'ACT', d: out.dOverride, seed });
 }
 
+// A hand-written question from the admin console (Supabase "questions" table), id "custom|SAT|12".
+export function customQuestion(id) {
+  const [, test, n] = String(id).split('|');
+  const q = live.questions.find((x) => String(x.id) === n && x.test === test);
+  if (!q) return null;
+  return {
+    id, key: 'custom', test, section: q.section, domain: q.domain, skill: q.skill, difficulty: q.difficulty,
+    passage: q.passage || '', stem: q.stem, figure: '', expl: q.expl || '', uid: id, group: null,
+    type: 'mc', choices: q.choices, answer: q.answer,
+  };
+}
+
 export function regen(id) {
   const p = id.split('|');
   try {
     if (p[0] === 'sciset') return makeScienceQ(p[2], +p[3], +p[4]);
     if (p[0] === 'actp') return makeActPassageQ(p[2], +p[3], +p[4]);
+    if (p[0] === 'custom') return customQuestion(id);
     return makeQuestion(p[0], p[1], +p[2], +p[3]);
   } catch (e) {
     console.warn('Could not regenerate', id, e);
@@ -106,6 +120,7 @@ export function buildSet({ test, keys, difficulty = 'mixed', count = 10, seed = 
     if (!order.length) order = r.shuffle(keys);
     const key = order.pop();
     const q = makeQuestion(key, test, pickDiff(r, difficulty), r.int(1, 2 ** 30));
+    if (live.hidden.has(q.id)) continue;
     if (seen.has(q.uid) && guard < count * 20) continue;
     seen.add(q.uid);
     qs.push(q);

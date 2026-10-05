@@ -41,6 +41,20 @@ Every page except Home, Log in, Sign up, Privacy, and Terms requires an account.
 
 Signing in merges any guest progress on the device into the account. After that, every save syncs automatically (debounced, and flushed when the tab is hidden).
 
+## Editing content without a deploy
+
+Courses, lessons, flashcard decks, and hand-written questions live in Supabase (tables `courses`, `lessons`, `decks`, `questions`, `hidden_questions`; see `supabase/schema.sql`). Edit them in the admin console: **Admin → Lessons, decks, and questions** (`#/admin/content`). Changes show up on the website and in the iOS app the next time someone opens them; there's nothing to deploy or resubmit.
+
+- `js/content/live.js` loads the content (cached, and only re-downloaded when `content_version()` changes) and swaps it into `COURSES` and `BUILTIN_DECKS`, so every page and the app use it.
+- The files in `js/content/` are the built-in copy: used if someone opens the site offline for the first time, and the source that seeded the database. Editing them no longer changes what students see once the database has content; edit in the admin console instead.
+- Generated math and science questions come from code (`js/gen/`). In the console you can hide any of them by bank number, and add your own questions, which join the end of the numbered bank.
+
+## iOS app
+
+`mobile/` is an Expo app (the phone version, built around flashcards and quick study). It uses the same Supabase project, so Google and Apple accounts share progress between the app and the site. See `mobile/README.md` to run and ship it.
+
+**Keeping the app in sync:** the app imports this site's code directly (`js/content`, `js/gen`, `js/store.js`, `js/icons.js`, `js/config.js`, the legal and formula pages, and the colors in `css/styles.css`). New courses, lessons, decks, and question generators show up in the app with no extra work. `npm test` also checks every export the app depends on, so renaming one fails the tests. A brand-new page or feature on the site needs a matching screen in `mobile/src/app/`.
+
 ## What's inside
 
 | Area | Files |

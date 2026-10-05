@@ -4,6 +4,7 @@ import { $, $$, esc, toast, uid, b64enc, b64dec, fmtTime, rng, newSeed } from '.
 import { store } from '../store.js';
 import { BUILTIN_DECKS } from '../content/decks.js';
 import { modal, confirmBox } from '../tools.js';
+import { parseImport, importPrefs } from '../cardimport.js';
 
 const getSet = (id) => BUILTIN_DECKS.find((d) => d.id === id) || store.getSet(id);
 const norm = (s) => String(s).toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
@@ -91,26 +92,32 @@ export function editView(root, { id } = {}) {
     if (t.id === 'save' || t.id === 'save2') save();
     if (t.id === 'importBtn') {
       sync();
+      const pr = importPrefs(store.data().settings);
+      const dot = (name, v) => `<input type="radio" name="${name}" value="${v}" ${pr[name] === v ? 'checked' : ''}>`;
+      const radio = (name, v, label) => `<label class="radio">${dot(name, v)} ${label}</label>`;
       const m = modal(`<p class="muted">Copy and paste your data from Word, Excel, Google Docs, or Quizlet's export.</p>
         <textarea id="impText" rows="9" placeholder="Word 1&#9;Definition 1&#10;Word 2&#9;Definition 2"></textarea>
-        <div class="grid2"><div><b>Between term and definition</b><label class="radio"><input type="radio" name="sep" value="tab" checked> Tab</label><label class="radio"><input type="radio" name="sep" value="comma"> Comma</label><label class="radio"><input type="radio" name="sep" value="dash"> Dash ( - )</label></div>
-        <div><b>Between cards</b><label class="radio"><input type="radio" name="row" value="nl" checked> New line</label><label class="radio"><input type="radio" name="row" value="semi"> Semicolon</label></div></div>
+        <div class="grid2"><div><b>Between term and definition</b>${radio('sep', 'tab', 'Tab')}${radio('sep', 'comma', 'Comma')}${radio('sep', 'dash', 'Dash ( - )')}
+          <label class="radio custom-sep">${dot('sep', 'custom')} Custom<input id="cSep" maxlength="20" placeholder="e.g. :" value="${esc(pr.cSep)}"></label></div>
+        <div><b>Between cards</b>${radio('row', 'nl', 'New line')}${radio('row', 'semi', 'Semicolon')}
+          <label class="radio custom-sep">${dot('row', 'custom')} Custom<input id="cRow" maxlength="20" placeholder="e.g. |" value="${esc(pr.cRow)}"></label></div></div>
+        <p class="muted small">Custom separators can be any text. Use \\n for a new line and \\t for a tab.</p>
         <div class="muted small" id="impPrev">0 cards detected</div>
         <div class="row end gap"><button class="btn ghost" data-close>Cancel</button><button class="btn primary" id="impGo">Import</button></div>`, { title: 'Import cards', wide: true });
-      const parse = () => {
-        const txt = $('#impText', m.el).value;
-        const sep = m.el.querySelector('[name=sep]:checked').value, row = m.el.querySelector('[name=row]:checked').value;
-        return txt.split(row === 'nl' ? /\r?\n/ : ';').map((line) => {
-          const i = sep === 'tab' ? line.indexOf('\t') : sep === 'comma' ? line.indexOf(',') : line.indexOf(' - ');
-          if (i < 0) return null;
-          return { t: line.slice(0, i).trim(), d: line.slice(i + (sep === 'dash' ? 3 : 1)).trim() };
-        }).filter((c) => c && (c.t || c.d));
-      };
-      m.el.addEventListener('input', () => ($('#impPrev', m.el).textContent = `${parse().length} cards detected`));
-      m.el.addEventListener('change', () => ($('#impPrev', m.el).textContent = `${parse().length} cards detected`));
+      const opts = () => ({
+        sep: m.el.querySelector('[name=sep]:checked').value, row: m.el.querySelector('[name=row]:checked').value,
+        cSep: $('#cSep', m.el).value, cRow: $('#cRow', m.el).value,
+      });
+      const parse = () => { const o = opts(); return parseImport($('#impText', m.el).value, o.sep, o.row, o.cSep, o.cRow); };
+      // Typing in a custom box picks that option.
+      const pick = (e) => { if (e.target.id === 'cSep' || e.target.id === 'cRow') e.target.closest('label').querySelector('input[type=radio]').checked = true; };
+      const prev = (e) => { pick(e); $('#impPrev', m.el).textContent = `${parse().length} cards detected`; };
+      m.el.addEventListener('input', prev);
+      m.el.addEventListener('change', prev);
       $('#impGo', m.el).onclick = () => {
         const cards = parse();
         if (!cards.length) return toast('No cards found. Check your separators.', 'bad');
+        store.data().settings.importSep = opts(); store.save();
         set.cards = set.cards.filter((c) => c.t || c.d).concat(cards); m.close(); draw(); toast(`Imported ${cards.length} cards.`, 'good');
       };
     }
@@ -123,6 +130,7 @@ export function setView(root, { id }) {
   const s = getSet(id);
   if (!s) return notFound(root);
   const p = store.progress(s.id);
+  p.last = Date.now(); store.save(); // shows the set under "Pick up where you left off"
   const st = { i: 0, flipped: false, order: s.cards.map((_, i) => i), shuffled: false, starredOnly: false, back: false };
   const deck = () => (st.starredOnly ? st.order.filter((i) => p.starred.includes(i)) : st.order);
 
@@ -135,7 +143,7 @@ export function setView(root, { id }) {
     const front = st.back ? c.d : c.t, backTxt = st.back ? c.t : c.d;
     box.innerHTML = `
       <div class="flip ${st.flipped ? 'flipped' : ''}" id="flip" tabindex="0" aria-label="Flashcard. Press space to flip.">
-        <div class="face front"><button class="star ${p.starred.includes(ci) ? 'on' : ''}" data-star="${ci}" title="Star">${p.starred.includes(ci) ? icon('star', { fill: true }) : icon('star')}</button><div class="face-txt">${esc(front)}</div><span class="hint">Click or press space to flip</span></div>
+        <div class="face front"><button class="star ${p.starred.includes(ci) ? 'on' : ''}" data-star="${ci}" title="Star">${p.starred.includes(ci) ? icon('star', { fill: true }) : icon('star')}</button><div class="face-txt">${esc(front)}</div><span class="hint">${matchMedia('(hover: none)').matches ? 'Tap to flip' : 'Click or press space to flip'}</span></div>
         <div class="face back"><button class="star ${p.starred.includes(ci) ? 'on' : ''}" data-star="${ci}">${p.starred.includes(ci) ? icon('star', { fill: true }) : icon('star')}</button><div class="face-txt">${esc(backTxt)}</div></div>
       </div>
       <div class="viewer-ctrl"><button class="round" data-nav="-1" aria-label="Previous">${icon('left')}</button><span>${st.i + 1} / ${d.length}</span><button class="round" data-nav="1" aria-label="Next">${icon('right')}</button></div>
