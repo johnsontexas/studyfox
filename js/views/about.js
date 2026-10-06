@@ -27,9 +27,19 @@ export function aboutView(root) {
       <img src="${CREATOR_SITE}/images/Media/portrait.png" alt="Portrait of ${CREATOR}" loading="lazy">
       <div class="stack">
         <h2 class="h3">About me</h2>
-        <p>Hi, I'm ${CREATOR}. I'm a student at Strake Jesuit College Prep in Houston, Texas, class of 2027. I'm most interested in neuroscience and the technology used to study the brain. In summer 2026 I did neuroethics research at Georgetown, and lately I've been building computational models on the FlyWire connectome, the full wiring map of a fruit fly's brain.</p>
-        <p>I co-founded <a href="${BETTERU_URL}" target="_blank" rel="noopener">Better U LLC</a>, a small studio that ships mobile apps, and I lead the SJ App Club, where I teach other students to build apps. I'm also vice captain of the cross country team, House Captain of Faber House, and a member of the National Honor Society. I grew up bilingual in English and Spanish and I'm studying Mandarin.</p>
-        <p>My Catholic faith has shaped a lot of how I see the world, especially the idea that what you're given is meant to be shared. Service trips like a mission trip to Guatemala with Orphan Outreach made that real for me. StudyFox is my way of putting it into practice: one place where any student can learn a class, practice it, and get ready for the test, without paying for it.</p>
+        <p>I'm ${CREATOR}, the creator of StudyFox.</p>
+        <ul class="about-facts">
+          <li><b>School:</b> Strake Jesuit College Prep, Houston, Texas, class of 2027</li>
+          <li><b>Faith:</b> Catholic, and the reason StudyFox is free</li>
+          <li><b>Running:</b> Vice captain of the cross country team, and I run track</li>
+          <li><b>Fitness:</b> I work out and have played basketball, baseball, soccer, swimming, lacrosse, football, tennis, and golf</li>
+          <li><b>Apps:</b> Co-founder of <a href="${BETTERU_URL}" target="_blank" rel="noopener">Better U LLC</a>, which ships apps to the App Store, and president of the SJ App Club</li>
+          <li><b>Technology:</b> I like tinkering with anything I can take apart or build, from websites to games</li>
+          <li><b>Languages:</b> English and Spanish, learning Mandarin and German</li>
+          <li><b>Leadership:</b> House Captain of Faber House, and president of the Gaming Tournament Club, which raises money for charity</li>
+          <li><b>Service:</b> National Honor Society, and a mission trip to Guatemala with Orphan Outreach</li>
+          <li><b>Always:</b> Learning something new</li>
+        </ul>
         <div class="row gap wrap">
           <a class="btn sm" href="mailto:${CREATOR_EMAIL}">${icon('mail')} ${CREATOR_EMAIL}</a>
           <a class="btn sm ghost" href="${CREATOR_SITE}" target="_blank" rel="noopener">${icon('globe')} johnsontexas.com</a>

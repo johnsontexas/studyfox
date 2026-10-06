@@ -24,7 +24,8 @@ const apCourses = () => COURSES.filter((c) => c.ap);
 
 export function apHubView(root) {
   root.innerHTML = `<div class="page"><div class="page-head"><span class="eyebrow">${icon('target')} AP practice</span><h1>AP question bank</h1>
-    <p class="muted">Exam-style multiple choice for every AP class, sorted by unit and concept. Every question has an explanation.</p></div>
+    <p class="muted">Exam-style multiple choice for every AP class, sorted by unit and concept. Every question has an explanation.</p>
+    <a class="btn sm" href="#/formulas?s=calc">${icon('integral')} AP formula sheets</a></div>
     <div id="apGrid" class="ap-grid"><p class="muted">Loading the question bank...</p></div></div>`;
   apCounts().then((cnt) => {
     const el = $('#apGrid', root);

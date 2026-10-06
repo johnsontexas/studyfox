@@ -1,5 +1,6 @@
 import { $, tex } from '../util.js';
 import { referenceSheetHTML, mountCalculator } from '../tools.js';
+import { AP_SHEETS } from '../content/ap-formulas.js';
 
 const F = (name, f, note = '') => `<div class="fcell"><div class="fname">${name}</div><div class="fmath">${tex(`$${f}$`)}</div>${note ? `<div class="muted small">${note}</div>` : ''}</div>`;
 
@@ -40,13 +41,31 @@ const SECTIONS = [
   ]],
 ];
 
-export function formulasView(root) {
-  root.innerHTML = `
-  <div class="page">
-    <div class="row between wrap gap"><div><h1>Formula sheet</h1><p class="muted">The SAT gives you the reference sheet below. Everything after it you need to know by heart, and the ACT gives you no formulas at all.</p></div>
+// One page for every formula sheet: SAT & ACT first, then each AP class (picked with ?s=).
+const SHEETS = [['sat', 'SAT & ACT'], ...AP_SHEETS.map(([id, title]) => [id, title.replace(/ AB\/BC| 1, 2 & C/, '')])];
+
+function satHTML() {
+  return `<div class="row between wrap gap"><div><h1>SAT & ACT formula sheet</h1><p class="muted">The SAT gives you the reference sheet below. Everything after it you need to know by heart, and the ACT gives you no formulas at all.</p></div>
     <div class="row gap"><a class="btn" href="#/flashcards/builtin-math-formulas">Study as flashcards</a><button class="btn ghost" onclick="print()">Print</button></div></div>
     <div class="card"><h2 class="h3">SAT reference sheet <span class="tag">Provided on test day</span></h2>${referenceSheetHTML()}</div>
-    ${SECTIONS.map(([t, cells]) => `<div class="card"><h2 class="h3">${t} ${t === 'ACT extras' ? '<span class="tag subtle">ACT only</span>' : '<span class="tag subtle">Memorize</span>'}</h2><div class="fgrid">${cells.join('')}</div></div>`).join('')}
+    ${SECTIONS.map(([t, cells]) => `<div class="card"><h2 class="h3">${t} ${t === 'ACT extras' ? '<span class="tag subtle">ACT only</span>' : '<span class="tag subtle">Memorize</span>'}</h2><div class="fgrid">${cells.join('')}</div></div>`).join('')}`;
+}
+
+function apHTML([, title, given, sections]) {
+  return `<div class="row between wrap gap"><div><h1>${title} formula sheet</h1><p class="muted">${given}</p></div>
+    <div class="row gap"><a class="btn" href="#/ap">Practice AP questions</a><button class="btn ghost" onclick="print()">Print</button></div></div>
+    ${sections.map(([t, cells]) => `<div class="card"><h2 class="h3">${t}</h2><div class="fgrid">${cells.map(([n, f, note]) => F(n, f, note)).join('')}</div></div>`).join('')}`;
+}
+
+export function formulasView(root) {
+  // The iOS app renders this without a browser location, so it gets the SAT & ACT sheet with no picker.
+  const want = typeof location === 'undefined' ? null : new URLSearchParams(location.hash.split('?')[1] || '').get('s');
+  const pick = SHEETS.some(([id]) => id === want) ? want : 'sat';
+  const ap = AP_SHEETS.find(([id]) => id === pick);
+  root.innerHTML = `
+  <div class="page">
+    ${want === null && typeof location === 'undefined' ? '' : `<div class="sheet-pick" role="tablist" aria-label="Formula sheets">${SHEETS.map(([id, t]) => `<a href="#/formulas?s=${id}" class="${id === pick ? 'on' : ''}" role="tab" aria-selected="${id === pick}">${t}</a>`).join('')}</div>`}
+    ${ap ? apHTML(ap) : satHTML()}
   </div>`;
 }
 

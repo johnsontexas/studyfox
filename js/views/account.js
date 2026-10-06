@@ -5,6 +5,7 @@ import { confirmBox } from '../tools.js';
 import { langOptions, profOptions } from '../i18n.js';
 import { TERMS_VERSION } from './legal.js';
 import { cloudEnabled, signInWith, cloudSignOut, deleteCloudData, linkedProviders, linkProvider, emailSignUp, emailSignIn, resetPassword, updatePassword } from '../cloud.js';
+import { a11yCardHTML, wireA11y } from '../a11y.js';
 
 // Where to go after signing in: the page a guest was bounced from, else the dashboard.
 export function takeAfterLogin() {
@@ -116,6 +117,7 @@ export function settingsView(root) {
       <label>Theme<select id="theme"><option value="system">Match system</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
       <div class="row gap"><button class="btn primary" id="saveBtn">Save changes</button>${u ? '<button class="btn ghost" id="logout">Sign out</button>' : ''}</div>
     </div>
+    ${a11yCardHTML()}
     ${u?.cloud && u.provider === 'email' ? `<form class="card stack" id="pwForm">
       <h2 class="h3">Password</h2>
       <label>New password<input type="password" name="pw" autocomplete="new-password" minlength="8" required placeholder="${PASSWORD_HINT}"></label>
@@ -146,6 +148,7 @@ export function settingsView(root) {
   });
   if (/reset=1/.test(location.hash)) $('#pwForm', root)?.scrollIntoView();
   wireLang(root);
+  wireA11y(root);
   if (u?.cloud) linkedProviders().then((have) => {
     const box = $('#links', root); if (!box) return;
     box.innerHTML = PROVIDERS.map(([id, name, logo]) => `<div class="row between gap"><span class="row gap">${logo}<b>${name}</b></span>${have.includes(id)

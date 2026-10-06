@@ -24,7 +24,7 @@ const tone = (s) => `tone-${Math.max(0, SUBJECTS.indexOf(s)) % 6}`;
 export const courseCard = (c, { progress = true } = {}) => {
   const n = doneCount(c);
   return `<a class="course-card ${tone(c.subject)}${n ? ' started' : ''}" href="#/learn/${c.id}">
-  <div class="cc-top"><span class="cc-icon">${icon(c.icon)}</span><span class="cc-level">${esc(c.level)}</span></div>
+  <div class="cc-art" aria-hidden="true"><span class="cc-art-big">${icon(c.icon)}</span><span class="cc-icon">${icon(c.icon)}</span><span class="cc-level">${esc(c.level)}</span></div>
   <h3>${esc(c.title)}</h3>
   <p class="cc-blurb">${esc(c.blurb)}</p>
   <ol class="cc-peek">${c.lessons.slice(0, 3).map((l) => `<li>${esc(l.title)}</li>`).join('')}${c.lessons.length > 3 ? `<li class="more">+${c.lessons.length - 3} more</li>` : ''}</ol>
@@ -87,8 +87,8 @@ export function courseView(root, { course }) {
   root.innerHTML = `
   <div class="page narrow-wide">
     <a class="small" href="#/learn">${icon('left')} All courses</a>
-    <div class="course-head">
-      <div class="f-icon">${icon(c.icon)}</div>
+    <div class="course-head ${tone(c.subject)}">
+      <div class="cc-art course-art" aria-hidden="true"><span class="cc-art-big">${icon(c.icon)}</span><span class="cc-icon">${icon(c.icon)}</span></div>
       <div><h1>${esc(c.title)}</h1><p class="muted">${esc(c.blurb)}</p></div>
     </div>
     ${progressBar(c)}

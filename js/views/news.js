@@ -6,8 +6,11 @@ import { db, isAdmin, cloudEnabled } from '../cloud.js';
 import { confirmBox } from '../tools.js';
 import { CONTACT_EMAIL, SUPPORT_EMAIL, SUPPORT_FORM_URL } from '../config.js';
 
-// Post bodies are plain text: escaped, then blank lines become paragraphs and bare links become links.
-const body = (t) => esc(t).split(/\n{2,}/).map((p) => `<p>${p.replace(/\n/g, '<br>').replace(/https?:\/\/[^\s<]+/g, (u) => `<a href="${u}" target="_blank" rel="noopener nofollow">${u}</a>`)}</p>`).join('');
+// Post bodies are plain text: escaped, then blank lines become paragraphs. Links can be written as
+// [link text](https://...) or pasted bare.
+const LINK = /\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s<]+)/g;
+const a = (href, text) => `<a href="${href}" target="_blank" rel="noopener nofollow">${text}</a>`;
+const body = (t) => esc(t).split(/\n{2,}/).map((p) => `<p>${p.replace(/\n/g, '<br>').replace(LINK, (m, text, href, bare) => bare ? a(bare, bare) : a(href, text))}</p>`).join('');
 const date = (s) => new Date(s).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
 export async function fetchNews(limit = 50) {
@@ -34,16 +37,26 @@ const postHTML = (n, admin) => `<article class="news-post card${n.pinned ? ' pin
     ${admin ? `<span class="grow"></span><button class="btn sm ghost" data-pin="${n.id}" data-on="${n.pinned ? 1 : 0}">${n.pinned ? 'Unpin' : 'Pin'}</button><button class="btn sm ghost danger-text" data-del="${n.id}">${icon('trash')} Delete</button>` : ''}</div>
   <h2 class="h3">${esc(n.title)}</h2><div class="news-body">${body(n.body)}</div></article>`;
 
-// Form for writing a post; used on the news page, admin console, dashboard, and home.
+// Form for writing a post; used on the news page and admin console.
 const composerHTML = (compact) => `<form class="card news-compose${compact ? ' compact' : ''}" data-compose>
   <div class="row between"><b>${icon('edit')} New post</b><span class="tag subtle">${icon('shield')} Admin</span></div>
   <input name="title" maxlength="160" placeholder="Title" required>
-  <textarea name="body" rows="${compact ? 3 : 6}" maxlength="8000" placeholder="What's new? Blank lines start a new paragraph." required></textarea>
-  <div class="img-row"><label class="btn sm ghost">${icon('upload')} Add image<input type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif" hidden></label><span class="muted small" data-imgname>Optional. PNG, JPG, WebP, or GIF up to 5 MB.</span></div>
+  <textarea name="body" rows="${compact ? 3 : 6}" maxlength="8000" placeholder="What's new? Blank lines start a new paragraph. Links: [link text](https://...)" required></textarea>
+  <div class="img-row"><button type="button" class="btn sm ghost" data-addlink>${icon('link')} Add link</button><label class="btn sm ghost">${icon('upload')} Add image<input type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif" hidden></label><span class="muted small" data-imgname>Optional. PNG, JPG, WebP, or GIF up to 5 MB.</span></div>
   <div class="row between wrap gap"><label class="row gap small"><input type="checkbox" name="pinned"> Pin to top</label><button class="btn primary sm">Post</button></div>
 </form>`;
 
 async function wireComposer(root, onDone) {
+  root.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-addlink]'); if (!b) return;
+    const ta = b.closest('[data-compose]').body;
+    let url = prompt('Link address (https://...)'); if (!url) return;
+    url = url.trim(); if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
+    const sel = ta.value.slice(ta.selectionStart, ta.selectionEnd);
+    const text = sel || prompt('Text to show for the link', '') || url;
+    const md = `[${text.replace(/[\[\]]/g, '')}](${url.replace(/[\s)]/g, '')})`;
+    ta.setRangeText(md, ta.selectionStart, ta.selectionEnd, 'end'); ta.focus();
+  });
   root.addEventListener('change', (e) => {
     if (e.target.name !== 'image') return;
     const f = e.target.closest('[data-compose]'), file = e.target.files[0];
@@ -105,19 +118,17 @@ export function newsView(root) {
   wireComposer(root, draw);
 }
 
-// Small "Latest news" block for the dashboard and home page; admins also get a quick composer.
+// Small "Latest news" block for the dashboard and home page. Posting lives on the news page only.
 export function newsWidget(host) {
   if (!host || !cloudEnabled) return;
   const draw = async () => {
-    const [list, admin] = await Promise.all([fetchNews(3).catch(() => []), isAdmin()]);
-    if (!list.length && !admin) { host.innerHTML = ''; return; }
+    const list = await fetchNews(3).catch(() => []);
+    if (!list.length) { host.innerHTML = ''; return; }
     host.innerHTML = `<div class="news-widget">
       <div class="row between"><h2 class="h3">${icon('news')} Latest news</h2><a class="small" href="#/news">All news ${icon('right')}</a></div>
-      ${list.map((n) => `<a class="news-item" href="#/news">${n.image_url ? `<img class="news-thumb" src="${esc(n.image_url)}" alt="" loading="lazy">` : ''}<b>${esc(n.title)}</b><span class="muted small">${timeAgo(new Date(n.created_at).getTime())}</span></a>`).join('') || '<p class="muted small">No posts yet.</p>'}
-      ${admin ? `${composerHTML(true)}<a class="small" href="#/admin">${icon('shield')} Open admin console</a>` : ''}</div>`;
+      ${list.map((n) => `<a class="news-item" href="#/news">${n.image_url ? `<img class="news-thumb" src="${esc(n.image_url)}" alt="" loading="lazy">` : ''}<b>${esc(n.title)}</b><span class="muted small">${timeAgo(new Date(n.created_at).getTime())}</span></a>`).join('')}</div>`;
   };
   draw();
-  wireComposer(host, draw);
 }
 
 export function adminView(root) {

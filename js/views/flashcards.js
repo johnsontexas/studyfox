@@ -5,6 +5,7 @@ import { store } from '../store.js';
 import { BUILTIN_DECKS } from '../content/decks.js';
 import { modal, confirmBox } from '../tools.js';
 import { parseImport, importPrefs } from '../cardimport.js';
+import { db, cloudEnabled } from '../cloud.js';
 
 const getSet = (id) => BUILTIN_DECKS.find((d) => d.id === id) || store.getSet(id);
 const norm = (s) => String(s).toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
@@ -161,7 +162,7 @@ export function setView(root, { id }) {
         <a class="mode card hover" href="#/flashcards/${encodeURIComponent(s.id)}/learn"><span>${icon('brain')}</span>Learn</a>
         <a class="mode card hover" href="#/flashcards/${encodeURIComponent(s.id)}/test"><span>${icon('clipboard')}</span>Test</a>
         <a class="mode card hover" href="#/flashcards/${encodeURIComponent(s.id)}/match"><span>${icon('puzzle')}</span>Match</a>
-        <button class="mode card hover" id="shareBtn"><span>${icon('link')}</span>Share</button>
+        <button class="mode card hover" id="setShareBtn"><span>${icon('link')}</span>Share</button>
       </div>
       <div id="viewer"></div>
       <div class="row between wrap gap set-meta">
@@ -188,7 +189,7 @@ export function setView(root, { id }) {
     if (t.id === 'delBtn') confirmBox(`Delete "${esc(s.title)}"? This can't be undone.`, { ok: 'Delete', danger: true }).then((ok) => { if (ok) { store.deleteSet(s.id); location.hash = '#/flashcards'; } });
     if (t.id === 'resetProg') { p.mastery = {}; store.save(); draw(); }
     if (t.id === 'exportBtn') modal(`<p class="muted">Tab-separated. Paste into a spreadsheet or another flashcard app.</p><textarea rows="10" readonly>${esc(s.cards.map((c) => `${c.t}\t${c.d}`).join('\n'))}</textarea>`, { title: 'Export', wide: true });
-    if (t.closest('#shareBtn')) {
+    if (t.closest('#setShareBtn')) {
       const url = `${location.origin}${location.pathname}#/share/${b64enc(JSON.stringify({ t: s.title, d: s.desc, c: s.cards.map((c) => [c.t, c.d]) }))}`;
       const m = modal(`<p>Anyone with this link can view and save a copy of this set. No account needed.</p><div class="row gap"><input id="shareUrl" readonly value="${esc(url)}"><button class="btn primary" id="copyUrl">Copy</button></div>${url.length > 8000 ? '<p class="warnline small">This set is large, so the link is very long. Some apps may cut it off; use Export instead.</p>' : ''}`, { title: 'Share this set' });
       $('#copyUrl', m.el).onclick = () => { navigator.clipboard?.writeText(url).then(() => toast('Link copied!', 'good'), () => { $('#shareUrl', m.el).select(); }); };
@@ -381,46 +382,100 @@ export function testView(root, { id }) {
 }
 
 // ---------- Match ----------
+// Leaderboard key: built-in decks by id; personal sets by a hash of their cards, so every copy of a
+// shared set competes on one board. The pair count is part of the key so times are comparable.
+function boardKey(s, pairs) {
+  if (s.builtin) return `${s.id}:${pairs}`;
+  let h = 5381;
+  for (const ch of s.cards.map((c) => `${c.t}\u0001${c.d}`).sort().join('\u0002')) h = ((h * 33) ^ ch.charCodeAt(0)) >>> 0;
+  return `set-${h.toString(36)}-${s.cards.length}:${pairs}`;
+}
+// "Daniel Johnson" shows as "Daniel J." on the public board.
+const boardName = (n) => { const [a, b] = String(n || 'Student').trim().split(/\s+/); return (b ? `${a} ${b[0]}.` : a).slice(0, 40); };
+
+async function fetchBoard(key) {
+  if (!cloudEnabled) return [];
+  const c = await db();
+  const { data, error } = await c.from('match_scores').select('user_id,name,seconds').eq('set_key', key).order('seconds').limit(300);
+  if (error) throw error;
+  const seen = new Set();
+  return data.filter((r) => !seen.has(r.user_id) && seen.add(r.user_id)).slice(0, 10);
+}
+
 export function matchView(root, { id }) {
   const s = getSet(id);
   if (!s) return notFound(root);
   const p = store.progress(s.id);
-  let tiles = [], sel = null, start = 0, penalty = 0, left = 0, iv = null;
+  const pairs = Math.min(6, s.cards.length);
+  const key = boardKey(s, pairs);
+  const me = store.user();
+  let tiles = [], sel = null, start = 0, penalty = 0, left = 0, iv = null, busy = false, tab = 'all';
+
+  const fmt = (x) => `${Number(x).toFixed(1)}s`;
+  const boardHTML = () => `<div class="card match-board"><div class="row between wrap gap"><h2 class="h3">${icon('chart')} Leaderboard</h2>
+      <div class="seg sm" id="boardTab"><button data-tab="all" class="${tab === 'all' ? 'on' : ''}">Everyone</button><button data-tab="me" class="${tab === 'me' ? 'on' : ''}">My times</button></div></div>
+      <div id="boardBody"><p class="muted small">Loading...</p></div></div>`;
+  async function drawBoard() {
+    const el = $('#boardBody', root); if (!el) return;
+    if (tab === 'me') {
+      const mine = (p.matchTimes || []).slice().sort((a, b) => a.s - b.s).slice(0, 10);
+      el.innerHTML = mine.length ? `<ol class="board">${mine.map((r) => `<li><span>${new Date(r.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span><b>${fmt(r.s)}</b></li>`).join('')}</ol>` : '<p class="muted small">Play a round to see your times here.</p>';
+      return;
+    }
+    try {
+      const rows = await fetchBoard(key);
+      if (tab !== 'all' || !$('#boardBody', root)) return;
+      el.innerHTML = rows.length ? `<ol class="board">${rows.map((r) => `<li class="${me?.cloud && r.user_id === me.id ? 'you' : ''}"><span>${esc(r.name)}${me?.cloud && r.user_id === me.id ? ' (you)' : ''}</span><b>${fmt(r.seconds)}</b></li>`).join('')}</ol>`
+        : '<p class="muted small">No times yet. Be the first on the board.</p>';
+      if (!me?.cloud) el.insertAdjacentHTML('beforeend', '<p class="muted small">Sign in with an account that syncs to post your times here.</p>');
+    } catch { el.innerHTML = '<p class="muted small">The leaderboard could not load.</p>'; }
+  }
+
   function intro() {
     clearInterval(iv);
-    root.innerHTML = `<div class="page narrow center-page"><a class="small" href="#/flashcards/${encodeURIComponent(id)}">← ${esc(s.title)}</a><div class="big-emoji">${sticker('puzzle')}</div><h1>Ready to play?</h1><p class="muted">Match all the terms with their definitions as fast as you can. Wrong matches add 1 second.</p>${p.matchBest ? `<p>Your best: <b>${p.matchBest.toFixed(1)}s</b></p>` : ''}<button class="btn primary lg" id="startMatch">Start game</button></div>`;
+    root.innerHTML = `<div class="page narrow center-page"><a class="small" href="#/flashcards/${encodeURIComponent(id)}">← ${esc(s.title)}</a><div class="big-emoji">${sticker('puzzle')}</div><h1>Ready to play?</h1><p class="muted">Match ${pairs} terms with their definitions as fast as you can. Wrong matches add 1 second.</p>${p.matchBest ? `<p>Your best: <b>${fmt(p.matchBest)}</b></p>` : ''}<button class="btn primary lg" id="startMatch">Start game</button>${boardHTML()}</div>`;
+    drawBoard();
   }
   function play() {
-    const picks = shuffle(s.cards.map((_, i) => i)).slice(0, Math.min(6, s.cards.length));
+    const picks = shuffle(s.cards.map((_, i) => i)).slice(0, pairs);
     tiles = shuffle(picks.flatMap((i) => [{ i, txt: s.cards[i].t, kind: 't' }, { i, txt: s.cards[i].d, kind: 'd' }]));
-    left = picks.length; sel = null; penalty = 0; start = performance.now();
+    left = picks.length; sel = null; penalty = 0; busy = false; start = performance.now();
     root.innerHTML = `<div class="page"><div class="row between"><a class="small" href="#/flashcards/${encodeURIComponent(id)}">← ${esc(s.title)}</a><b class="match-time" id="mt">0.0s</b></div>
       <div class="match-grid">${tiles.map((t, k) => `<button class="tile" data-k="${k}">${esc(t.txt)}</button>`).join('')}</div></div>`;
-    iv = setInterval(() => { const el = $('#mt', root); if (el) el.textContent = ((performance.now() - start) / 1000 + penalty).toFixed(1) + 's'; }, 100);
+    iv = setInterval(() => { const el = $('#mt', root); if (el) el.textContent = fmt((performance.now() - start) / 1000 + penalty); }, 100);
   }
-  function done() {
+  async function done() {
     clearInterval(iv);
-    const time = (performance.now() - start) / 1000 + penalty;
+    const time = Math.round(((performance.now() - start) / 1000 + penalty) * 10) / 10;
     const best = !p.matchBest || time < p.matchBest;
-    if (best) { p.matchBest = time; store.save(); }
-    root.innerHTML = `<div class="page narrow center-page"><div class="big-emoji">${best ? sticker('medal') : sticker('stopwatch')}</div><h1>${time.toFixed(1)} seconds</h1><p class="muted">${best ? 'New personal best!' : `Your best is ${p.matchBest.toFixed(1)}s.`}</p><div class="row gap center"><button class="btn primary lg" id="startMatch">Play again</button><a class="btn" href="#/flashcards/${encodeURIComponent(id)}">Back to set</a></div></div>`;
+    if (best) p.matchBest = time;
+    p.matchTimes = [...(p.matchTimes || []), { s: time, at: Date.now() }].slice(-50);
+    store.save();
+    root.innerHTML = `<div class="page narrow center-page"><div class="big-emoji">${best ? sticker('medal') : sticker('stopwatch')}</div><h1>${time.toFixed(1)} seconds</h1><p class="muted">${best ? 'New personal best!' : `Your best is ${fmt(p.matchBest)}.`}</p><div class="row gap center"><button class="btn primary lg" id="startMatch">Play again</button><a class="btn" href="#/flashcards/${encodeURIComponent(id)}">Back to set</a></div>${boardHTML()}</div>`;
+    if (me?.cloud && cloudEnabled && time >= 1) {
+      try { const c = await db(); await c.from('match_scores').insert({ set_key: key, name: boardName(me.name), seconds: time }); } catch {}
+    }
+    drawBoard();
   }
   root.addEventListener('click', (e) => {
     if (e.target.id === 'startMatch') return play();
+    const bt = e.target.closest('[data-tab]'); if (bt) { tab = bt.dataset.tab; root.querySelectorAll('[data-tab]').forEach((x) => x.classList.toggle('on', x === bt)); return drawBoard(); }
     const b = e.target.closest('.tile');
-    if (!b || b.classList.contains('gone')) return;
+    // Ignore matched tiles (even mid-animation) and clicks while a wrong pair is flashing.
+    if (!b || busy || b.classList.contains('match') || b.classList.contains('gone')) return;
     const k = +b.dataset.k;
     if (sel === null) { sel = k; b.classList.add('sel'); return; }
     if (sel === k) { b.classList.remove('sel'); sel = null; return; }
     const a = tiles[sel], c = tiles[k], bs = $(`.tile[data-k="${sel}"]`, root);
+    sel = null; bs.classList.remove('sel');
     if (a.i === c.i && a.kind !== c.kind) {
       [b, bs].forEach((x) => { x.classList.add('match'); setTimeout(() => x.classList.add('gone'), 250); });
       if (--left === 0) setTimeout(done, 300);
     } else {
-      penalty += 1;
-      [b, bs].forEach((x) => { x.classList.remove('sel'); x.classList.add('miss'); setTimeout(() => x.classList.remove('miss'), 400); });
+      penalty += 1; busy = true;
+      [b, bs].forEach((x) => x.classList.add('miss'));
+      setTimeout(() => { [b, bs].forEach((x) => x.classList.remove('miss')); busy = false; }, 400);
     }
-    sel = null; bs.classList.remove('sel');
   });
   intro();
   return () => clearInterval(iv);

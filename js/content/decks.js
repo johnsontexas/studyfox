@@ -1,4 +1,5 @@
 // Built-in flashcard decks (free, editable copies can be made by any user).
+import { AP_DECK_ROWS } from './decks-ap.js';
 const deck = (id, title, desc, tag, rows) => ({ id: 'builtin-' + id, builtin: true, title, desc, tag, cards: rows.map(([t, d]) => ({ t, d })) });
 
 export const BUILTIN_DECKS = [
@@ -67,4 +68,5 @@ export const BUILTIN_DECKS = [
     ['Pendulum period', 'Depends on length (and gravity), not on mass'], ['Hooke\'s law', 'A spring stretches in proportion to the force applied'], ['Conflicting viewpoints tip', 'Identify each scientist\'s main claim and the evidence each would accept'],
     ['Reading graphs tip', 'Check axis labels, units, and the legend before reading any value'],
   ]),
+  ...AP_DECK_ROWS.map((r) => deck(...r)),
 ];

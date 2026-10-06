@@ -136,3 +136,19 @@ insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_typ
   values ('news-images', 'news-images', true, 5242880, array['image/png', 'image/jpeg', 'image/webp', 'image/gif']) on conflict (id) do nothing;
 create policy "admins upload news images" on storage.objects for insert to authenticated with check (bucket_id = 'news-images' and (select public.is_admin()));
 create policy "admins delete news images" on storage.objects for delete to authenticated using (bucket_id = 'news-images' and (select public.is_admin()));
+
+-- Flashcard Match leaderboard. set_key is the built-in deck id, or a hash of a personal set's cards
+-- so shared copies of the same set share one board.
+create table if not exists public.match_scores (
+  id bigint generated always as identity primary key,
+  set_key text not null check (char_length(set_key) between 1 and 120),
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  name text not null check (char_length(name) between 1 and 40),
+  seconds numeric(6,1) not null check (seconds >= 1 and seconds < 3600),
+  created_at timestamptz not null default now()
+);
+create index if not exists match_scores_set_idx on public.match_scores (set_key, seconds);
+alter table public.match_scores enable row level security;
+create policy "match scores are public" on public.match_scores for select to anon, authenticated using (true);
+create policy "players add their own scores" on public.match_scores for insert to authenticated with check (user_id = auth.uid());
+create policy "players delete their own scores" on public.match_scores for delete to authenticated using (user_id = auth.uid());

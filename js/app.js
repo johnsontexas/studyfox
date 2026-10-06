@@ -25,6 +25,7 @@ import { initContent } from './content/live.js';
 import { contentAdminView } from './views/content-admin.js';
 import { apHubView, apCourseView } from './views/ap.js';
 import { aboutView } from './views/about.js';
+import { applyA11y } from './a11y.js';
 import { openShare } from './share.js';
 
 export const BRAND = 'StudyFox';
@@ -65,7 +66,7 @@ function navHTML(path) {
     <a href="#/" class="brand" aria-label="${BRAND} home"><svg class="logo" viewBox="-2 2 70 62" aria-hidden="true"><path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#fff" stroke="#fff" stroke-width="6" stroke-linejoin="round"/><path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#f9a825"/><path d="M10 36l22 24 22-24-12-4-10 9-10-9z" fill="#fff8ec"/><path d="M26.5 54h11L32 60z" fill="#1a1a1a"/><circle cx="23" cy="28" r="3" fill="#1a1a1a"/><circle cx="41" cy="28" r="3" fill="#1a1a1a"/></svg><span>Study<span class="brand-fox">Fox</span></span></a>
     <button class="icon-btn menu-btn" id="menuBtn" aria-label="Menu">${icon('menu')}</button>
     <nav class="links" id="navLinks">
-      ${link(u ? '/home' : '/', 'Home')}${link('/learn', 'Courses')}${link('/ap', 'AP Practice')}${group('SAT', 'SAT & ACT')}${link('/flashcards', 'Flashcards')}${link('/news', 'News')}${link('/about', 'About')}${u ? group('DASH', 'Dashboard') : ''}${admin ? link('/admin', 'Admin') : ''}
+      ${link(u ? '/home' : '/', 'Home')}<span class="nav-study">${link('/learn', `${icon('book')}Courses`)}${link('/ap', `${icon('target')}AP Practice`)}${group('SAT', `${icon('clipboard')}SAT &amp; ACT`)}${link('/flashcards', `${icon('cards')}Flashcards`)}</span>${link('/news', 'News')}${link('/about', 'About')}${u ? group('DASH', 'Dashboard') : ''}${admin ? link('/admin', 'Admin') : ''}
     </nav>
     <div class="nav-right">
       <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">${icon('contrast')}</button>
@@ -80,7 +81,7 @@ function navHTML(path) {
 // and every SAT/ACT tool under SAT & ACT.
 const TAB_GROUPS = {
   DASH: [['/dashboard', 'Overview'], ['/settings', 'Settings'], ['/contact', 'Support']],
-  SAT: [['/practice', 'Practice'], ['/speed', 'Speed practice'], ['/exams', 'Practice tests'], ['/formulas', 'Formulas'], ['/calculator', 'Calculator']],
+  SAT: [['/practice', 'Practice'], ['/speed', 'Speed practice'], ['/exams', 'Practice tests'], ['/formulas', 'Formula sheets'], ['/calculator', 'Calculator']],
 };
 const tabGroup = (pat) => Object.entries(TAB_GROUPS).find(([g, tabs]) => (g !== 'DASH' || store.user()) && tabs.some(([p]) => p === pat));
 function tabShell(main, m, tabs) {
@@ -125,8 +126,9 @@ function router() {
   if (cleanup) { try { cleanup(); } catch (e) { console.error(e); } cleanup = null; }
   document.body.classList.remove('testing', 'nav-open');
   $('#nav').innerHTML = navHTML(path === '/' && store.user() ? '/dashboard' : path);
-  const main = $('#main');
-  main.innerHTML = '';
+  // Swap in a fresh <main> so click handlers that views attach to it don't pile up across visits.
+  const old = $('#main'), main = old.cloneNode(false);
+  old.replaceWith(main);
   scrollTo(0, 0);
   try { cleanup = (tabGroup(m.pat) ? tabShell(main, m, tabGroup(m.pat)[1]) : m.view(main, m.params)) || null; }
   catch (e) { console.error(e); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><pre class="err">${esc(e.stack || e)}</pre><a class="btn" href="#/">Go home</a></div>`; }
@@ -147,6 +149,7 @@ function boot() {
       <p class="foot-legal">SAT®, AP®, and ACT® are trademarks of their respective owners, which are not affiliated with and do not endorse this site. Questions are original and generated for practice; scores are estimates.</p>
     </div></footer>`;
   applyTheme();
+  applyA11y();
   initI18n();
   initCloud();
   document.addEventListener('click', (e) => {
@@ -159,7 +162,7 @@ function boot() {
     if (e.target.closest('#menuBtn')) document.body.classList.toggle('nav-open');
     else if (e.target.closest('#navLinks a')) document.body.classList.remove('nav-open');
   });
-  store.onChange(() => { applyTheme(); const p = (location.hash.slice(1) || '/').split('?')[0]; if (!['/privacy', '/terms', '/login', '/signup', '/welcome'].includes(p)) requireAgreement(); if (needsOnboarding() && !['/welcome', '/privacy', '/terms'].includes(p)) location.replace('#/welcome'); $('#nav').innerHTML = navHTML((location.hash.slice(1) || '/').split('?')[0]); });
+  store.onChange(() => { applyTheme(); applyA11y(); const p = (location.hash.slice(1) || '/').split('?')[0]; if (!['/privacy', '/terms', '/login', '/signup', '/welcome'].includes(p)) requireAgreement(); if (needsOnboarding() && !['/welcome', '/privacy', '/terms'].includes(p)) location.replace('#/welcome'); $('#nav').innerHTML = navHTML((location.hash.slice(1) || '/').split('?')[0]); });
   addEventListener('hashchange', router);
   // Courses, lessons, decks, and custom questions come from Supabase (editable in the admin console).
   // The saved copy shows immediately; if the server has newer content, redraw pages that show it.
