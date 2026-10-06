@@ -10,4 +10,4 @@ export const KOFI = 'https://ko-fi.com/studyfox';
 export const SITE_URL = 'https://studyfox.org';
 export const SUPPORT_EMAIL = 'support@studyfox.org';
 // Paste the Google Form link here (the .../viewform URL) to show it on the Contact page.
-export const SUPPORT_FORM_URL = '';
+export const SUPPORT_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScWsj4w_QQfDN4kSlZR2Uf9LivnoHULR3CVr33vru_SsbF48w/viewform';

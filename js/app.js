@@ -43,7 +43,7 @@ function match(path) {
     const a = pat.split('/'), b = path.split('/');
     if (a.length !== b.length) continue;
     const params = {};
-    if (a.every((seg, i) => (seg.startsWith(':') ? ((params[seg.slice(1)] = decodeURIComponent(b[i])), true) : seg === b[i]))) return { view, params };
+    if (a.every((seg, i) => (seg.startsWith(':') ? ((params[seg.slice(1)] = decodeURIComponent(b[i])), true) : seg === b[i]))) return { view, params, pat };
   }
   return null;
 }
@@ -61,7 +61,7 @@ function navHTML(path) {
     <a href="#/" class="brand" aria-label="${BRAND} home"><svg class="logo" viewBox="-2 2 70 62" aria-hidden="true"><path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#fff" stroke="#fff" stroke-width="6" stroke-linejoin="round"/><path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#f9a825"/><path d="M10 36l22 24 22-24-12-4-10 9-10-9z" fill="#fff8ec"/><path d="M26.5 54h11L32 60z" fill="#1a1a1a"/><circle cx="23" cy="28" r="3" fill="#1a1a1a"/><circle cx="41" cy="28" r="3" fill="#1a1a1a"/></svg><span>Study<span class="brand-fox">Fox</span></span></a>
     <button class="icon-btn menu-btn" id="menuBtn" aria-label="Menu">${icon('menu')}</button>
     <nav class="links" id="navLinks">
-      ${u ? link('/home', 'Home') : ''}${link('/learn', 'Courses')}${link('/flashcards', 'Flashcards')}${link('/practice', 'SAT & ACT')}${link('/exams', 'Tests')}${link('/speed', 'Speed')}${link('/formulas', 'Formulas')}${link('/calculator', 'Calculator')}${link('/news', 'News')}${link('/dashboard', 'Dashboard')}${admin ? link('/admin', 'Admin') : ''}
+      ${u ? link('/home', 'Home') : ''}${link('/learn', 'Courses')}${link('/flashcards', 'Flashcards')}${link('/practice', 'SAT & ACT')}${link('/exams', 'Tests')}${link('/speed', 'Speed')}${link('/formulas', 'Formulas')}${link('/calculator', 'Calculator')}${link('/news', 'News')}${u ? `<a href="#/dashboard" class="${['/dashboard', '/settings', '/contact'].includes(path) ? 'active' : ''}">Dashboard</a>` : link('/dashboard', 'Dashboard')}${admin ? link('/admin', 'Admin') : ''}
     </nav>
     <div class="nav-right">
       <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">${icon('contrast')}</button>
@@ -71,6 +71,16 @@ function navHTML(path) {
 }
 
 // Everything except these pages needs an account; guests are sent to sign in, then returned.
+// Settings and support live inside the dashboard as tabs.
+const DASH_TABS = [['/dashboard', 'Overview'], ['/settings', 'Settings'], ['/contact', 'Support']];
+function dashShell(main, m) {
+  main.innerHTML = `<div class="page dash-tabs"><nav class="tabs" aria-label="Dashboard">${DASH_TABS.map(([p, t]) => `<a href="#${p}" class="${p === m.pat ? 'on' : ''}">${t}</a>`).join('')}</nav></div><div id="dashBody"></div>`;
+  const body = $('#dashBody', main);
+  const r = m.view(body, m.params);
+  body.querySelector('.page')?.classList.add('in-dash');
+  return r;
+}
+
 const PUBLIC = ['/', '/news', '/contact', '/donate', '/login', '/signup', '/privacy', '/terms', '/too-young'];
 export const AFTER_LOGIN = 'sf_after_login';
 
@@ -108,7 +118,7 @@ function router() {
   const main = $('#main');
   main.innerHTML = '';
   scrollTo(0, 0);
-  try { cleanup = m.view(main, m.params) || null; }
+  try { cleanup = (store.user() && DASH_TABS.some(([p]) => p === m.pat) ? dashShell(main, m) : m.view(main, m.params)) || null; }
   catch (e) { console.error(e); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><pre class="err">${esc(e.stack || e)}</pre><a class="btn" href="#/">Go home</a></div>`; }
   const title = { '/': store.user() ? 'Dashboard' : 'Free Study Material for School', '/learn': 'Free Courses', '/privacy': 'Privacy Policy', '/terms': 'Terms of Use', '/speed': 'Speed Practice', '/donate': 'Donate', '/news': 'News', '/contact': 'Contact', '/admin': 'Admin', '/welcome': 'Welcome', '/too-young': 'Welcome' }[path] || (path.startsWith('/learn') ? 'Free Courses' : null) || path.split('/')[1]?.replace(/^\w/, (c) => c.toUpperCase());
   document.title = `${BRAND} · ${title || 'Free Study Material for School'}`;

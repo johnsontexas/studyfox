@@ -138,7 +138,7 @@ export function contactView(root) {
     <div class="page-head"><span class="eyebrow">${icon('mail')} Contact</span><h1>Get in touch</h1><p class="muted">Found a mistake, want a new course, or need help with your account? Send it over.</p></div>
     <div class="contact-grid">
       <a class="card hover contact-card" href="mailto:${SUPPORT_EMAIL}"><div class="f-icon">${icon('mail')}</div><b>Email</b><span class="muted small">${SUPPORT_EMAIL}</span><span class="small">Usually answered within a few days.</span></a>
-      ${SUPPORT_FORM_URL ? `<a class="card hover contact-card" href="${esc(SUPPORT_FORM_URL)}" target="_blank" rel="noopener"><div class="f-icon">${icon('clipboard')}</div><b>Suggestions and support form</b><span class="muted small">Google Form, no account needed</span><span class="small">Ideas, bug reports, and help requests.</span></a>` : ''}
+      ${SUPPORT_FORM_URL ? `<a class="card hover contact-card" href="${esc(SUPPORT_FORM_URL)}" target="_blank" rel="noopener"><div class="f-icon">${icon('clipboard')}</div><b>Suggestion box</b><span class="muted small">Google Form, no account needed</span><span class="small">Ideas for the website, new courses, or bugs.</span></a>` : ''}
     </div>
     ${SUPPORT_FORM_URL && /\/viewform/.test(SUPPORT_FORM_URL) ? `<div class="card flush form-embed"><iframe src="${esc(SUPPORT_FORM_URL.replace(/\?.*$/, ''))}?embedded=true" title="Suggestions and support form" loading="lazy"></iframe></div>` : ''}
     <p class="muted small">For privacy requests you can also write to ${CONTACT_EMAIL}.</p>
