@@ -9,7 +9,7 @@ import { SvgXml } from 'react-native-svg';
 import Backdrop from '../components/Backdrop';
 import { Button, Field, Logo, Scribble, Section, tap } from '../components/ui';
 import { appleAvailable, cloudEnabled, emailSignIn, emailSignUp, signInWithApple, signInWithGoogle } from '../lib/cloud';
-import { COURSES, lessonCount, SITE_URL, store } from '../lib/shared';
+import { COURSES, lessonCount, SITE_URL, store, passwordProblem, PASSWORD_HINT } from '../lib/shared';
 import { openWeb } from '../lib/links';
 import { fonts, type, useColors, useScheme } from '../lib/theme';
 
@@ -36,7 +36,10 @@ export default function Login() {
   };
   const submitEmail = () => run('email', async () => {
     if (!/^\S+@\S+\.\S+$/.test(form.email)) throw new Error('Enter a valid email address.');
-    if (form.password.length < 6) throw new Error('Password must be at least 6 characters.');
+    if (mode === 'signup') {
+      if (!form.name.trim()) throw new Error('Enter your name.');
+      if (passwordProblem(form.password)) throw new Error(passwordProblem(form.password));
+    } else if (!form.password) throw new Error('Enter your password.');
     if (!cloudEnabled) { if (mode === 'signup') await store.signup(form); else await store.login(form.email, form.password); return; }
     // The cloud session is picked up by lib/cloud.ts, which downloads progress and opens the app.
     const r = mode === 'signup' ? await emailSignUp(form) : await emailSignIn(form.email, form.password);
@@ -94,7 +97,7 @@ export default function Login() {
             <Section footer={note || (mode === 'signup' ? 'Your progress syncs with studyfox.org and your other devices.' : undefined)}>
               {mode === 'signup' ? <Field value={form.name} onChangeText={(name) => setForm({ ...form, name })} placeholder="First name" textContentType="givenName" autoComplete="given-name" /> : null}
               <Field value={form.email} onChangeText={(v) => setForm({ ...form, email: v })} placeholder="Email" autoCapitalize="none" keyboardType="email-address" textContentType="emailAddress" autoComplete="email" />
-              <Field value={form.password} onChangeText={(password) => setForm({ ...form, password })} placeholder={mode === 'signup' ? 'Password (6+ characters)' : 'Password'} secureTextEntry
+              <Field value={form.password} onChangeText={(password) => setForm({ ...form, password })} placeholder={mode === 'signup' ? `Password (${PASSWORD_HINT})` : 'Password'} secureTextEntry
                 textContentType={mode === 'signup' ? 'newPassword' : 'password'} onSubmitEditing={submitEmail} returnKeyType="go" />
             </Section>
             <View style={{ paddingHorizontal: 20, paddingTop: 14, gap: 4 }}>

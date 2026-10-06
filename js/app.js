@@ -119,7 +119,8 @@ function boot() {
     <footer class="site-foot"><div class="foot-inner">
       <div class="foot-brand"><b>${BRAND}</b><p>Free study material for school and the SAT and ACT, made by ${CREATOR}. No ads, no paywalls, no limits.</p>
         <a class="foot-ig" href="https://instagram.com/${INSTAGRAM}" target="_blank" rel="noopener">${icon('instagram')}@${INSTAGRAM}</a>
-        <a class="foot-ig" href="${KOFI}" target="_blank" rel="noopener">${icon('heart')}Support StudyFox on Ko-fi</a></div>
+        <a class="foot-ig" href="${KOFI}" target="_blank" rel="noopener">${icon('heart')}Support StudyFox on Ko-fi</a>
+        <a class="foot-ig" id="iosLink" href="#" target="_blank" rel="noopener" hidden>${icon('down')}Download on iOS</a></div>
       <nav class="foot-links" aria-label="Footer"><a href="#/learn">Courses</a><a href="#/practice">SAT &amp; ACT</a><a href="#/flashcards">Flashcards</a><a href="#/news">News</a><a href="#/contact">Contact</a><a href="#/donate">Donate</a><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a></nav>
       <p class="foot-legal">SAT®, AP®, and ACT® are trademarks of their respective owners, which are not affiliated with and do not endorse this site. Questions are original and generated for practice; scores are estimates.</p>
     </div></footer>`;
@@ -147,6 +148,9 @@ function boot() {
   const refresh =() => Promise.all([fetchStatus().catch(() => null), isAdmin()]).then(([st, a]) => {
     const changed = !!st?.maintenance !== !!status?.maintenance || a !== admin;
     status = st; admin = a;
+    const ios = $('#iosLink');
+    if (st?.ios_app_url) ios.href = st.ios_app_url;
+    ios.hidden = !st?.ios_app_url;
     if (changed) router();
   });
   refresh();

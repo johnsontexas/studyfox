@@ -190,4 +190,14 @@ export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().to
 export const b64enc = (str) => btoa(unescape(encodeURIComponent(str))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 export const b64dec = (s) => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))));
 
+// Rules for new passwords (website and app). Returns the problem, or '' when the password is fine.
+export const PASSWORD_HINT = '8+ characters, a letter and a number';
+export function passwordProblem(pw = '') {
+  if (pw.length < 8) return 'Password must be at least 8 characters.';
+  if (pw.length > 72) return 'Password must be 72 characters or fewer.';
+  if (!/[A-Za-z]/.test(pw) || !/\d/.test(pw)) return 'Password must include at least one letter and one number.';
+  if (/\s/.test(pw)) return 'Password cannot contain spaces.';
+  return '';
+}
+
 export const DIFF_LABEL = { 1: 'Easy', 2: 'Medium', 3: 'Hard' };

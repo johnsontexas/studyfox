@@ -60,7 +60,7 @@ export function isAdmin() {
 export async function emailSignUp({ name, email, password }) {
   const c = await client();
   if (!c) throw new Error('Accounts are not set up on this site yet.');
-  const { data, error } = await c.auth.signUp({ email, password, options: { data: { full_name: name }, emailRedirectTo: location.origin + location.pathname } });
+  const { data, error } = await c.auth.signUp({ email, password, options: { data: { full_name: name }, emailRedirectTo: location.origin + '/verified.html' } });
   if (error) throw new Error(/registered|exists/i.test(error.message) ? 'An account with that email already exists. Sign in instead.' : error.message);
   return { confirm: !data.session };
 }

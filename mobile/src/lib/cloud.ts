@@ -180,7 +180,7 @@ export async function emailSignUp({ name, email, password }: { name: string; ema
   const c = client();
   if (!c) throw new Error('Accounts are not set up yet.');
   pendingName = name || undefined;
-  const { data, error } = await c.auth.signUp({ email, password, options: { data: { full_name: name }, emailRedirectTo: SITE_URL } });
+  const { data, error } = await c.auth.signUp({ email, password, options: { data: { full_name: name }, emailRedirectTo: `${SITE_URL}/verified.html` } });
   if (error) throw new Error(/registered|exists/i.test(error.message) ? 'An account with that email already exists. Sign in instead.' : error.message);
   return { confirm: !data.session, moved: false };
 }

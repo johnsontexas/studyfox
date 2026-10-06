@@ -4,23 +4,43 @@ Everything below is ready to paste into App Store Connect for the iOS app in `mo
 
 Files in this folder:
 
-- `screenshots/iphone-6.9in-1290x2796/`: 10 iPhone screenshots taken from the app (the 6.9" slot; Apple scales them for smaller iPhones)
+- `StudyFox-App-Store-Assets.zip`: everything below in one file
+- `screenshots/`: the 10 screenshots for iPhone 6.3" (1206×2622 and 1179×2556) and iPad 13" (2064×2752 and 2048×2732), each as PNG and JPG
+- `creative-assets/`: product page header and search results assets (see "Header and search results" below)
 - `app-icon-1024.png`: 1024×1024 App Store icon, no transparency
 
 Upload the screenshots in file-name order:
 
-1. Today: "Study for every class. Free." (the whole app at a glance)
-2. Flashcard set: "Flashcards without the paywall."
-3. Courses: "49 classes. Every AP subject."
-4. Lessons: "Short lessons that make it click."
-5. Swipe study: "Swipe what you know."
-6. SAT & ACT: "4,000+ practice questions."
-7. Explanations: "Every answer, explained."
+1. Today: "Study for every class." (the whole app at a glance)
+2. Flashcard set: "Make flashcards in seconds."
+3. SAT question: "Get ready for the SAT."
+4. AP Biology course: "49 classes. Every AP subject."
+5. Lessons: "Short lessons that make it click."
+6. Swipe study: "Swipe what you know."
+7. SAT & ACT: "4,000+ practice questions."
 8. Learn mode: "Quizzes you until it sticks."
-9. Speed Rush: "How many can you get in 2 minutes?"
+9. Speed Rush: "How many SAT questions in 2 minutes?"
 10. Progress: "Know exactly what to work on."
 
-The first three show up in search results, so they cover the three big things: everything in one app, the free flashcard maker, and courses for every class.
+The first three show up in search results, so they cover the three big things: everything in one app, the flashcard maker, and SAT prep.
+
+---
+
+## Header and search results
+
+In App Store Connect: your version page → **Header and Search Results**. There are two versions; pick one, or use both to compare with Product Page Optimization.
+
+| File | Where it goes | Size |
+|---|---|---|
+| `A-every-class-header-3840x1646` (.png/.jpg) | Header | 3840×1646 (21:9) |
+| `A-every-class-search-results-3840x2560` (.png/.jpg) | Search Results | 3840×2560 (3:2) |
+| `A-every-class-universal-5244x2950.png` | Header or Search Results (one file for both) | 5244×2950 (16:9, PNG only) |
+| `B-sat-…` | Same three, SAT-focused version | Same sizes |
+
+- **A, "Study for every class":** the whole app, with the flashcard set, Today screen, and an SAT question.
+- **B, "Get ready for the SAT":** SAT-focused, with the question bank, an answered question, and Speed Rush.
+
+These follow Apple's creative asset rules: no transparency, a 4+ age rating, short text, and no prices, URLs, awards, or platform logos. Apple crops these differently on each device, so the logo, headline, and phones sit in the middle with plain background around the edges.
 
 ---
 
@@ -50,24 +70,24 @@ The first three show up in search results, so they cover the three big things: e
 ### Promotional text (170 max, can be changed anytime without review)
 
 ```
-Free courses for 49 classes including every AP subject, a free flashcard maker, and 4,000+ SAT and ACT practice questions. No ads, no paywall, no catch.
+Courses for 49 classes including every AP subject, a flashcard maker with no limits, and 4,000+ SAT and ACT practice questions. No ads.
 ```
-(151)
+(135)
 
 ### Description (4000 max)
 
 ```
-StudyFox is a free study app for every class you take. Short lessons for 49 courses, including every AP subject. A flashcard maker with no limits. SAT and ACT practice with every answer explained. All in one app, with no ads and no paywall.
+StudyFox is a study app for every class you take. Short lessons for 49 courses, including every AP subject. A flashcard maker with no limits. SAT and ACT practice with every answer explained. All in one app, with no ads.
 
 COURSES FOR EVERY CLASS
-• 49 free courses and 301 short lessons, each with a quick check at the end
+• 49 courses and 300+ short lessons, each with a quick check at the end
 • Math: Algebra 1, Geometry, Algebra 2, Precalculus, Calculus, and Statistics
 • Science: Biology, Chemistry, and Physics
 • English, History, and Study Skills
 • Every AP class, including AP U.S. History, AP World History, AP Biology, AP Chemistry, AP Psychology, AP Calculus, AP Computer Science, and more
 • Pick up where you left off right from the Today screen
 
-A FLASHCARD MAKER THAT'S ACTUALLY FREE
+A FLASHCARD MAKER WITH NO LIMITS
 • Make unlimited sets with unlimited cards
 • Type them in, or paste a whole list from your notes and StudyFox splits it into cards
 • Swipe to sort what you know and what you're still learning, star the hard ones, shuffle, or study definition-first
@@ -75,7 +95,7 @@ A FLASHCARD MAKER THAT'S ACTUALLY FREE
 • Test mode builds a practice test from your set and grades it for you
 • Match: race the clock to pair every term with its definition
 • Share any set with a link, and open sets your friends share with you
-• Free ready-made sets for SAT and ACT vocabulary, math formulas, grammar rules, and more
+• Ready-made sets for SAT and ACT vocabulary, math formulas, grammar rules, and more
 
 SAT AND ACT PRACTICE
 • 4,000+ numbered practice questions, each with a worked explanation
@@ -91,7 +111,7 @@ KEEP YOUR STREAK GOING
 • Sign in with Apple or Google to sync your progress with studyfox.org, where you can also take full-length timed practice tests
 • Light and dark mode
 
-Free for every student. No ads, no paywall, no limits.
+Made for every student. No ads, no limits.
 
 StudyFox is for students 13 and older.
 
@@ -103,7 +123,7 @@ Questions or ideas? Email danieljohnsonhtx@gmail.com.
 ### Keywords (100 max, commas, no spaces)
 
 ```
-free,study,quiz,vocab,test,exam,biology,chemistry,history,math,homework,school,lessons,maker,algebra
+cram,study,quiz,vocab,test,exam,biology,chemistry,history,math,homework,school,lessons,maker,algebra
 ```
 (100)
 
@@ -140,7 +160,7 @@ Words already in the name and subtitle (StudyFox, courses, flashcards, every, AP
 **Notes for the reviewer** (paste this):
 
 ```
-StudyFox is a free study app for high school students: short lessons for 49 courses (including every AP class), a flashcard maker with Learn, Test, and Match modes, and SAT/ACT practice questions with explanations. There are no purchases, ads, or subscriptions.
+StudyFox is a study app for high school students: short lessons for 49 courses (including every AP class), a flashcard maker with Learn, Test, and Match modes, and SAT/ACT practice questions with explanations. There are no purchases, ads, or subscriptions.
 
 Signing in: on the first screen, use Sign in with Apple, or create an email account with any email and a password of 6+ characters. New accounts answer a short onboarding form; the date of birth must be 13 or older because the app is for ages 13+.
 

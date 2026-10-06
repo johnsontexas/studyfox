@@ -226,7 +226,7 @@ export function Segmented<T extends string | number>({ options, value, onChange,
         return (
           <Pressable key={String(v)} accessibilityRole="button" accessibilityState={{ selected: on }} onPress={() => { if (!on) { tap(); onChange(v); } }}
             style={{ flex: 1, minHeight: 34, paddingHorizontal: 6, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? c.card : 'transparent', borderWidth: on ? 1 : 0, borderColor: c.line, borderBottomWidth: on ? 2 : 0, borderBottomColor: c.ledge }}>
-            <Text numberOfLines={1} adjustsFontSizeToFit style={[type.subhead, { fontWeight: on ? '700' : '500', color: on ? c.label : c.label2 }]}>{l}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[type.subhead, { fontWeight: on ? '700' : '500', color: on ? c.label : c.label2 }]}>{l}</Text>
           </Pressable>
         );
       })}

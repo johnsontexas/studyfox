@@ -1,4 +1,4 @@
-import { $, esc, toast } from '../util.js';
+import { $, esc, toast, passwordProblem, PASSWORD_HINT } from '../util.js';
 import { icon } from '../icons.js';
 import { store } from '../store.js';
 import { confirmBox } from '../tools.js';
@@ -43,7 +43,7 @@ function authPage(root, mode) {
       <form id="authForm" class="stack" novalidate>
         ${signup ? '<label>Name<input name="name" autocomplete="name" required placeholder="Your first name"></label>' : ''}
         <label>Email<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
-        <label>Password<input name="password" type="password" autocomplete="${signup ? 'new-password' : 'current-password'}" required minlength="6" placeholder="${signup ? 'At least 6 characters' : ''}"></label>
+        <label>Password<input name="password" type="password" autocomplete="${signup ? 'new-password' : 'current-password'}" required minlength="${signup ? 8 : 1}" placeholder="${signup ? PASSWORD_HINT : ''}"></label>
         ${signup ? '' : '<button class="link-btn small" type="button" id="forgot">Forgot your password?</button>'}
         <div class="form-err" id="err"></div>
         <button class="btn primary block lg" type="submit">${signup ? 'Create account' : 'Sign in'}</button>
@@ -63,7 +63,8 @@ function authPage(root, mode) {
     const err = $('#err', root);
     err.textContent = '';
     if (!/^\S+@\S+\.\S+$/.test(f.email || '')) { err.textContent = 'Please enter a valid email address.'; return; }
-    if ((f.password || '').length < 6) { err.textContent = 'Password must be at least 6 characters.'; return; }
+    if (signup && passwordProblem(f.password)) { err.textContent = passwordProblem(f.password); return; }
+    if (!f.password) { err.textContent = 'Enter your password.'; return; }
     const btn = e.target.querySelector('[type=submit]'); btn.disabled = true;
     try {
       if (!cloudEnabled) {
@@ -112,7 +113,7 @@ export function settingsView(root) {
     </div>
     ${u?.cloud && u.provider === 'email' ? `<form class="card stack" id="pwForm">
       <h2 class="h3">Password</h2>
-      <label>New password<input type="password" name="pw" autocomplete="new-password" minlength="6" required placeholder="At least 6 characters"></label>
+      <label>New password<input type="password" name="pw" autocomplete="new-password" minlength="8" required placeholder="${PASSWORD_HINT}"></label>
       <div><button class="btn">Change password</button></div>
     </form>` : ''}
     ${u?.cloud ? `<div class="card stack" id="linkCard">
@@ -134,6 +135,8 @@ export function settingsView(root) {
   $('#theme', root).value = s.theme;
   $('#pwForm', root)?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const bad = passwordProblem(e.target.pw.value);
+    if (bad) { toast(bad, 'bad'); return; }
     try { await updatePassword(e.target.pw.value); e.target.reset(); toast('Password changed.', 'good'); } catch (ex) { toast(ex.message, 'bad'); }
   });
   if (/reset=1/.test(location.hash)) $('#pwForm', root)?.scrollIntoView();

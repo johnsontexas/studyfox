@@ -21,7 +21,7 @@ export async function fetchNews(limit = 50) {
 export async function fetchStatus() {
   if (!cloudEnabled) return null;
   const c = await db();
-  const { data } = await c.from('site_status').select('maintenance,message').eq('id', 1).maybeSingle();
+  const { data } = await c.from('site_status').select('maintenance,message,ios_app_url').eq('id', 1).maybeSingle();
   return data;
 }
 

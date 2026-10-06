@@ -1,6 +1,6 @@
 // Local persistence + accounts. Everything lives in this browser's localStorage.
 // Swap this module for a real backend (e.g. Supabase) to sync across devices.
-import { uid, hashStr } from './util.js';
+import { uid, hashStr, passwordProblem } from './util.js';
 import { bankNo } from './gen/bank.js';
 
 const K_USERS = 'fm_users', K_SESSION = 'fm_session', K_CLOUD = 'fm_cloud_users';
@@ -75,7 +75,7 @@ export const store = {
     email = email.trim().toLowerCase();
     const users = read(K_USERS, {});
     if (users[email]) throw new Error('An account with that email already exists on this device.');
-    if (password.length < 6) throw new Error('Password must be at least 6 characters.');
+    if (passwordProblem(password)) throw new Error(passwordProblem(password));
     users[email] = { name: name.trim() || email.split('@')[0], email, pw: await hashPw(email, password), created: Date.now() };
     write(K_USERS, users);
     // Carry guest progress into the new account

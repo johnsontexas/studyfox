@@ -49,6 +49,8 @@ create table if not exists public.site_status (
   message text not null default '' check (char_length(message) <= 500),
   updated_at timestamptz not null default now()
 );
+-- App Store link for the "Download on iOS" footer button; hidden while empty.
+alter table public.site_status add column if not exists ios_app_url text not null default '' check (ios_app_url = '' or ios_app_url ~ '^https://');
 insert into public.site_status (id) values (1) on conflict do nothing;
 alter table public.site_status enable row level security;
 create policy "anyone reads status" on public.site_status for select using (true);
