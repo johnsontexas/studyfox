@@ -17,7 +17,7 @@ import { learnHubView, courseView, lessonView } from './views/learn.js';
 import { privacyView, termsView } from './views/legal.js';
 import { initCloud } from './cloud.js';
 import { welcomeView, ageBlockedView, ageBlockedUntil, needsOnboarding } from './views/welcome.js';
-import { CREATOR, STUDYFOX_INSTAGRAM, KOFI } from './config.js';
+import { CREATOR, STUDYFOX_INSTAGRAM, STUDYFOX_TIKTOK, CREATOR_EMAIL, KOFI } from './config.js';
 import { donateView } from './views/donate.js';
 import { newsView, adminView, contactView, maintenanceHTML, fetchStatus } from './views/news.js';
 import { isAdmin, db } from './cloud.js';
@@ -65,7 +65,7 @@ function navHTML(path) {
     <a href="#/" class="brand" aria-label="${BRAND} home"><svg class="logo" viewBox="-2 2 70 62" aria-hidden="true"><path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#fff" stroke="#fff" stroke-width="6" stroke-linejoin="round"/><path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#f9a825"/><path d="M10 36l22 24 22-24-12-4-10 9-10-9z" fill="#fff8ec"/><path d="M26.5 54h11L32 60z" fill="#1a1a1a"/><circle cx="23" cy="28" r="3" fill="#1a1a1a"/><circle cx="41" cy="28" r="3" fill="#1a1a1a"/></svg><span>Study<span class="brand-fox">Fox</span></span></a>
     <button class="icon-btn menu-btn" id="menuBtn" aria-label="Menu">${icon('menu')}</button>
     <nav class="links" id="navLinks">
-      ${link(u ? '/home' : '/', 'Home')}${link('/learn', 'Courses')}${link('/ap', 'AP Practice')}${group('SAT', 'SAT & ACT')}${link('/flashcards', 'Flashcards')}${link('/news', 'News')}${u ? group('DASH', 'Dashboard') : ''}${admin ? link('/admin', 'Admin') : ''}
+      ${link(u ? '/home' : '/', 'Home')}${link('/learn', 'Courses')}${link('/ap', 'AP Practice')}${group('SAT', 'SAT & ACT')}${link('/flashcards', 'Flashcards')}${link('/news', 'News')}${link('/about', 'About')}${u ? group('DASH', 'Dashboard') : ''}${admin ? link('/admin', 'Admin') : ''}
     </nav>
     <div class="nav-right">
       <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">${icon('contrast')}</button>
@@ -139,6 +139,8 @@ function boot() {
     <footer class="site-foot"><div class="foot-inner">
       <div class="foot-brand"><b>${BRAND}</b><p>Free study material for school and the SAT and ACT, made by ${CREATOR}. No ads, no paywalls, no limits.</p>
         <a class="foot-ig" href="https://instagram.com/${STUDYFOX_INSTAGRAM}" target="_blank" rel="noopener">${icon('instagram')}@${STUDYFOX_INSTAGRAM}</a>
+        <a class="foot-ig" href="https://www.tiktok.com/@${STUDYFOX_TIKTOK}" target="_blank" rel="noopener">${icon('tiktok')}@${STUDYFOX_TIKTOK} on TikTok</a>
+        <a class="foot-ig" href="mailto:${CREATOR_EMAIL}">${icon('mail')}Contact ${CREATOR}: ${CREATOR_EMAIL}</a>
         <a class="foot-ig" href="${KOFI}" target="_blank" rel="noopener">${icon('heart')}Support StudyFox on Ko-fi</a>
         <a class="foot-ig" id="iosLink" href="#" target="_blank" rel="noopener" hidden>${icon('down')}Download on iOS</a></div>
       <nav class="foot-links" aria-label="Footer"><a href="#/learn">Courses</a><a href="#/practice">SAT &amp; ACT</a><a href="#/flashcards">Flashcards</a><a href="#/news">News</a><a href="#/about">About</a><a href="#/contact">Contact</a><a href="#/donate">Donate</a><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a></nav>

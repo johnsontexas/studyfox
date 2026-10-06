@@ -8,6 +8,9 @@ export const CREATOR = 'Daniel Johnson';
 export const INSTAGRAM = 'txdanieljohnson';
 // StudyFox's own Instagram, shown in the footer.
 export const STUDYFOX_INSTAGRAM = 'studyfox';
+export const STUDYFOX_TIKTOK = 'studyfoxapp';
+// Daniel's personal address, shown on the About page; support@ stays the contact everywhere else.
+export const CREATOR_EMAIL = 'daniel@johnsontexas.com';
 export const BETTERU_URL = 'https://betterullc.com';
 export const CREATOR_SITE = 'https://johnsontexas.com';
 export const KOFI = 'https://ko-fi.com/studyfox';

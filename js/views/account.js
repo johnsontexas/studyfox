@@ -15,10 +15,15 @@ export function takeAfterLogin() {
 
 const GOOGLE = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.5 12.3c0-.8-.1-1.5-.2-2.2H12v4.2h5.9a5 5 0 0 1-2.2 3.3v2.7h3.5c2.1-1.9 3.3-4.7 3.3-8z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.2-2.7l-3.5-2.7c-1 .7-2.2 1.1-3.7 1.1-2.9 0-5.3-1.9-6.2-4.5H2.2v2.8A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.8 14.2a6.6 6.6 0 0 1 0-4.3V7.1H2.2a11 11 0 0 0 0 9.9z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.1-3.1A11 11 0 0 0 2.2 7.1l3.6 2.8C6.7 7.3 9.1 5.4 12 5.4z"/></svg>';
 const APPLE = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8s2 .8 3.4.8c1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.7-1-2.7-4.1zM13.9 5c.7-.9 1.2-2 1.1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.2.1 2.3-.6 3-1.5z"/></svg>';
+const MICROSOFT = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="#F25022" d="M2 2h9.5v9.5H2z"/><path fill="#7FBA00" d="M12.5 2H22v9.5h-9.5z"/><path fill="#00A4EF" d="M2 12.5h9.5V22H2z"/><path fill="#FFB900" d="M12.5 12.5H22V22h-9.5z"/></svg>';
+const PROVIDERS = [['google', 'Google', GOOGLE], ['apple', 'Apple', APPLE], ['azure', 'Microsoft', MICROSOFT]];
+const providerName = (id) => (PROVIDERS.find((p) => p[0] === id) || [, 'Google'])[1];
+
 const socialHTML = () => `
   <div class="stack social">
     <button class="btn block lg" type="button" data-oauth="google">${GOOGLE}Continue with Google</button>
     <button class="btn block lg apple" type="button" data-oauth="apple">${APPLE}Continue with Apple</button>
+    <button class="btn block lg" type="button" data-oauth="azure">${MICROSOFT}Continue with Microsoft</button>
   </div>
   <div class="or"><span>or use email</span></div>`;
 const agreeHTML = () => `<p class="muted small center">By continuing, you agree to the <a href="#/terms">Terms of Use</a> and <a href="#/privacy">Privacy Policy</a>.</p>`;
@@ -99,7 +104,7 @@ export function settingsView(root) {
     <h1>Settings</h1>
     <div class="card stack">
       <h2 class="h3">Profile</h2>
-      ${u ? `<label>Name<input id="name" value="${esc(u.name)}"></label><p class="muted small">Signed in as ${esc(u.email || u.name)}${u.cloud ? `${u.provider === 'email' ? '' : ` with ${u.provider === 'apple' ? 'Apple' : 'Google'}`}. Progress syncs across your devices.` : ' (this device only). Sign out and sign back in to move this account to the cloud.'}</p>` : ''}
+      ${u ? `<label>Name<input id="name" value="${esc(u.name)}"></label><p class="muted small">Signed in as ${esc(u.email || u.name)}${u.cloud ? `${u.provider === 'email' ? '' : ` with ${providerName(u.provider)}`}. Progress syncs across your devices.` : ' (this device only). Sign out and sign back in to move this account to the cloud.'}</p>` : ''}
       <div class="grid2">
         <label>Main test<select id="focus"><option ${s.focus === 'SAT' ? 'selected' : ''}>SAT</option><option ${s.focus === 'ACT' ? 'selected' : ''}>ACT</option></select></label>
         <label>Test date<input id="testDate" type="date" value="${esc(s.testDate || '')}"></label>
@@ -118,12 +123,12 @@ export function settingsView(root) {
     </form>` : ''}
     ${u?.cloud ? `<div class="card stack" id="linkCard">
       <h2 class="h3">Sign-in methods</h2>
-      <p class="muted small">Connect both Google and Apple so either one opens this same account with the same progress.</p>
+      <p class="muted small">Connect more than one sign-in method so any of them opens this same account with the same progress.</p>
       <div id="links" class="stack"><p class="muted small">Loading...</p></div>
     </div>` : ''}
     <div class="card stack">
       <h2 class="h3">Your data</h2>
-      <p class="muted">${u?.cloud ? 'Your progress is saved in this browser and backed up to your account automatically.' : 'Everything is stored in this browser. Export a backup to keep it safe, or sign in with Google or Apple to sync across devices.'}</p>
+      <p class="muted">${u?.cloud ? 'Your progress is saved in this browser and backed up to your account automatically.' : 'Everything is stored in this browser. Export a backup to keep it safe, or sign in to sync across devices.'}</p>
       <div class="row gap wrap">
         <button class="btn" id="exportBtn">Export backup</button>
         <label class="btn">Import backup<input type="file" id="importIn" accept=".json,application/json" hidden></label>
@@ -143,7 +148,7 @@ export function settingsView(root) {
   wireLang(root);
   if (u?.cloud) linkedProviders().then((have) => {
     const box = $('#links', root); if (!box) return;
-    box.innerHTML = [['google', 'Google', GOOGLE], ['apple', 'Apple', APPLE]].map(([id, name, logo]) => `<div class="row between gap"><span class="row gap">${logo}<b>${name}</b></span>${have.includes(id)
+    box.innerHTML = PROVIDERS.map(([id, name, logo]) => `<div class="row between gap"><span class="row gap">${logo}<b>${name}</b></span>${have.includes(id)
       ? `<span class="tag">${icon('check')} Connected</span>` : `<button class="btn sm" data-link="${id}">Connect ${name}</button>`}</div>`).join('');
     box.onclick = async (e) => {
       const b = e.target.closest('[data-link]'); if (!b) return;

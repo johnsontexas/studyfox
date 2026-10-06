@@ -55,7 +55,7 @@ export function homeView(root) {
         <h1>Study for every class.<br><em class="scribble">Pay for none of it.</em></h1>
         <p class="lead">Courses for ${COURSES.length} classes including every AP subject, flashcards, practice tests, and a ${(nSat + nAct).toLocaleString()}-question SAT and ACT bank. All in one place.</p>
         <div class="row gap wrap">${cta}<a class="btn lg ghost" href="#/learn">Browse courses</a></div>
-        <p class="hero-note">Free for every student. No ads, no paywall, no catch.</p>
+        <a class="free-pill" href="#/about">${icon('heart')}<span><b>100% free, for everyone.</b> No ads, no paywall, no catch.</span><span class="free-why">Why? ${icon('arrow')}</span></a>
         <dl class="facts">
           <div><dt>${COURSES.length}</dt><dd>courses</dd></div>
           <div><dt>${lessonCount()}</dt><dd>lessons</dd></div>
@@ -152,7 +152,7 @@ export function homeView(root) {
       <div class="faq">
         <h2>Questions</h2>
         <details><summary>Is it really free?</summary><p>Yes. Every course, flashcard set, practice question, and practice test is free. There are no ads, no premium tier, and no limits.</p></details>
-        <details><summary>Do I need an account?</summary><p>A free account is needed to study, so your progress has somewhere to live. Sign in with Google or Apple to sync across devices, or use email to keep it on this device.</p></details>
+        <details><summary>Do I need an account?</summary><p>A free account is needed to study, so your progress has somewhere to live. Sign in with Google, Apple, or Microsoft to sync across devices, or use email to keep it on this device.</p></details>
         <details><summary>What subjects are covered?</summary><p>Math from Algebra 1 through Calculus and Statistics, Biology, Chemistry, Physics, English, history, study skills, every AP course, and SAT and ACT prep.</p></details>
         <details><summary>Where do the SAT and ACT questions come from?</summary><p>Math and science questions are generated from templates that follow each official skill. Reading and writing questions come from an original, hand-written bank. Nothing is copied from official tests, and scores are estimates.</p></details>
         <details><summary>Where is my data stored?</summary><p>Every account, email, Google, or Apple, saves your progress to the cloud, so it syncs across your devices and the StudyFox app. You can also export a backup any time from Settings.</p></details>

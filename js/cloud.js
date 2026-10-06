@@ -20,14 +20,17 @@ async function client() {
   return sb;
 }
 
+// Microsoft is "azure" in Supabase and only returns an email address when asked for the email scope.
+const oauthOpts = (provider) => ({ redirectTo: location.origin + location.pathname, ...(provider === 'azure' ? { scopes: 'email' } : {}) });
+
 export async function signInWith(provider) {
   const c = await client();
-  if (!c) throw new Error('Google and Apple sign-in are not set up on this site yet.');
-  const { error } = await c.auth.signInWithOAuth({ provider, options: { redirectTo: location.origin + location.pathname } });
+  if (!c) throw new Error('Social sign-in is not set up on this site yet.');
+  const { error } = await c.auth.signInWithOAuth({ provider, options: oauthOpts(provider) });
   if (error) throw error;
 }
 
-// Google and Apple on one account: Supabase links them automatically when both share a verified email.
+// Google, Apple and Microsoft on one account: Supabase links them automatically when both share a verified email.
 // When they don't (e.g. Apple "Hide My Email"), the student connects the second one here while signed in.
 export async function linkedProviders() {
   const c = await client(); if (!c) return [];
@@ -37,9 +40,9 @@ export async function linkedProviders() {
 
 export async function linkProvider(provider) {
   const c = await client();
-  if (!c) throw new Error('Google and Apple sign-in are not set up on this site yet.');
+  if (!c) throw new Error('Social sign-in is not set up on this site yet.');
   try { sessionStorage.setItem('sf_after_link', '#/settings'); } catch {}
-  const { error } = await c.auth.linkIdentity({ provider, options: { redirectTo: location.origin + location.pathname } });
+  const { error } = await c.auth.linkIdentity({ provider, options: oauthOpts(provider) });
   if (error) throw new Error(/manual linking/i.test(error.message) ? 'Connecting accounts is turned off on the server right now.' : error.message);
 }
 
@@ -123,6 +126,9 @@ export function initCloud() {
     const { data: { session } } = await c.auth.getSession();
     let back = null; try { back = sessionStorage.getItem('sf_after_link'); sessionStorage.removeItem('sf_after_link'); } catch {}
     const q = new URLSearchParams(location.search);
+    // Some provider failures come back in the hash (#error=...), which the router would otherwise swallow.
+    const hq = /^#(error|access_token)=|[#&]error_description=/.test(location.hash) ? new URLSearchParams(location.hash.slice(1)) : null;
+    if (hq?.get('error_description') && !q.get('error_description')) { q.set('error_description', hq.get('error_description')); q.set('error', hq.get('error') || ''); location.hash = ''; }
     // A failed link (e.g. that Apple ID already has its own StudyFox account) comes back as ?error_description=.
     if (q.get('error_description')) setTimeout(() => toast(/already linked|exists/i.test(q.get('error_description')) ? 'That account is already its own StudyFox account. Sign in with it, delete its data in Settings, then connect it here.' : q.get('error_description'), 'bad'), 300);
     if (q.has('code') || q.has('error')) history.replaceState(null, '', location.pathname + (back || location.hash || '#/dashboard'));
