@@ -23,6 +23,7 @@ import { newsView, adminView, contactView, maintenanceHTML, fetchStatus } from '
 import { isAdmin, db } from './cloud.js';
 import { initContent } from './content/live.js';
 import { contentAdminView } from './views/content-admin.js';
+import { apHubView, apCourseView } from './views/ap.js';
 
 export const BRAND = 'StudyFox';
 
@@ -34,7 +35,7 @@ const routes = [
   ['/flashcards/:id/learn', learnView], ['/flashcards/:id/test', testView], ['/flashcards/:id/match', matchView], ['/share/:data', importView],
   ['/learn', learnHubView], ['/learn/:course', courseView], ['/learn/:course/:lesson', lessonView],
   ['/formulas', formulasView], ['/calculator', calculatorView], ['/speed', speedView],
-  ['/news', newsView], ['/admin', adminView], ['/admin/content', contentAdminView], ['/contact', contactView],
+  ['/ap', apHubView], ['/ap/:course', apCourseView], ['/news', newsView], ['/admin', adminView], ['/admin/content', contentAdminView], ['/contact', contactView],
   ['/donate', donateView], ['/privacy', privacyView], ['/terms', termsView], ['/welcome', welcomeView], ['/too-young', ageBlockedView],
 ];
 
@@ -56,25 +57,31 @@ function applyTheme() {
 
 function navHTML(path) {
   const u = store.user();
+  const group = (g, label) => `<a href="#${TAB_GROUPS[g][0][0]}" class="${TAB_GROUPS[g].some(([p]) => p === path) ? 'active' : ''}">${label}</a>`;
   const link = (href, label) => `<a href="#${href}" class="${path === href || (href !== '/' && path.startsWith(href)) ? 'active' : ''}">${label}</a>`;
   return `<div class="nav-inner">
     <a href="#/" class="brand" aria-label="${BRAND} home"><svg class="logo" viewBox="-2 2 70 62" aria-hidden="true"><path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#fff" stroke="#fff" stroke-width="6" stroke-linejoin="round"/><path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#f9a825"/><path d="M10 36l22 24 22-24-12-4-10 9-10-9z" fill="#fff8ec"/><path d="M26.5 54h11L32 60z" fill="#1a1a1a"/><circle cx="23" cy="28" r="3" fill="#1a1a1a"/><circle cx="41" cy="28" r="3" fill="#1a1a1a"/></svg><span>Study<span class="brand-fox">Fox</span></span></a>
     <button class="icon-btn menu-btn" id="menuBtn" aria-label="Menu">${icon('menu')}</button>
     <nav class="links" id="navLinks">
-      ${u ? link('/home', 'Home') : ''}${link('/learn', 'Courses')}${link('/flashcards', 'Flashcards')}${link('/practice', 'SAT & ACT')}${link('/exams', 'Tests')}${link('/speed', 'Speed')}${link('/formulas', 'Formulas')}${link('/calculator', 'Calculator')}${link('/news', 'News')}${u ? `<a href="#/dashboard" class="${['/dashboard', '/settings', '/contact'].includes(path) ? 'active' : ''}">Dashboard</a>` : link('/dashboard', 'Dashboard')}${admin ? link('/admin', 'Admin') : ''}
+      ${link('/learn', 'Courses')}${link('/ap', 'AP Practice')}${group('SAT', 'SAT & ACT')}${link('/flashcards', 'Flashcards')}${link('/news', 'News')}${u ? group('DASH', 'Dashboard') : ''}${admin ? link('/admin', 'Admin') : ''}
     </nav>
     <div class="nav-right">
       <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">${icon('contrast')}</button>
-      ${u ? `<a class="avatar" href="#/settings" title="${esc(u.name)}">${esc(u.name[0].toUpperCase())}</a>` : `<a class="btn sm ghost" href="#/login">Log in</a><a class="btn sm primary" href="#/signup">Sign up free</a>`}
+      ${u ? '' : `<a class="btn sm ghost" href="#/login">Log in</a><a class="btn sm primary" href="#/signup">Sign up free</a>`}
     </div>
   </div>`;
 }
 
 // Everything except these pages needs an account; guests are sent to sign in, then returned.
-// Settings and support live inside the dashboard as tabs.
-const DASH_TABS = [['/dashboard', 'Overview'], ['/settings', 'Settings'], ['/contact', 'Support']];
-function dashShell(main, m) {
-  main.innerHTML = `<div class="page dash-tabs"><nav class="tabs" aria-label="Dashboard">${DASH_TABS.map(([p, t]) => `<a href="#${p}" class="${p === m.pat ? 'on' : ''}">${t}</a>`).join('')}</nav></div><div id="dashBody"></div>`;
+// Related pages share one nav item and show as tabs: settings and support inside the dashboard,
+// and every SAT/ACT tool under SAT & ACT.
+const TAB_GROUPS = {
+  DASH: [['/dashboard', 'Overview'], ['/settings', 'Settings'], ['/contact', 'Support']],
+  SAT: [['/practice', 'Practice'], ['/speed', 'Speed practice'], ['/exams', 'Practice tests'], ['/formulas', 'Formulas'], ['/calculator', 'Calculator']],
+};
+const tabGroup = (pat) => Object.entries(TAB_GROUPS).find(([g, tabs]) => (g !== 'DASH' || store.user()) && tabs.some(([p]) => p === pat));
+function tabShell(main, m, tabs) {
+  main.innerHTML = `<div class="page dash-tabs"><nav class="tabs" aria-label="Sections">${tabs.map(([p, t]) => `<a href="#${p}" class="${p === m.pat ? 'on' : ''}">${t}</a>`).join('')}</nav></div><div id="dashBody"></div>`;
   const body = $('#dashBody', main);
   const r = m.view(body, m.params);
   body.querySelector('.page')?.classList.add('in-dash');
@@ -118,9 +125,9 @@ function router() {
   const main = $('#main');
   main.innerHTML = '';
   scrollTo(0, 0);
-  try { cleanup = (store.user() && DASH_TABS.some(([p]) => p === m.pat) ? dashShell(main, m) : m.view(main, m.params)) || null; }
+  try { cleanup = (tabGroup(m.pat) ? tabShell(main, m, tabGroup(m.pat)[1]) : m.view(main, m.params)) || null; }
   catch (e) { console.error(e); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><pre class="err">${esc(e.stack || e)}</pre><a class="btn" href="#/">Go home</a></div>`; }
-  const title = { '/': store.user() ? 'Dashboard' : 'Free Study Material for School', '/learn': 'Free Courses', '/privacy': 'Privacy Policy', '/terms': 'Terms of Use', '/speed': 'Speed Practice', '/donate': 'Donate', '/news': 'News', '/contact': 'Contact', '/admin': 'Admin', '/welcome': 'Welcome', '/too-young': 'Welcome' }[path] || (path.startsWith('/learn') ? 'Free Courses' : null) || path.split('/')[1]?.replace(/^\w/, (c) => c.toUpperCase());
+  const title = { '/': store.user() ? 'Dashboard' : 'Free Study Material for School', '/learn': 'Free Courses', '/privacy': 'Privacy Policy', '/terms': 'Terms of Use', '/speed': 'Speed Practice', '/donate': 'Donate', '/news': 'News', '/contact': 'Contact', '/admin': 'Admin', '/welcome': 'Welcome', '/too-young': 'Welcome' }[path] || (path.startsWith('/learn') ? 'Free Courses' : path.startsWith('/ap') ? 'AP Practice' : null) || path.split('/')[1]?.replace(/^\w/, (c) => c.toUpperCase());
   document.title = `${BRAND} · ${title || 'Free Study Material for School'}`;
 }
 

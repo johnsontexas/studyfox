@@ -13,7 +13,7 @@ const date = (s) => new Date(s).toLocaleDateString(undefined, { month: 'short', 
 export async function fetchNews(limit = 50) {
   if (!cloudEnabled) return [];
   const c = await db();
-  const { data, error } = await c.from('news').select('id,title,body,pinned,created_at').order('pinned', { ascending: false }).order('created_at', { ascending: false }).limit(limit);
+  const { data, error } = await c.from('news').select('id,title,body,pinned,image_url,created_at').order('pinned', { ascending: false }).order('created_at', { ascending: false }).limit(limit);
   if (error) throw error;
   return data;
 }
@@ -25,7 +25,11 @@ export async function fetchStatus() {
   return data;
 }
 
+// Posts without a photo get a colored cover so the feed never looks bare.
+const COVERS = [['#1f6b47', '#5fcf94', 'news'], ['#9a6200', '#f2b33d', 'star'], ['#21507a', '#5fa8e0', 'book'], ['#7a2f5a', '#e07ab0', 'heart'], ['#3d3a8a', '#8b86e8', 'trophy']];
+const cover = (n) => { const [c1, c2, ic] = COVERS[Number(n.id) % COVERS.length]; return `<div class="news-cover" style="--c1:${c1};--c2:${c2}" aria-hidden="true">${icon(ic)}</div>`; };
 const postHTML = (n, admin) => `<article class="news-post card${n.pinned ? ' pinned' : ''}">
+  ${n.image_url ? `<img class="news-img" src="${esc(n.image_url)}" alt="" loading="lazy">` : cover(n)}
   <div class="news-meta">${n.pinned ? `<span class="tag">Pinned</span>` : ''}<time class="muted small" datetime="${esc(n.created_at)}">${date(n.created_at)}</time>
     ${admin ? `<span class="grow"></span><button class="btn sm ghost" data-pin="${n.id}" data-on="${n.pinned ? 1 : 0}">${n.pinned ? 'Unpin' : 'Pin'}</button><button class="btn sm ghost danger-text" data-del="${n.id}">${icon('trash')} Delete</button>` : ''}</div>
   <h2 class="h3">${esc(n.title)}</h2><div class="news-body">${body(n.body)}</div></article>`;
@@ -35,20 +39,40 @@ const composerHTML = (compact) => `<form class="card news-compose${compact ? ' c
   <div class="row between"><b>${icon('edit')} New post</b><span class="tag subtle">${icon('shield')} Admin</span></div>
   <input name="title" maxlength="160" placeholder="Title" required>
   <textarea name="body" rows="${compact ? 3 : 6}" maxlength="8000" placeholder="What's new? Blank lines start a new paragraph." required></textarea>
+  <div class="img-row"><label class="btn sm ghost">${icon('upload')} Add image<input type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif" hidden></label><span class="muted small" data-imgname>Optional. PNG, JPG, WebP, or GIF up to 5 MB.</span></div>
   <div class="row between wrap gap"><label class="row gap small"><input type="checkbox" name="pinned"> Pin to top</label><button class="btn primary sm">Post</button></div>
 </form>`;
 
 async function wireComposer(root, onDone) {
+  root.addEventListener('change', (e) => {
+    if (e.target.name !== 'image') return;
+    const f = e.target.closest('[data-compose]'), file = e.target.files[0];
+    const label = f.querySelector('[data-imgname]');
+    f.querySelector('.img-prev')?.remove();
+    if (!file) return;
+    label.textContent = file.name;
+    const img = Object.assign(document.createElement('img'), { className: 'img-prev', src: URL.createObjectURL(file), alt: '' });
+    label.after(img);
+  });
   root.addEventListener('submit', async (e) => {
     const f = e.target.closest('[data-compose]');
     if (!f) return;
     e.preventDefault();
     const btn = f.querySelector('button'); btn.disabled = true;
     const c = await db();
-    const { error } = await c.from('news').insert({ title: f.title.value.trim(), body: f.body.value.trim(), pinned: f.pinned.checked });
+    let image_url = '';
+    const file = f.image.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { btn.disabled = false; return toast('That image is over 5 MB.', 'bad'); }
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${(file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+      const up = await c.storage.from('news-images').upload(path, file, { contentType: file.type });
+      if (up.error) { btn.disabled = false; return toast(up.error.message, 'bad'); }
+      image_url = c.storage.from('news-images').getPublicUrl(path).data.publicUrl;
+    }
+    const { error } = await c.from('news').insert({ title: f.title.value.trim(), body: f.body.value.trim(), pinned: f.pinned.checked, image_url });
     btn.disabled = false;
     if (error) return toast(error.message, 'bad');
-    f.reset(); toast('Posted.', 'good'); onDone?.();
+    f.reset(); f.querySelector('.img-prev')?.remove(); toast('Posted.', 'good'); onDone?.();
   });
   root.addEventListener('click', async (e) => {
     const del = e.target.closest('[data-del]'), pin = e.target.closest('[data-pin]');
@@ -89,7 +113,7 @@ export function newsWidget(host) {
     if (!list.length && !admin) { host.innerHTML = ''; return; }
     host.innerHTML = `<div class="news-widget">
       <div class="row between"><h2 class="h3">${icon('news')} Latest news</h2><a class="small" href="#/news">All news ${icon('right')}</a></div>
-      ${list.map((n) => `<a class="news-item" href="#/news"><b>${esc(n.title)}</b><span class="muted small">${timeAgo(new Date(n.created_at).getTime())}</span></a>`).join('') || '<p class="muted small">No posts yet.</p>'}
+      ${list.map((n) => `<a class="news-item" href="#/news">${n.image_url ? `<img class="news-thumb" src="${esc(n.image_url)}" alt="" loading="lazy">` : ''}<b>${esc(n.title)}</b><span class="muted small">${timeAgo(new Date(n.created_at).getTime())}</span></a>`).join('') || '<p class="muted small">No posts yet.</p>'}
       ${admin ? `${composerHTML(true)}<a class="small" href="#/admin">${icon('shield')} Open admin console</a>` : ''}</div>`;
   };
   draw();

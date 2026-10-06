@@ -206,10 +206,10 @@ export async function deleteCloudData() {
 }
 
 // News posts and the maintenance switch, written from the website's admin console (js/views/news.js).
-export type NewsPost = { id: number; title: string; body: string; pinned: boolean; created_at: string };
+export type NewsPost = { id: number; title: string; body: string; pinned: boolean; image_url?: string; created_at: string };
 export async function fetchNews(limit = 50): Promise<NewsPost[]> {
   const c = client(); if (!c) return [];
-  const { data, error } = await c.from('news').select('id,title,body,pinned,created_at').order('pinned', { ascending: false }).order('created_at', { ascending: false }).limit(limit);
+  const { data, error } = await c.from('news').select('id,title,body,pinned,image_url,created_at').order('pinned', { ascending: false }).order('created_at', { ascending: false }).limit(limit);
   if (error) throw error;
   return data as NewsPost[];
 }

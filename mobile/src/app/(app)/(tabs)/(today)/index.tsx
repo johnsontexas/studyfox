@@ -67,7 +67,7 @@ export default function Today() {
   const miss = mistakes(focus).length;
   const qotd = questionOfTheDay(focus);
   const lastRun = d.speed?.runs?.[0];
-  const best = lastRun ? d.speed.best[`${lastRun.test}|${lastRun.section}|${lastRun.dur}|${lastRun.diff}`] || 0 : 0;
+  const best = lastRun ? d.speed.best[lastRun.key || `${lastRun.test}|${lastRun.section}|${lastRun.dur}|${lastRun.diff}`] || 0 : 0;
   const [askReminders, setAskReminders] = useState(!getPrefs().asked && !getPrefs().on);
   const [refreshing, setRefreshing] = useState(false);
   const [news, setNews] = useState<NewsPost[]>([]);
@@ -137,11 +137,11 @@ export default function Today() {
         <View style={{ position: 'absolute', right: -20, top: -24, opacity: 0.16 }}><Icon name="bolt" size={150} color="#fff8ec" /></View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Tag label="Speed Rush" tone="amber" />
-          {best ? <Text style={[type.footnote, { color: 'rgba(255,248,236,0.8)', fontWeight: '600' }]}>Best: {best} right</Text> : null}
+          {best ? <Text style={[type.footnote, { color: 'rgba(255,248,236,0.8)', fontWeight: '600' }]}>Best: {lastRun?.mode === 'sprint' ? `${best}s` : lastRun?.key ? `${best} pts` : `${best} right`}</Text> : null}
         </View>
         <Text style={[type.title1, { color: '#fff8ec' }]}>How many can you get right in {lastRun ? lastRun.dur / 60 : 2} minutes?</Text>
         <Text style={[type.subhead, { color: 'rgba(255,248,236,0.78)' }]}>
-          {lastRun ? `${lastRun.test} ${SECTIONS[lastRun.test as Test][lastRun.section]}` : `${focus} Math`}. Every answer jumps straight to the next question.
+          {lastRun ? (lastRun.test === 'AP' ? (COURSES.find((x) => x.id === lastRun.ap)?.title || 'AP') : `${lastRun.test} ${SECTIONS[lastRun.test as Test]?.[lastRun.section] || ''}`) : `${focus} Math`}. Every answer jumps straight to the next question.
         </Text>
         <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
           <Button title="Start Rush" kind="amber" icon="bolt" style={{ flex: 1 }} onPress={() => router.push('/speed?go=1')} />

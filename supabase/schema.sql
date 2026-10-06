@@ -105,3 +105,34 @@ do $$ declare t text; begin
     execute format('create trigger touch before update on public.%I for each row execute function public.touch_updated_at()', t);
   end loop;
 end $$;
+
+-- AP question bank (#/ap): multiple choice by course, unit, and concept. Loaded per course, not part of content_version().
+create table if not exists public.ap_questions (
+  id bigint generated always as identity primary key,
+  course_id text not null references public.courses (id) on delete cascade on update cascade,
+  unit text not null, concept text not null default '',
+  difficulty int not null default 2 check (difficulty between 1 and 3),
+  stem text not null, choices jsonb not null check (jsonb_typeof(choices) = 'array' and jsonb_array_length(choices) between 2 and 5),
+  answer int not null, expl text not null default '', hidden boolean not null default false,
+  created_at timestamptz not null default now(), updated_at timestamptz not null default now()
+);
+create index if not exists ap_questions_course on public.ap_questions (course_id, unit);
+alter table public.ap_questions enable row level security;
+create policy "anyone reads ap_questions" on public.ap_questions for select using (true);
+create policy "admins write ap_questions" on public.ap_questions for all to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
+create trigger touch before update on public.ap_questions for each row execute function public.touch_updated_at();
+create or replace function public.ap_bank_version(cid text) returns text language sql stable security definer set search_path = '' as $$
+  select coalesce(max(updated_at)::text, '') || ':' || count(*)::text from public.ap_questions where course_id = cid;
+$$;
+grant execute on function public.ap_bank_version(text) to anon, authenticated;
+create or replace function public.ap_bank_counts() returns table (course_id text, unit text, n bigint) language sql stable security definer set search_path = '' as $$
+  select course_id, unit, count(*) from public.ap_questions where not hidden group by 1, 2;
+$$;
+grant execute on function public.ap_bank_counts() to anon, authenticated;
+
+-- News photos: public bucket, admins upload.
+alter table public.news add column if not exists image_url text not null default '' check (image_url = '' or image_url ~ '^https://');
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+  values ('news-images', 'news-images', true, 5242880, array['image/png', 'image/jpeg', 'image/webp', 'image/gif']) on conflict (id) do nothing;
+create policy "admins upload news images" on storage.objects for insert to authenticated with check (bucket_id = 'news-images' and (select public.is_admin()));
+create policy "admins delete news images" on storage.objects for delete to authenticated using (bucket_id = 'news-images' and (select public.is_admin()));

@@ -17,6 +17,7 @@ export { TERMS_VERSION, privacyView, termsView } from '../../../js/views/legal.j
 export { KOFI, CREATOR, INSTAGRAM, SITE_URL, CONTACT_EMAIL, SUPPORT_EMAIL, SUPPORT_FORM_URL, SUPABASE_URL, SUPABASE_ANON_KEY } from '../../../js/config.js';
 export { formulasView } from '../../../js/views/formulas.js';
 export { DESMOS_KEY } from '../../../js/tools.js';
+export { apCounts, apQuestions, apUnits, apDone, pickAP, recordAP, apStats } from '../../../js/content/ap-bank.js';
 
 export const COURSES = content.COURSES as unknown as Course[];
 export const SUBJECTS = content.SUBJECTS as string[];

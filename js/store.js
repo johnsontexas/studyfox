@@ -19,7 +19,7 @@ async function hashPw(email, pw) {
 const blank = () => ({
   attempts: [], mistakes: {}, saved: {}, stats: {}, skillStats: {}, activity: {},
   sets: [], setProgress: {}, settings: { theme: 'system', target: { SAT: 1400, ACT: 30 }, testDate: '', focus: 'SAT', lang: 'en', english: '' },
-  inProgress: null, speed: { best: {}, runs: [] }, learned: {}, bank: {}, deletedSets: {},
+  inProgress: null, speed: { best: {}, runs: [] }, learned: {}, bank: {}, ap: {}, deletedSets: {},
 });
 
 // Combine two progress blobs (e.g. this device + the cloud copy) without losing either side's work.

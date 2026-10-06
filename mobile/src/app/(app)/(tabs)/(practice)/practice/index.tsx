@@ -42,9 +42,13 @@ export default function Practice() {
           </View>
         </View>
 
-        <Section header="Speed Rush" footer="Answer as many as you can before time runs out. Your best scores sync with studyfox.org.">
+        <Section header="AP Practice" footer="Exam-style questions for every AP class, by unit and concept.">
+          <Row icon="graduation" iconColor={c.purple} title="AP Question Bank" subtitle="All 30 AP classes" onPress={() => router.push('/practice/ap')} />
+        </Section>
+
+        <Section header="Speed Rush" footer="Beat the clock, survive, or sprint. Streaks multiply your points, and bests sync with studyfox.org.">
           <Row icon="bolt" iconColor={c.tint} title="Start Rush" subtitle="Same settings as last time" onPress={() => router.push('/speed?go=1')} />
-          <Row icon="timer" iconColor={c.orange} title="Choose Section and Time" onPress={() => router.push('/speed')} />
+          <Row icon="timer" iconColor={c.orange} title="Choose Mode and Questions" onPress={() => router.push('/speed')} />
         </Section>
 
         <Section header="Quick sets" footer="New questions first, spread across every skill. Each one has a worked explanation.">
