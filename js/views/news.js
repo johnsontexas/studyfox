@@ -161,10 +161,15 @@ export function contactView(root) {
   root.innerHTML = `<div class="page narrow-wide contact">
     <div class="page-head"><span class="eyebrow">${icon('mail')} Contact</span><h1>Get in touch</h1><p class="muted">Found a mistake, want a new course, or need help with your account? Send it over.</p></div>
     <div class="contact-grid">
-      <a class="card hover contact-card" href="mailto:${SUPPORT_EMAIL}"><div class="f-icon">${icon('mail')}</div><b>Email</b><span class="muted small">${SUPPORT_EMAIL}</span><span class="small">Usually answered within a few days.</span></a>
-      ${SUPPORT_FORM_URL ? `<a class="card hover contact-card" href="${esc(SUPPORT_FORM_URL)}" target="_blank" rel="noopener"><div class="f-icon">${icon('clipboard')}</div><b>Suggestion box</b><span class="muted small">Google Form, no account needed</span><span class="small">Ideas for the website, new courses, or bugs.</span></a>` : ''}
+      <div class="card contact-card"><div class="f-icon">${icon('mail')}</div><b>Email</b>
+        <div class="email-copy"><code>${SUPPORT_EMAIL}</code><button class="btn sm" data-copy="${SUPPORT_EMAIL}">${icon('clipboard')} Copy</button><a class="btn sm ghost" href="mailto:${SUPPORT_EMAIL}">Open email</a></div>
+        <span class="small">Usually answered within a few days.</span></div>
     </div>
     ${SUPPORT_FORM_URL && /\/viewform/.test(SUPPORT_FORM_URL) ? `<div class="card flush form-embed"><iframe src="${esc(SUPPORT_FORM_URL.replace(/\?.*$/, ''))}?embedded=true" title="Suggestions and support form" loading="lazy"></iframe></div>` : ''}
-    <p class="muted small">For privacy requests you can also write to ${CONTACT_EMAIL}.</p>
+    <p class="muted small">For privacy requests you can also write to <span class="selectable">${CONTACT_EMAIL}</span>.</p>
   </div>`;
+  root.querySelector('[data-copy]')?.addEventListener('click', async (e) => {
+    const v = e.currentTarget.dataset.copy;
+    try { await navigator.clipboard.writeText(v); toast('Email copied.', 'good'); } catch { toast(v); }
+  });
 }

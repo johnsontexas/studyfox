@@ -867,3 +867,22 @@ h3 { font-weight: 650; }
 .news-img { width: calc(100% + 2.4rem); margin: -1.2rem -1.2rem .9rem; }
 .news-thumb { width: 52px; height: 52px; flex: none; object-fit: cover; border-radius: 8px; }
 .news-item b { flex: 1; }
+
+/* ---------- about ---------- */
+.about-me { display: grid; grid-template-columns: 180px 1fr; gap: 1.4rem; align-items: start; }
+.about-me img { width: 180px; height: 180px; object-fit: cover; border-radius: 16px; }
+@media (max-width: 640px) { .about-me { grid-template-columns: 1fr; } .about-me img { width: 140px; height: 140px; } }
+
+/* ---------- share sheet ---------- */
+.share-sheet { display: flex; flex-direction: column; gap: .9rem; align-items: stretch; }
+.share-preview { display: grid; place-items: center; }
+.share-preview img { width: 180px; aspect-ratio: 9 / 16; border-radius: 14px; box-shadow: var(--shadow); }
+.share-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.share-actions .btn { justify-content: center; }
+.nav-right .share-btn { gap: .35rem; }
+
+/* ---------- contact: copyable email ---------- */
+.email-copy { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+.email-copy code { user-select: all; -webkit-user-select: all; font-size: 1rem; padding: .35rem .6rem; background: var(--surface-2); border-radius: 8px; }
+.contact-grid:has(> :only-child) { grid-template-columns: 1fr; }
+.selectable { user-select: all; -webkit-user-select: all; }

@@ -6,6 +6,10 @@ export const SUPABASE_ANON_KEY = 'sb_publishable_LkuPn46HCjJP9HZrWOgxcA_JjqLx-EG
 export const CONTACT_EMAIL = 'danieljohnsonhtx@gmail.com';
 export const CREATOR = 'Daniel Johnson';
 export const INSTAGRAM = 'txdanieljohnson';
+// StudyFox's own Instagram, shown in the footer.
+export const STUDYFOX_INSTAGRAM = 'studyfox';
+export const BETTERU_URL = 'https://betterullc.com';
+export const CREATOR_SITE = 'https://johnsontexas.com';
 export const KOFI = 'https://ko-fi.com/studyfox';
 export const SITE_URL = 'https://studyfox.org';
 export const SUPPORT_EMAIL = 'support@studyfox.org';

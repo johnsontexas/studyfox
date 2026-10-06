@@ -4,15 +4,16 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
 import { File, Paths } from 'expo-file-system';
 import { router, Stack } from 'expo-router';
+import * as Clipboard from 'expo-clipboard';
 import * as Sharing from 'expo-sharing';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, RefreshControl, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, RefreshControl, Share, Text, View } from 'react-native';
 import { Card, confirm, Icon, menu, Row, Screen, Section, Stat, SwitchRow } from '../../../../components/ui';
 import { masteredCount } from '../../../../lib/cards';
 import { cloudSignOut, deleteCloudData, linkedProviders, linkProvider, syncNow, syncStatus } from '../../../../lib/cloud';
 import { openWeb } from '../../../../lib/links';
 import { getPrefs, openSystemSettings, reschedule, setReminders, timeLabel } from '../../../../lib/reminders';
-import { BUILTIN_DECKS, CREATOR, INSTAGRAM, KOFI, LANGS, PROFICIENCY, SITE_URL, store, SUPPORT_EMAIL, SUPPORT_FORM_URL, timeAgo } from '../../../../lib/shared';
+import { BUILTIN_DECKS, CREATOR, SHARE_KINDS, shareMessage, STUDYFOX_INSTAGRAM, KOFI, LANGS, PROFICIENCY, SITE_URL, store, SUPPORT_EMAIL, SUPPORT_FORM_URL, timeAgo } from '../../../../lib/shared';
 import { useStore } from '../../../../lib/store-hooks';
 import { type, useColors } from '../../../../lib/theme';
 
@@ -162,11 +163,15 @@ export default function Me() {
         ) : null}
 
         <Section header="StudyFox" footer={`Made by ${CREATOR}. Free for every student: no ads, no paywalls, no limits.`}>
+          <Row icon="share" iconColor={c.orange} title="Share" subtitle="Your streak, your progress, or StudyFox itself"
+            onPress={() => menu('What do you want to share?', (SHARE_KINDS as string[][]).map(([k, t]) => ({ title: t, onPress: () => Share.share({ message: shareMessage(k).text }) })))} />
           <Row icon="news" iconColor={c.tint} title="News" onPress={() => router.push('/news')} />
-          <Row icon="mail" iconColor={c.teal} title="Contact Us" subtitle={SUPPORT_EMAIL} onPress={() => openWeb(`mailto:${SUPPORT_EMAIL}`)} />
-          {SUPPORT_FORM_URL ? <Row icon="support" iconColor={c.teal} title="Suggestions & Support" subtitle="Send an idea or report a problem" onPress={() => openWeb(SUPPORT_FORM_URL)} /> : null}
+          <Row icon="heart" iconColor={c.tint} title="About StudyFox" onPress={() => router.push('/about')} />
+          <Row icon="mail" iconColor={c.teal} title="Contact Us" subtitle={SUPPORT_EMAIL}
+            onPress={() => menu(SUPPORT_EMAIL, [{ title: 'Copy Email Address', onPress: () => { Clipboard.setStringAsync(SUPPORT_EMAIL); Alert.alert('Copied', SUPPORT_EMAIL); } }, { title: 'Write an Email', onPress: () => openWeb(`mailto:${SUPPORT_EMAIL}`) }])} />
+          {SUPPORT_FORM_URL ? <Row icon="support" iconColor={c.teal} title="Suggestion Box" subtitle="Send an idea or report a problem" onPress={() => openWeb(SUPPORT_FORM_URL)} /> : null}
           <Row icon="globe" iconColor={c.tint} title="studyfox.org" onPress={() => openWeb(SITE_URL)} />
-          <Row icon="instagram" iconColor={c.pink} title={`@${INSTAGRAM}`} onPress={() => openWeb(`https://instagram.com/${INSTAGRAM}`)} />
+          <Row icon="instagram" iconColor={c.pink} title={`@${STUDYFOX_INSTAGRAM}`} onPress={() => openWeb(`https://instagram.com/${STUDYFOX_INSTAGRAM}`)} />
           <Row icon="heart" iconColor={c.pink} title="Donate on Ko-fi" subtitle="Helps keep StudyFox free and running" onPress={() => openWeb(KOFI)} />
           <Row icon="hand" iconColor={c.gray} title="Privacy Policy" onPress={() => router.push('/doc/privacy')} />
           <Row icon="doc" iconColor={c.gray} title="Terms of Use" onPress={() => router.push('/doc/terms')} />

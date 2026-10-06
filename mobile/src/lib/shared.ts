@@ -14,7 +14,8 @@ export { checkSpr, rng, newSeed, uid, fmtTime, timeAgo, DIFF_LABEL, esc, tex, pa
 export { icon } from '../../../js/icons.js';
 export { LANGS, PROFICIENCY } from '../../../js/i18n.js';
 export { TERMS_VERSION, privacyView, termsView } from '../../../js/views/legal.js';
-export { KOFI, CREATOR, INSTAGRAM, SITE_URL, CONTACT_EMAIL, SUPPORT_EMAIL, SUPPORT_FORM_URL, SUPABASE_URL, SUPABASE_ANON_KEY } from '../../../js/config.js';
+export { KOFI, CREATOR, INSTAGRAM, SITE_URL, CONTACT_EMAIL, SUPPORT_EMAIL, SUPPORT_FORM_URL, SUPABASE_URL, SUPABASE_ANON_KEY, STUDYFOX_INSTAGRAM, BETTERU_URL, CREATOR_SITE } from '../../../js/config.js';
+export { SHARE_KINDS, shareMessage } from '../../../js/share-text.js';
 export { formulasView } from '../../../js/views/formulas.js';
 export { DESMOS_KEY } from '../../../js/tools.js';
 export { apCounts, apQuestions, apUnits, apDone, pickAP, recordAP, apStats } from '../../../js/content/ap-bank.js';
