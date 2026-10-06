@@ -41,7 +41,7 @@ Scan the QR code with the Expo Go app on your iPhone. Google sign-in and email a
 In the Supabase dashboard for the project in `js/config.js`:
 
 1. **Authentication → URL Configuration → Redirect URLs**: add `studyfox://**` (the app) and `exp://**` (Expo Go while developing).
-2. **Authentication → Providers → Apple**: add `org.studyfox.app` to **Client IDs** so native Sign in with Apple is accepted.
+2. **Authentication → Providers → Apple**: add `StudyfOx` (iOS bundle ID) to **Client IDs** so native Sign in with Apple is accepted.
 
 ## Build and ship to the App Store
 
@@ -50,7 +50,7 @@ npx eas-cli@latest build --platform ios --profile production
 npx eas-cli@latest submit --platform ios
 ```
 
-The first build asks you to log in to your Expo and Apple Developer accounts and creates the signing certificates. The bundle ID is `org.studyfox.app` (set in `app.json`; change it before the first submission if you want a different one). Bump `version` in `app.json` for each App Store release.
+The first build asks you to log in to your Expo and Apple Developer accounts and creates the signing certificates. The iOS bundle ID is `StudyfOx` (Android package `org.studyfox.app`) (set in `app.json`; change it before the first submission if you want a different one). Bump `version` in `app.json` for each App Store release.
 
 ## Layout
 
