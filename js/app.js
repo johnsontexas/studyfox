@@ -86,6 +86,8 @@ const TAB_GROUPS = {
 const tabGroup = (pat) => Object.entries(TAB_GROUPS).find(([g, tabs]) => (g !== 'DASH' || store.user()) && tabs.some(([p]) => p === pat));
 function tabShell(main, m, tabs) {
   main.innerHTML = `<div class="page dash-tabs"><nav class="tabs" aria-label="Sections">${tabs.map(([p, t]) => `<a href="#${p}" class="${p === m.pat ? 'on' : ''}">${t}</a>`).join('')}</nav></div><div id="dashBody"></div>`;
+  // On phones the tab bar scrolls; keep the current tab in view.
+  const on = main.querySelector('.tabs a.on'); if (on) on.parentElement.scrollLeft = on.offsetLeft - 8;
   const body = $('#dashBody', main);
   const r = m.view(body, m.params);
   body.querySelector('.page')?.classList.add('in-dash');

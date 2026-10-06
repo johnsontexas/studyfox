@@ -4,7 +4,8 @@
 export const AP_SHEETS = [
   ['calc', 'AP Calculus AB/BC', 'No formula sheet is given on the exam. Memorize all of these.', [
     ['Limits', [
-      ['Special limits', '\\lim_{x\\to 0}\\dfrac{\\sin x}{x} = 1, \\quad \\lim_{x\\to 0}\\dfrac{1-\\cos x}{x} = 0'],
+      ['Special limit (sine)', '\\lim_{x\\to 0}\\dfrac{\\sin x}{x} = 1'],
+      ['Special limit (cosine)', '\\lim_{x\\to 0}\\dfrac{1-\\cos x}{x} = 0'],
       ['Continuity at a', '\\lim_{x\\to a} f(x) = f(a)'],
       ["L'Hôpital's rule", '\\lim \\dfrac{f}{g} = \\lim \\dfrac{f\'}{g\'}', 'for 0/0 or ∞/∞'],
     ]],
