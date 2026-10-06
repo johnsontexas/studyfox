@@ -2,8 +2,8 @@
 import { icon } from './icons.js';
 import { tex, $ } from './util.js';
 
-// Desmos's public demo key. Request a free production key at desmos.com/api before launch.
-export const DESMOS_KEY = 'dcb31709b452b1cf9dc26972add0fda6';
+// Desmos production API key for StudyFox.
+export const DESMOS_KEY = 'cc39ffa03a1e4ac9ad18dad14c3d3884';
 let desmosPromise = null;
 export function loadDesmos() {
   if (window.Desmos) return Promise.resolve(window.Desmos);
