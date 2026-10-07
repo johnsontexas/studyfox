@@ -31,7 +31,7 @@ export function aboutView(root) {
         <ul class="about-facts">
           <li><b>School:</b> Strake Jesuit College Prep, Houston, Texas, class of 2027</li>
           <li><b>Faith:</b> Catholic, and the reason StudyFox is free</li>
-          <li><b>Running:</b> Vice captain of the cross country team, and I run track</li>
+          <li><b>Running:</b> I run cross country and track</li>
           <li><b>Fitness:</b> I work out and have played basketball, baseball, soccer, swimming, lacrosse, football, tennis, and golf</li>
           <li><b>Apps:</b> Co-founder of <a href="${BETTERU_URL}" target="_blank" rel="noopener">Better U LLC</a>, which ships apps to the App Store, and president of the SJ App Club</li>
           <li><b>Technology:</b> I like tinkering with anything I can take apart or build, from websites to games</li>
