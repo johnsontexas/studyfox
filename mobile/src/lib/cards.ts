@@ -4,7 +4,8 @@ import { BUILTIN_DECKS, newSeed, parseImportShared, rng, SITE_URL, store } from 
 
 export type CardT = { t: string; d: string };
 export type SetT = { id: string; title: string; desc?: string; tag?: string; cards: CardT[]; builtin?: boolean; updated?: number };
-export type Prog = { starred: number[]; mastery: Record<number, number>; matchBest: number | null; studied: number; last?: number };
+export type Prog = { starred: number[]; mastery: Record<number, number>; matchBest: number | null; studied: number; last?: number; session?: Session };
+export type Session = { queue: number[]; known: number[]; learning: number[]; size: number; shuffle?: boolean; starred?: boolean };
 
 export const getSet = (id: string): SetT | undefined => BUILTIN_DECKS.find((d: SetT) => d.id === id) || store.getSet(id);
 export const progress = (id: string): Prog => store.progress(id);

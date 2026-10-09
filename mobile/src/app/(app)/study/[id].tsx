@@ -26,16 +26,23 @@ export default function Study() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const s = getSet(id)!;
   const p = progress(s.id);
-  const [opts, setOpts] = useState<Opts>({ shuffle: true, starred: false, back: false });
+  // The round (what's left and both piles) is saved in the set's progress, so leaving or reshuffling keeps it.
+  const saved = p.session && p.session.size ? p.session : null;
+  const [opts, setOpts] = useState<Opts>(() => ({ shuffle: saved?.shuffle ?? true, starred: saved?.starred ?? false, back: false }));
   const build = (o: Opts, only?: number[]) => {
     let idx = only || s.cards.map((_, k) => k);
     if (o.starred && !only) idx = idx.filter((k) => p.starred.includes(k));
     return o.shuffle ? shuffle(idx) : idx;
   };
-  const [queue, setQueue] = useState<number[]>(() => build(opts));
-  const [roundSize, setRoundSize] = useState(queue.length);
-  const [known, setKnown] = useState<number[]>([]);
-  const [learning, setLearning] = useState<number[]>([]);
+  const valid = (a: number[] = []) => a.filter((i) => i < s.cards.length);
+  const [queue, setQueue] = useState<number[]>(() => (saved ? valid(saved.queue) : build(opts)));
+  const [roundSize, setRoundSize] = useState(() => saved?.size ?? queue.length);
+  const [known, setKnown] = useState<number[]>(() => valid(saved?.known));
+  const [learning, setLearning] = useState<number[]>(() => valid(saved?.learning));
+  useEffect(() => {
+    p.session = { queue, known, learning, size: roundSize, shuffle: opts.shuffle, starred: opts.starred };
+    store.save();
+  }, [queue, known, learning, roundSize, opts.shuffle, opts.starred]); // eslint-disable-line react-hooks/exhaustive-deps
   const [flipped, setFlipped] = useState(false);
   const history = useRef<{ k: number; prev: number; dir: 1 | -1 }[]>([]);
   const x = useSharedValue(0);
@@ -97,7 +104,17 @@ export default function Study() {
   const done = roundSize - queue.length;
   useEffect(() => { x.value = 0; y.value = 0; }, [k, x, y]);
   const face = (i: number) => (opts.back ? [s.cards[i].d, s.cards[i].t] : [s.cards[i].t, s.cards[i].d]);
-  const setOpt = (key: keyof Opts) => { const o = { ...opts, [key]: !opts[key] }; setOpts(o); restart(o); };
+  // Shuffle and card side only change how the remaining cards are shown; the piles stay put.
+  const setOpt = (key: keyof Opts) => {
+    const o = { ...opts, [key]: !opts[key] };
+    setOpts(o);
+    if (key === 'starred') return restart(o);
+    if (key === 'shuffle') {
+      const order = s.cards.map((_, i) => i);
+      setQueue((q) => (o.shuffle ? shuffle(q) : order.filter((i) => q.includes(i))));
+    }
+    setFlipped(false);
+  };
   const options = () => menu('Study options', [
     { title: opts.shuffle ? 'Turn Shuffle Off' : 'Turn Shuffle On', onPress: () => setOpt('shuffle') },
     { title: opts.starred ? 'Study All Cards' : 'Study Starred Cards Only', onPress: () => setOpt('starred') },

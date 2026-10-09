@@ -132,25 +132,56 @@ export function setView(root, { id }) {
   if (!s) return notFound(root);
   const p = store.progress(s.id);
   p.last = Date.now(); store.save(); // shows the set under "Pick up where you left off"
-  const st = { i: 0, flipped: false, order: s.cards.map((_, i) => i), shuffled: false, starredOnly: false, back: false };
-  const deck = () => (st.starredOnly ? st.order.filter((i) => p.starred.includes(i)) : st.order);
+  // The round (cards left plus the Know / Still learning piles) is saved in the set's progress,
+  // shared with the app, so leaving the page or shuffling doesn't lose it.
+  const all = () => s.cards.map((_, i) => i);
+  const valid = (a = []) => a.filter((i) => i < s.cards.length);
+  const sv = p.session?.size ? p.session : null;
+  const st = { i: 0, flipped: false, back: false, shuffled: !!sv?.shuffle, starredOnly: !!sv?.starred,
+    queue: sv ? valid(sv.queue) : all(), known: valid(sv?.known), learning: valid(sv?.learning), size: sv?.size || s.cards.length };
+  const deck = () => st.queue;
+  const saveRound = () => { p.session = { queue: st.queue, known: st.known, learning: st.learning, size: st.size, shuffle: st.shuffled, starred: st.starredOnly }; store.save(); };
+  function newRound(only) {
+    let q = only || all();
+    if (st.starredOnly && !only) q = q.filter((i) => p.starred.includes(i));
+    st.queue = st.shuffled ? shuffle(q) : q; st.known = []; st.learning = []; st.size = st.queue.length; st.i = 0; st.flipped = false;
+    saveRound(); drawCard();
+  }
+  function sort(knowIt) {
+    const ci = st.queue[st.i];
+    if (ci == null) return;
+    p.mastery[ci] = knowIt ? Math.min(2, (p.mastery[ci] || 0) + 1) : 0;
+    p.studied = (p.studied || 0) + 1;
+    (knowIt ? st.known : st.learning).push(ci);
+    st.queue = st.queue.filter((x) => x !== ci); st.flipped = false;
+    saveRound(); drawCard();
+  }
 
   function drawCard() {
     const d = deck();
     const box = $('#viewer', root);
-    if (!d.length) { box.innerHTML = '<div class="flip-empty">No starred cards yet. Tap the star on a card to save it here.</div>'; return; }
+    const piles = `<div class="piles"><span class="pile learning"><b>${st.learning.length}</b> Still learning</span><span class="pile known"><b>${st.known.length}</b> Know</span></div>`;
+    if (!st.size) { box.innerHTML = '<div class="flip-empty">No starred cards yet. Tap the star on a card to save it here.</div>' + opts(); return; }
+    if (!d.length) {
+      const mastered = Object.values(p.mastery).filter((m) => m >= 2).length;
+      box.innerHTML = `${piles}<div class="flip-empty round-done"><div><h3>${st.learning.length ? 'Round done' : 'You knew them all'}</h3><p class="muted">${st.known.length} known, ${st.learning.length} still learning. ${mastered} of ${s.cards.length} mastered overall.</p>
+        <div class="row gap wrap" style="justify-content:center">${st.learning.length ? `<button class="btn primary" data-round="learning">Keep studying ${st.learning.length}</button>` : ''}<button class="btn" data-round="all">Restart all cards</button></div></div></div>`;
+      return;
+    }
     st.i = Math.min(st.i, d.length - 1);
     const ci = d[st.i], c = s.cards[ci];
     const front = st.back ? c.d : c.t, backTxt = st.back ? c.t : c.d;
-    box.innerHTML = `
+    box.innerHTML = `${piles}
       <div class="flip ${st.flipped ? 'flipped' : ''}" id="flip" tabindex="0" aria-label="Flashcard. Press space to flip.">
         <div class="face front"><button class="star ${p.starred.includes(ci) ? 'on' : ''}" data-star="${ci}" title="Star">${p.starred.includes(ci) ? icon('star', { fill: true }) : icon('star')}</button><div class="face-txt">${esc(front)}</div><span class="hint">${matchMedia('(hover: none)').matches ? 'Tap to flip' : 'Click or press space to flip'}</span></div>
         <div class="face back"><button class="star ${p.starred.includes(ci) ? 'on' : ''}" data-star="${ci}">${p.starred.includes(ci) ? icon('star', { fill: true }) : icon('star')}</button><div class="face-txt">${esc(backTxt)}</div></div>
       </div>
-      <div class="viewer-ctrl"><button class="round" data-nav="-1" aria-label="Previous">${icon('left')}</button><span>${st.i + 1} / ${d.length}</span><button class="round" data-nav="1" aria-label="Next">${icon('right')}</button></div>
-      <div class="viewer-opts"><button class="pill ${st.shuffled ? 'on' : ''}" data-opt="shuffle">${icon('shuffle')} Shuffle</button><button class="pill ${st.starredOnly ? 'on' : ''}" data-opt="starred">${icon('star')} Starred only</button><button class="pill ${st.back ? 'on' : ''}" data-opt="side">${icon('swap')} Definition first</button></div>
-      <div class="bar thin"><i style="width:${((st.i + 1) / d.length) * 100}%"></i></div>`;
+      <div class="viewer-ctrl"><button class="round" data-nav="-1" aria-label="Previous">${icon('left')}</button><span>${st.size - d.length + 1} / ${st.size}</span><button class="round" data-nav="1" aria-label="Next">${icon('right')}</button></div>
+      <div class="sort-btns"><button class="btn sort-learning" data-sort="0" title="Shortcut: 1">${icon('x')} Still learning</button><button class="btn sort-known" data-sort="1" title="Shortcut: 2">${icon('check')} Know it</button></div>
+      ${opts()}
+      <div class="bar thin"><i style="width:${((st.size - d.length) / st.size) * 100}%"></i></div>`;
   }
+  const opts = () => `<div class="viewer-opts"><button class="pill ${st.shuffled ? 'on' : ''}" data-opt="shuffle">${icon('shuffle')} Shuffle</button><button class="pill ${st.starredOnly ? 'on' : ''}" data-opt="starred">${icon('star')} Starred only</button><button class="pill ${st.back ? 'on' : ''}" data-opt="side">${icon('swap')} Definition first</button></div>`;
   function draw() {
     const mastered = Object.values(p.mastery).filter((m) => m >= 2).length;
     root.innerHTML = `
@@ -182,12 +213,16 @@ export function setView(root, { id }) {
     if (t.closest('#flip')) { st.flipped = !st.flipped; $('#flip', root).classList.toggle('flipped', st.flipped); return; }
     const nav = t.closest('[data-nav]'); if (nav) return go(+nav.dataset.nav);
     const opt = t.closest('[data-opt]')?.dataset.opt;
-    if (opt === 'shuffle') { st.shuffled = !st.shuffled; st.order = st.shuffled ? shuffle(s.cards.map((_, i) => i)) : s.cards.map((_, i) => i); st.i = 0; st.flipped = false; drawCard(); }
-    if (opt === 'starred') { st.starredOnly = !st.starredOnly; st.i = 0; st.flipped = false; drawCard(); }
+    // Shuffle only reorders the cards you haven't sorted yet; the piles stay.
+    if (opt === 'shuffle') { st.shuffled = !st.shuffled; st.queue = st.shuffled ? shuffle(st.queue) : all().filter((i) => st.queue.includes(i)); st.i = 0; st.flipped = false; saveRound(); drawCard(); }
+    if (opt === 'starred') { st.starredOnly = !st.starredOnly; newRound(); }
+    const srt = t.closest('[data-sort]'); if (srt) return sort(srt.dataset.sort === '1');
+    const rnd = t.closest('[data-round]')?.dataset.round;
+    if (rnd) return newRound(rnd === 'learning' ? [...st.learning] : undefined);
     if (opt === 'side') { st.back = !st.back; st.flipped = false; drawCard(); }
     if (t.id === 'copyBtn') { const nid = store.upsertSet({ title: s.title + ' (copy)', desc: s.desc, cards: s.cards.map((c) => ({ ...c })) }); toast('Copied to your sets.', 'good'); location.hash = '#/flashcards/' + nid + '/edit'; }
     if (t.id === 'delBtn') confirmBox(`Delete "${esc(s.title)}"? This can't be undone.`, { ok: 'Delete', danger: true }).then((ok) => { if (ok) { store.deleteSet(s.id); location.hash = '#/flashcards'; } });
-    if (t.id === 'resetProg') { p.mastery = {}; store.save(); draw(); }
+    if (t.id === 'resetProg') { p.mastery = {}; newRound(); draw(); }
     if (t.id === 'exportBtn') modal(`<p class="muted">Tab-separated. Paste into a spreadsheet or another flashcard app.</p><textarea rows="10" readonly>${esc(s.cards.map((c) => `${c.t}\t${c.d}`).join('\n'))}</textarea>`, { title: 'Export', wide: true });
     if (t.closest('#setShareBtn')) {
       const url = `${location.origin}${location.pathname}#/share/${b64enc(JSON.stringify({ t: s.title, d: s.desc, c: s.cards.map((c) => [c.t, c.d]) }))}`;
@@ -200,6 +235,8 @@ export function setView(root, { id }) {
     if (e.key === ' ') { e.preventDefault(); $('#flip', root)?.click(); }
     if (e.key === 'ArrowRight') go(1);
     if (e.key === 'ArrowLeft') go(-1);
+    if (e.key === '1') sort(false);
+    if (e.key === '2') sort(true);
   };
   addEventListener('keydown', onKey);
   draw();

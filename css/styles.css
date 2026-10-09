@@ -1011,3 +1011,12 @@ h3 { font-weight: 650; }
   .match-grid { grid-template-columns: 1fr 1fr; }
 }
 .fmath { overflow-y: hidden; scrollbar-width: thin; }
+.piles { display: flex; justify-content: space-between; margin-bottom: .6rem; font-weight: 600; }
+.pile b { display: inline-block; min-width: 1.8rem; padding: .1rem .5rem; margin-right: .35rem; border-radius: 99px; text-align: center; color: #fff; }
+.pile.learning { color: var(--mid); } .pile.learning b { background: var(--mid); }
+.pile.known { color: var(--good); } .pile.known b { background: var(--good); }
+.sort-btns { display: flex; justify-content: center; gap: .75rem; margin: .25rem 0 1rem; flex-wrap: wrap; }
+.sort-btns .btn { min-width: 9rem; justify-content: center; }
+.sort-learning { color: var(--mid); border-color: var(--mid); } .sort-learning:hover { background: var(--mid-soft); }
+.sort-known { color: var(--good); border-color: var(--good); } .sort-known:hover { background: var(--good-soft); }
+.round-done { height: auto; min-height: 200px; padding: 1.5rem; text-align: center; }
