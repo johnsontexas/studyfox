@@ -22,6 +22,9 @@ const blank = () => ({
   inProgress: null, speed: { best: {}, runs: [] }, learned: {}, bank: {}, ap: {}, deletedSets: {},
 });
 
+// Practice tests are kept forever so score history stays complete; other sessions keep the latest 200.
+const trimAttempts = (list) => { let n = 0; return list.filter((x) => x.kind === 'exam' || ++n <= 200); };
+
 // Combine two progress blobs (e.g. this device + the cloud copy) without losing either side's work.
 function merge(a, b) {
   if (!b) return a;
@@ -29,7 +32,7 @@ function merge(a, b) {
   const byId = (x, y) => { const m = new Map(); [...(y || []), ...(x || [])].forEach((o) => { const p = m.get(o.id); if (!p || (o.updated || o.date || 0) > (p.updated || p.date || 0)) m.set(o.id, o); }); return [...m.values()]; };
   const bigger = (x = {}, y = {}) => { const o = { ...y }; for (const k in x) if (!o[k] || x[k].t > o[k].t) o[k] = x[k]; return o; };
   const out = Object.assign(blank(), b, a);
-  out.attempts = byId(a.attempts, b.attempts).sort((p, q) => (q.date || 0) - (p.date || 0)).slice(0, 200);
+  out.attempts = trimAttempts(byId(a.attempts, b.attempts).sort((p, q) => (q.date || 0) - (p.date || 0)));
   // Deleted sets leave a timestamp so another device's older copy can't bring them back.
   out.deletedSets = { ...b.deletedSets };
   for (const k in a.deletedSets) out.deletedSets[k] = Math.max(a.deletedSets[k], out.deletedSets[k] || 0);
@@ -154,7 +157,7 @@ export const store = {
     while (act[dt.toISOString().slice(0, 10)]) { n++; dt.setDate(dt.getDate() - 1); }
     return n;
   },
-  addAttempt(a) { const d = this.data(); a.id ||= uid(); d.attempts.unshift(a); d.attempts = d.attempts.slice(0, 200); this.save(); return a.id; },
+  addAttempt(a) { const d = this.data(); a.id ||= uid(); d.attempts.unshift(a); d.attempts = trimAttempts(d.attempts); this.save(); return a.id; },
   getAttempt(id) { return this.data().attempts.find((a) => a.id === id); },
   toggleSaved(id) { const s = this.data().saved; if (s[id]) delete s[id]; else s[id] = Date.now(); this.save(); return !!s[id]; },
 

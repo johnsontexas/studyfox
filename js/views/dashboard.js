@@ -47,6 +47,20 @@ function sparkline(points, lo, hi) {
   return `<svg viewBox="0 0 ${W} ${H}" class="spark"><path d="${points.map((v, i) => `${i ? 'L' : 'M'}${xs(i)} ${ys(v)}`).join(' ')}"/>${points.map((v, i) => `<circle cx="${xs(i)}" cy="${ys(v)}" r="3"/>`).join('')}</svg>`;
 }
 
+// Best score per section across every practice test (full, half, or section), plus the latest tests.
+const SECTION_NAMES = { rw: 'Reading & Writing', math: 'Math', english: 'English', reading: 'Reading', science: 'Science' };
+function testScoresHTML(d, focus) {
+  const tests = d.attempts.filter((a) => a.kind === 'exam' && a.test === focus && a.sections);
+  if (!tests.length) return `<p class="muted">Take a full or half practice test and your scores will be saved here.</p><a class="btn block" href="#/exams">Practice tests</a>`;
+  const best = {};
+  for (const t of tests) for (const [k, v] of Object.entries(t.sections)) best[k] = Math.max(best[k] || 0, v.score);
+  return `<div class="best-secs">${Object.keys(SECTION_NAMES).filter((k) => best[k]).map((k) => `<div><b>${best[k]}</b><span>Best ${SECTION_NAMES[k]}</span></div>`).join('')}</div>
+    <ul class="attempts">${tests.slice(0, 5).map((a) => `<li><a href="#/results/${a.id}"><span><b>${esc(a.title)}</b><span class="muted small">${timeAgo(a.date)} · ${Object.entries(a.sections).map(([k, v]) => `${SECTION_NAMES[k] || k} ${v.score}`).join(' · ')}</span></span><span class="score-pill">${a.headline}</span></a></li>`).join('')}</ul>
+    <a class="btn block" href="#/exams">All practice tests</a>`;
+}
+
+import { classesBar } from '../studying.js';
+
 export function dashboardView(root) {
   const d = store.data();
   const u = store.user();
@@ -72,6 +86,7 @@ export function dashboardView(root) {
 
   root.innerHTML = `
   <div class="page dash">
+    ${classesBar('dash')}
     <section class="dash-hero">
       <div>
         <p class="kicker">${greeting()}</p>
@@ -84,7 +99,7 @@ export function dashboardView(root) {
     </section>
     ${hasInProgress() ? `<div class="banner accent row between wrap gap"><span>${icon('pause')} You have a test in progress: <b>${esc(d.inProgress.title)}</b></span><span class="row gap"><a class="btn primary sm" href="#/test">Resume</a><button class="btn sm ghost" id="discard">Discard</button></span></div>` : ''}
 
-    <nav class="quick" aria-label="Study tools">${QUICK.map(([href, ic, t, sub]) => `<a href="${href}">${icon(ic)}<b>${t}</b><span>${sub}</span></a>`).join('')}</nav>
+    <nav class="quick" aria-label="Study tools">${QUICK.map(([href, ic, t, sub], i) => `<a href="${href}"><span class="q-ic tone-${i % 6}">${icon(ic)}</span><b>${t}</b><span>${sub}</span></a>`).join('')}</nav>
 
     ${u && !u.cloud && cloudEnabled ? `<div class="banner accent row between wrap gap"><span>${icon('upload')} Your progress is saved on this device only. Sign in again to back it up to the cloud and sync it everywhere.</span><button class="btn primary sm" id="moveCloud">Back up my progress</button></div>` : ''}
 
@@ -127,6 +142,10 @@ export function dashboardView(root) {
           <h2 class="h3">Focus next</h2>
           ${weak.length ? `<ul class="weak">${weak.map((w) => `<li><div><b>${esc(w.skill)}</b><span class="muted small">${w.p}% of ${w.t}</span></div><button class="btn xs" data-sec="${w.sec}" data-skill="${esc(w.skill)}">Drill</button></li>`).join('')}</ul>` : '<p class="muted">Answer a few questions and your weakest skills will show up here.</p>'}
           <a class="btn block ${mistakes ? 'primary' : ''}" href="#/review">Review mistakes (${mistakes})</a>
+        </div>
+        <div class="card">
+          <h2 class="h3">Practice test scores</h2>
+          ${testScoresHTML(d, focus)}
         </div>
         <div class="card">
           <h2 class="h3">Recent activity</h2>

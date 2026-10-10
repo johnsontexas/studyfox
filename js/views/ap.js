@@ -4,8 +4,9 @@ import { icon, sticker } from '../icons.js';
 import { $, esc, tex, toast, DIFF_LABEL } from '../util.js';
 import { store } from '../store.js';
 import { db, cloudEnabled } from '../cloud.js';
-import { COURSES } from '../content/courses.js';
+import { COURSES, SUBJECTS } from '../content/courses.js';
 import { L } from '../qview.js';
+import { classesBar, myStudying } from '../studying.js';
 import { apCounts as bankCounts, apQuestions as bankQuestions, apUnits, apDone, pickAP, recordAP, apStats } from '../content/ap-bank.js';
 
 const client = () => (cloudEnabled ? db() : null);
@@ -21,9 +22,10 @@ const apData = apDone;
 const unitOrder = apUnits;
 
 const apCourses = () => COURSES.filter((c) => c.ap);
+const tone = (s) => `tone-${Math.max(0, SUBJECTS.indexOf(s)) % 6}`;
 
 export function apHubView(root) {
-  root.innerHTML = `<div class="page"><div class="page-head"><span class="eyebrow">${icon('target')} AP practice</span><h1>AP question bank</h1>
+  root.innerHTML = `<div class="page">${classesBar('ap')}<div class="page-head"><span class="eyebrow">${icon('target')} AP practice</span><h1>AP question bank</h1>
     <p class="muted">Exam-style multiple choice for every AP class, sorted by unit and concept. Every question has an explanation.</p>
     <a class="btn sm" href="#/formulas?s=calc">${icon('integral')} AP formula sheets</a></div>
     <div id="apGrid" class="ap-grid"><p class="muted">Loading the question bank...</p></div></div>`;
@@ -35,11 +37,21 @@ export function apHubView(root) {
     for (const v of Object.values(done)) if (v.cid) doneBy[v.cid] = (doneBy[v.cid] || 0) + 1;
     const list = apCourses().map((c) => ({ c, n: Object.values(cnt[c.id] || {}).reduce((a, b) => a + b, 0), units: Object.keys(cnt[c.id] || {}).length })).filter((x) => x.n);
     const total = list.reduce((a, x) => a + x.n, 0);
+    const mineIds = myStudying();
+    const card = ({ c, n, units }) => {
+        const d = doneBy[c.id] || 0, unitNames = Object.keys(cnt[c.id] || {}).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+        return `<a class="course-card ${tone(c.subject)}${d ? ' started' : ''}" href="#/ap/${c.id}">
+        <div class="cc-art" aria-hidden="true"><span class="cc-art-big">${icon(c.icon || 'book')}</span><span class="cc-icon">${icon(c.icon || 'book')}</span><span class="cc-level">AP exam</span></div>
+        <h3>${esc(c.title)}</h3>
+        <ol class="cc-peek">${unitNames.slice(0, 3).map((u) => `<li>${esc(u)}</li>`).join('')}${unitNames.length > 3 ? `<li class="more">+${unitNames.length - 3} more</li>` : ''}</ol>
+        <div class="cc-foot"><span>${n} questions</span><span>${units} units</span>
+          ${d ? `<span class="cc-done">${d >= n ? `${icon('check')} Done` : `${Math.round((100 * d) / n)}%`}</span>` : `<span class="cc-go">${icon('right')}</span>`}</div>
+        ${d ? `<i class="cc-bar" style="--w:${Math.min(100, (100 * d) / n)}%"></i>` : ''}
+      </a>`;
+    };
     el.outerHTML = list.length ? `<p class="muted small">${total.toLocaleString()} questions across ${list.length} AP classes.</p>
-      <div class="ap-grid">${list.map(({ c, n, units }) => `<a class="card hover ap-card" href="#/ap/${c.id}">
-        <span class="ap-ic">${icon(c.icon || 'book')}</span><b>${esc(c.title)}</b>
-        <span class="muted small">${n} questions · ${units} units</span>
-        <div class="bar thin"><i class="good" style="width:${Math.min(100, (100 * (doneBy[c.id] || 0)) / n)}%"></i></div></a>`).join('')}</div>`
+      ${list.some((x) => mineIds.includes(x.c.id)) ? `<h2 class="cc-sec">Your AP classes</h2><div class="course-grid">${list.filter((x) => mineIds.includes(x.c.id)).map(card).join('')}</div><h2 class="cc-sec">All AP classes</h2>` : ''}
+      <div class="course-grid">${list.filter((x) => !mineIds.includes(x.c.id)).map(card).join('')}</div>`
       : `<div class="card empty-note"><p class="muted">The AP question bank couldn't load. Check your connection and try again.</p></div>`;
   });
 }

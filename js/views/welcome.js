@@ -4,12 +4,13 @@ import { store } from '../store.js';
 import { langOptions, profOptions } from '../i18n.js';
 import { cloudSignOut, deleteCloudData } from '../cloud.js';
 import { recordAgreement, takeAfterLogin } from './account.js';
+import { studyPicker, setStudying } from '../studying.js';
 
 const MIN_AGE = 13;
 const AGE_BLOCK = 'sf_age_block'; // ISO date this device may sign up again (the 13th birthday)
 
 const GOALS = [
-  ['sat', 'SAT'], ['act', 'ACT'], ['ap', 'AP classes and exams'], ['school', 'My regular school classes'],
+  ['school', 'My regular school classes'],
   ['flashcards', 'Making flashcards'], ['english', 'Improving my English'], ['other', 'Something else'],
 ];
 const GRADES = ['6th grade or below', '7th grade', '8th grade', '9th grade', '10th grade', '11th grade', '12th grade', 'College', 'Not in school'];
@@ -57,7 +58,10 @@ export function welcomeView(root) {
 
       <label>Date of birth<input name="dob" type="date" max="${maxDob}" min="1900-01-01" required></label>
 
-      <fieldset class="goals"><legend>What are you studying for? <span class="muted small">Pick any.</span></legend>
+      <fieldset class="goals"><legend>What are you studying for? <span class="muted small">Search for the SAT, the ACT, or any AP class.</span></legend>
+        <div id="studyPick"></div>
+      </fieldset>
+      <fieldset class="goals"><legend>Anything else? <span class="muted small">Pick any.</span></legend>
         ${GOALS.map(([v, t]) => `<label class="goal"><input type="checkbox" name="goals" value="${v}" ${(s.goals || []).includes(v) ? 'checked' : ''}><span>${t}</span></label>`).join('')}
       </fieldset>
 
@@ -75,6 +79,8 @@ export function welcomeView(root) {
     </form>
   </div>`;
   const f = $('#wForm', root);
+  let studying = s.studying || [];
+  studyPicker($('#studyPick', root), studying, (ids) => { studying = ids; });
   $('#lang', root).onchange = (e) => { $('#profWrap', root).hidden = e.target.value === 'en'; };
   f.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -95,7 +101,11 @@ export function welcomeView(root) {
       return;
     }
 
+    // Goals keep their old shape (sat, act, ap, ...) so anything reading them still works.
     const goals = [...f.querySelectorAll('[name=goals]:checked')].map((x) => x.value);
+    if (studying.includes('SAT')) goals.push('sat');
+    if (studying.includes('ACT')) goals.push('act');
+    if (studying.some((id) => id !== 'SAT' && id !== 'ACT')) goals.push('ap');
     // Re-read settings: a cloud sync may have replaced the data object since this page rendered.
     const cur = store.data().settings;
     Object.assign(cur, {
@@ -104,6 +114,7 @@ export function welcomeView(root) {
       focus: goals.includes('act') && !goals.includes('sat') ? 'ACT' : (cur.focus || 'SAT'),
       lang: f.lang.value, english: f.lang.value === 'en' ? '' : f.english.value,
     });
+    setStudying(studying);
     recordAgreement(); // also saves
     store.updateProfile({ name: f.name.value.trim() });
     toast(`Welcome to StudyFox, ${f.name.value.trim()}!`, 'good');

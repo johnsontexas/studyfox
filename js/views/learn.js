@@ -7,6 +7,7 @@ import { keysFor } from '../gen/index.js';
 import { mountCalculator } from '../tools.js';
 import { launchPractice } from './practice.js';
 import { L } from '../qview.js';
+import { classesBar, myStudying } from '../studying.js';
 
 const learned = () => store.data().learned;
 const doneCount = (c) => c.lessons.filter((l) => learned()[`${c.id}/${l.id}`]).length;
@@ -43,6 +44,7 @@ export function learnHubView(root) {
   let subject = FILTERS.includes(q.get('s')) ? q.get('s') : 'All';
   let query = '';
   const lessons = COURSES.reduce((n, c) => n + c.lessons.length, 0);
+  const mine = myStudying().map(getCourse).filter(Boolean);
   const started = COURSES.filter((c) => doneCount(c) && doneCount(c) < c.lessons.length).slice(0, 3);
   root.innerHTML = `
     <div class="courses-head"><div class="page">
@@ -54,6 +56,8 @@ export function learnHubView(root) {
       <dl class="ch-stats"><div><dt>${COURSES.length}</dt><dd>courses</dd></div><div><dt>${lessons}</dt><dd>lessons</dd></div><div><dt>${COURSES.filter((c) => c.ap).length}</dt><dd>AP classes</dd></div></dl>
     </div></div>
     <div class="page courses-body">
+      ${classesBar('learn')}
+      ${mine.length ? `<section class="cc-continue"><h2 class="cc-sec">Your classes</h2><div class="course-grid">${mine.map((c) => courseCard(c)).join('')}</div></section>` : ''}
       ${started.length ? `<section class="cc-continue"><h2 class="cc-sec">Keep going</h2><div class="course-grid">${started.map((c) => courseCard(c)).join('')}</div></section>` : ''}
       <div class="subject-filter" role="tablist">${FILTERS.map((s) => `<button class="pill" data-s="${esc(s)}" role="tab">${s === 'AP' ? 'AP courses' : esc(s)}</button>`).join('')}</div>
       <div id="courseList"></div>

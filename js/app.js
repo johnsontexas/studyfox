@@ -66,7 +66,7 @@ function navHTML(path) {
     <a href="#/" class="brand" aria-label="${BRAND} home"><svg class="logo" viewBox="-2 2 70 62" aria-hidden="true"><path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#fff" stroke="#fff" stroke-width="6" stroke-linejoin="round"/><path d="M8 6l16 14h16l16-14-2 30-22 24-22-24z" fill="#f9a825"/><path d="M10 36l22 24 22-24-12-4-10 9-10-9z" fill="#fff8ec"/><path d="M26.5 54h11L32 60z" fill="#1a1a1a"/><circle cx="23" cy="28" r="3" fill="#1a1a1a"/><circle cx="41" cy="28" r="3" fill="#1a1a1a"/></svg><span>Study<span class="brand-fox">Fox</span></span></a>
     <button class="icon-btn menu-btn" id="menuBtn" aria-label="Menu">${icon('menu')}</button>
     <nav class="links" id="navLinks">
-      ${link(u ? '/home' : '/', 'Home')}<span class="nav-study">${link('/learn', `${icon('book')}Courses`)}${link('/ap', `${icon('target')}AP Practice`)}${group('SAT', `${icon('clipboard')}SAT &amp; ACT`)}${link('/flashcards', `${icon('cards')}Flashcards`)}</span>${link('/news', 'News')}${link('/about', 'About')}${u ? group('DASH', 'Dashboard') : ''}${admin ? link('/admin', 'Admin') : ''}
+      ${link(u ? '/home' : '/', 'Home')}<span class="nav-study">${link('/learn', `Courses`)}${link('/ap', `AP Practice`)}${group('SAT', `SAT &amp; ACT`)}${link('/flashcards', `Flashcards`)}</span>${link('/news', 'News')}${link('/about', 'About')}${u ? group('DASH', 'Dashboard') : ''}${admin ? link('/admin', 'Admin') : ''}
     </nav>
     <div class="nav-right">
       <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">${icon('contrast')}</button>
@@ -145,6 +145,7 @@ function boot() {
         <a class="foot-ig" href="https://instagram.com/${STUDYFOX_INSTAGRAM}" target="_blank" rel="noopener">${icon('instagram')}@${STUDYFOX_INSTAGRAM}</a>
         <a class="foot-ig" href="https://www.tiktok.com/@${STUDYFOX_TIKTOK}" target="_blank" rel="noopener">${icon('tiktok')}@${STUDYFOX_TIKTOK} on TikTok</a>
         <a class="foot-ig" href="mailto:${CREATOR_EMAIL}">${icon('mail')}Contact ${CREATOR}: ${CREATOR_EMAIL}</a>
+        <a class="foot-ig" href="mailto:support@studyfox.org">${icon('mail')}Support: support@studyfox.org</a>
         <a class="foot-ig" href="${KOFI}" target="_blank" rel="noopener">${icon('heart')}Support StudyFox on Ko-fi</a>
         <a class="foot-ig" id="iosLink" href="#" target="_blank" rel="noopener" hidden>${icon('down')}Download on iOS</a></div>
       <nav class="foot-links" aria-label="Footer"><a href="#/learn">Courses</a><a href="#/practice">SAT &amp; ACT</a><a href="#/flashcards">Flashcards</a><a href="#/news">News</a><a href="#/about">About</a><a href="#/contact">Contact</a><a href="#/donate">Donate</a><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a></nav>

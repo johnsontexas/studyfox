@@ -122,9 +122,9 @@ export function Screen({ children, style, header, backdrop, ...rest }: ScreenPro
 }
 
 // ---- Cards and lists ----
-/** The website's card: surface, thin border, solid bottom ledge. */
+/** The website's card: a plain surface fill, no outline (outlined boxes everywhere read as generated). */
 export const cardStyle = (c: ReturnType<typeof useColors>, radius = 18): ViewStyle => ({
-  backgroundColor: c.card, borderRadius: radius, borderWidth: 1, borderColor: c.line, borderBottomWidth: 3, borderBottomColor: c.ledge,
+  backgroundColor: c.card, borderRadius: radius,
 });
 
 export function Section({ header, footer, children, style }: { header?: string; footer?: ReactNode; children: ReactNode; style?: StyleProp<ViewStyle> }) {
@@ -132,7 +132,7 @@ export function Section({ header, footer, children, style }: { header?: string; 
   const kids = Children.toArray(children).filter(Boolean);
   return (
     <View style={[{ marginHorizontal: 16, marginTop: header ? 26 : 16 }, style]}>
-      {header ? <Text style={[type.title3, { fontSize: 19, color: c.label, marginLeft: 4, marginBottom: 9 }]}>{header}</Text> : null}
+      {header ? <Text style={[type.headline, { fontSize: 19, fontWeight: '700', color: c.label, marginLeft: 4, marginBottom: 9 }]}>{header}</Text> : null}
       <View style={[cardStyle(c), { overflow: 'hidden' }]}>
         {kids.map((k, i) => (
           <Fragment key={i}>
@@ -264,7 +264,7 @@ export function Card({ children, style, onPress }: { children: ReactNode; style?
   const c = useColors();
   const base: ViewStyle = { ...cardStyle(c), padding: 16 };
   if (!onPress) return <View style={[base, style]}>{children}</View>;
-  return <Pressable accessibilityRole="button" onPress={() => { tap(); onPress(); }} style={({ pressed }) => [base, { transform: [{ translateY: pressed ? 2 : 0 }], borderBottomWidth: pressed ? 1 : 3 }, style]}>{children}</Pressable>;
+  return <Pressable accessibilityRole="button" onPress={() => { tap(); onPress(); }} style={({ pressed }) => [base, { opacity: pressed ? 0.8 : 1 }, style]}>{children}</Pressable>;
 }
 
 export function Stat({ value, label, color }: { value: string | number; label: string; color?: string }) {

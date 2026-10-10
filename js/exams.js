@@ -57,13 +57,31 @@ export const EXAMS = {
     { section: 'reading', name: 'Reading', count: 18, minutes: 20 },
     { section: 'science', name: 'Science', count: 16, minutes: 16 },
   ] },
+  'sat-half-rw': { test: 'SAT', title: 'SAT Reading & Writing Half Test', blurb: 'Reading and Writing only · adaptive · 33 min', modules: [
+    { section: 'rw', name: 'Module 1: Reading and Writing', count: 14, minutes: 17 },
+    { section: 'rw', name: 'Module 2: Reading and Writing', count: 13, minutes: 16, adaptive: 0 },
+  ] },
+  'sat-half-math': { test: 'SAT', title: 'SAT Math Half Test', blurb: 'Math only · adaptive · 36 min', modules: [
+    { section: 'math', name: 'Module 1: Math', count: 11, minutes: 18 },
+    { section: 'math', name: 'Module 2: Math', count: 11, minutes: 18, adaptive: 0 },
+  ] },
+  'act-half-english': { test: 'ACT', title: 'ACT English Half Test', blurb: 'English only · 25 questions · 18 min', modules: [{ section: 'english', name: 'English', count: 25, minutes: 18 }] },
+  'act-half-math': { test: 'ACT', title: 'ACT Math Half Test', blurb: 'Math only · 23 questions · 25 min', modules: [{ section: 'math', name: 'Mathematics', count: 23, minutes: 25 }] },
+  'act-half-reading': { test: 'ACT', title: 'ACT Reading Half Test', blurb: 'Reading only · 18 questions · 20 min', modules: [{ section: 'reading', name: 'Reading', count: 18, minutes: 20 }] },
+  'act-half-science': { test: 'ACT', title: 'ACT Science Half Test', blurb: 'Science only · 20 questions · 20 min', modules: [{ section: 'science', name: 'Science', count: 20, minutes: 20 }] },
   'act-english': { test: 'ACT', title: 'ACT English', blurb: 'Section test · 50 questions · 35 min', modules: [{ section: 'english', name: 'English', count: 50, minutes: 35 }] },
   'act-math': { test: 'ACT', title: 'ACT Math', blurb: 'Section test · 45 questions · 50 min', modules: [{ section: 'math', name: 'Mathematics', count: 45, minutes: 50 }] },
   'act-reading': { test: 'ACT', title: 'ACT Reading', blurb: 'Section test · 36 questions · 40 min', modules: [{ section: 'reading', name: 'Reading', count: 36, minutes: 40 }] },
   'act-science': { test: 'ACT', title: 'ACT Science', blurb: 'Section test · 40 questions · 40 min', modules: [{ section: 'science', name: 'Science', count: 40, minutes: 40 }] },
 };
 
-const DW = { base: { 1: 0.33, 2: 0.34, 3: 0.33 }, hard: { 1: 0.1, 2: 0.4, 3: 0.5 }, easy: { 1: 0.5, 2: 0.4, 3: 0.1 } };
+// Numbered full-length tests: fixed seeds, so "Practice Test 3" is the same test for everyone and students can track which ones they've taken.
+export const NUMBERED = { SAT: { key: 'sat-full', count: 10, base: 7000 }, ACT: { key: 'act-full', count: 8, base: 8000 } };
+export const numberedTests = (test) => { const t = NUMBERED[test]; return Array.from({ length: t.count }, (_, i) => ({ n: i + 1, key: t.key, seed: t.base + i + 1, title: `${test} Practice Test ${i + 1}` })); };
+export const numberedTitle = (key, seed) => { for (const [test, t] of Object.entries(NUMBERED)) if (t.key === key && seed > t.base && seed <= t.base + t.count) return `${test} Practice Test ${seed - t.base}`; return null; };
+
+// Difficulty mix per module, close to the real tests: Module 1 is mostly medium, and the harder Module 2 leans hard.
+const DW = { base: { 1: 0.3, 2: 0.45, 3: 0.25 }, hard: { 1: 0.1, 2: 0.4, 3: 0.5 }, easy: { 1: 0.5, 2: 0.4, 3: 0.1 } };
 
 function subsample(plan, n) {
   if (n >= plan.length) return plan.slice(0, n);
@@ -130,7 +148,7 @@ export function buildModule(examKey, mi, seed, route) {
 export function createExam(examKey, seed = newSeed()) {
   const def = EXAMS[examKey];
   return {
-    kind: 'exam', examKey, title: def.title, test: def.test, seed,
+    kind: 'exam', examKey, title: numberedTitle(examKey, seed) || def.title, test: def.test, seed,
     startedAt: Date.now(),
     modules: def.modules.map((m) => (m.break ? { break: m.break } : { ...m, questions: null, answers: {}, marked: [], elim: {}, timeLeft: m.minutes * 60, done: false })),
     current: 0, qi: 0,
@@ -159,6 +177,15 @@ export function ensureModule(exam, mi) {
 }
 
 const W = { 1: 1, 2: 1.3, 3: 1.6 };
+// Fraction correct to a 1–36 section score, following the shape of published ACT conversion charts.
+const ACT_CURVE = [[0, 1], [0.15, 8], [0.3, 13], [0.45, 17], [0.55, 20], [0.65, 22], [0.75, 25], [0.85, 29], [0.92, 32], [0.97, 34], [1, 36]];
+function actScale(f) {
+  for (let i = 1; i < ACT_CURVE.length; i++) {
+    const [x1, y1] = ACT_CURVE[i - 1], [x2, y2] = ACT_CURVE[i];
+    if (f <= x2) return Math.round(y1 + ((f - x1) / (x2 - x1)) * (y2 - y1));
+  }
+  return 36;
+}
 function weighted(m) {
   let got = 0, tot = 0;
   m.questions.forEach((q, i) => { tot += W[q.difficulty]; if (isCorrect(q, m.answers[i])) got += W[q.difficulty]; });
@@ -184,11 +211,12 @@ export function scoreExam(exam) {
     if (exam.test === 'SAT') {
       const [m1, m2] = mods;
       const f1 = weighted(m1), f2 = m2 ? weighted(m2) : f1;
-      if (!m2 || m2.route !== 'easy') score = 200 + 600 * (0.45 * f1 + 0.55 * f2);
-      else score = 200 + 440 * (0.5 * f1 + 0.5 * f2);
+      // Curved like the real scale: early misses cost less than a straight line would. The easier Module 2 caps near 640.
+      if (!m2 || m2.route !== 'easy') score = 200 + 600 * (0.45 * f1 + 0.55 * f2) ** 0.8;
+      else score = 200 + 440 * (0.5 * f1 + 0.5 * f2) ** 0.8;
       score = Math.max(200, Math.min(800, Math.round(score / 10) * 10));
     } else {
-      score = Math.max(1, Math.min(36, Math.round(1 + 35 * (correct / total))));
+      score = actScale(correct / total);
     }
     sections[sec] = { score, correct, total, route: mods[1]?.route };
   }

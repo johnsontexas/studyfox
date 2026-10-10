@@ -7,12 +7,13 @@ import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } fro
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Field, menu, Pill, Row, Section, SwitchRow } from '../components/ui';
 import { cloudSignOut, deleteCloudData } from '../lib/cloud';
+import { setStudying, StudyPicker } from '../components/StudyPicker';
 import { LANGS, PROFICIENCY, store, TERMS_VERSION } from '../lib/shared';
 import { AGE_BLOCK } from '../lib/store-hooks';
 import { type, useColors } from '../lib/theme';
 
 const MIN_AGE = 13;
-const GOALS: [string, string][] = [['sat', 'SAT'], ['act', 'ACT'], ['ap', 'AP classes'], ['school', 'School classes'], ['flashcards', 'Flashcards'], ['english', 'English'], ['other', 'Something else']];
+const GOALS: [string, string][] = [['school', 'School classes'], ['flashcards', 'Flashcards'], ['english', 'English'], ['other', 'Something else']];
 const GRADES = ['6th grade or below', '7th grade', '8th grade', '9th grade', '10th grade', '11th grade', '12th grade', 'College', 'Not in school'];
 
 const ageOn = (dob: Date, now = new Date()) => {
@@ -30,7 +31,8 @@ export default function Welcome() {
   const [name, setName] = useState(u?.name || '');
   const [dob, setDob] = useState<Date | null>(null);
   const [webDob, setWebDob] = useState('');
-  const [goals, setGoals] = useState<string[]>(s.goals || []);
+  const [goals, setGoals] = useState<string[]>((s.goals || []).filter((g: string) => !['sat', 'act', 'ap'].includes(g)));
+  const [studying, setStudyingIds] = useState<string[]>(s.studying || []);
   const [grade, setGrade] = useState<string>(s.grade || '');
   const [lang, setLang] = useState<string>(s.lang || 'en');
   const [english, setEnglish] = useState<string>(s.english || 'intermediate');
@@ -54,14 +56,16 @@ export default function Welcome() {
       store.forgetAccount();
       return;
     }
+    // Goals keep their old shape (sat, act, ap, ...) so anything reading them still works.
+    const allGoals = [...goals, ...(studying.includes('SAT') ? ['sat'] : []), ...(studying.includes('ACT') ? ['act'] : []), ...(studying.some((id) => id !== 'SAT' && id !== 'ACT') ? ['ap'] : [])];
     const cur = store.data().settings;
     Object.assign(cur, {
-      onboarded: new Date().toISOString(), dob: iso(birth), goals, grade, emails, emailsAt: new Date().toISOString(),
-      focus: goals.includes('act') && !goals.includes('sat') ? 'ACT' : cur.focus || 'SAT',
+      onboarded: new Date().toISOString(), dob: iso(birth), goals: allGoals, grade, emails, emailsAt: new Date().toISOString(),
+      focus: allGoals.includes('act') && !allGoals.includes('sat') ? 'ACT' : cur.focus || 'SAT',
       lang, english: lang === 'en' ? '' : english,
       legal: { version: TERMS_VERSION, at: new Date().toISOString() },
     });
-    store.save();
+    setStudying(studying);
     store.updateProfile({ name: name.trim() });
   };
 
@@ -81,7 +85,11 @@ export default function Welcome() {
           <Row title="Grade" value={grade || 'Choose'} onPress={() => menu('Grade', GRADES.map((g) => ({ title: g, onPress: () => setGrade(g) })))} />
         </Section>
 
-        <Section header="What are you studying for?" footer="Pick any.">
+        <Section header="What are you studying for?" footer="Search for the SAT, the ACT, or any AP class.">
+          <StudyPicker value={studying} onChange={setStudyingIds} />
+        </Section>
+
+        <Section header="Anything else?" footer="Pick any.">
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, padding: 12 }}>
             {GOALS.map(([v, t]) => <Pill key={v} label={t} on={goals.includes(v)} onPress={() => setGoals(goals.includes(v) ? goals.filter((g) => g !== v) : [...goals, v])} />)}
           </View>

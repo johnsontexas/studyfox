@@ -1020,3 +1020,162 @@ h3 { font-weight: 650; }
 .sort-learning { color: var(--mid); border-color: var(--mid); } .sort-learning:hover { background: var(--mid-soft); }
 .sort-known { color: var(--good); border-color: var(--good); } .sort-known:hover { background: var(--good-soft); }
 .round-done { height: auto; min-height: 200px; padding: 1.5rem; text-align: center; }
+
+/* ---------- App look: softer, rounder surfaces that match the iOS app ---------- */
+:root { --radius: 16px; }
+/* Cards: rounded with a solid bottom ledge, and they press down instead of throwing an offset shadow. */
+.card, .quick a, .subj-tiles a, .resume-card, .mock { border-radius: 16px; border: 1px solid var(--line); border-bottom: 3px solid var(--line-strong); box-shadow: none; }
+.card.hover:hover, .quick a:hover, .subj-tiles a:hover { transform: translateY(-1px); box-shadow: none; border-color: var(--line-strong); border-bottom-color: var(--brand); }
+.card.hover:active, .quick a:active, .subj-tiles a:active { transform: translateY(2px); border-bottom-width: 1px; }
+.card.flush { border-bottom-width: 1px; }
+.btn { border-radius: 12px; } .btn.lg { border-radius: 14px; } .btn.sm, .btn.xs { border-radius: 10px; }
+.btn.primary { box-shadow: none; border-bottom: 3px solid var(--brand-2); }
+.btn.primary:active { border-bottom-width: 1.5px; }
+input, select, textarea { border-radius: 12px; }
+.seg { border-radius: 12px; } .seg button { border-radius: 9px; }
+
+/* Colored icon tiles with white glyphs, like the app's IconTile. */
+.ap-card .ap-ic, .subj-ic, .q-ic { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--t, var(--brand)); color: #fff; }
+.ap-card .ap-ic .ico, .subj-ic .ico, .q-ic .ico { width: 21px; height: 21px; color: #fff; margin: 0; }
+.quick a { gap: .15rem; } .quick .q-ic { margin-bottom: .55rem; }
+.ap-card b { margin-top: .35rem; }
+
+/* Nav: plain words, no icon-stuffed green box. The study tools sit together with a soft active pill. */
+.nav-study { background: none; border: 0; padding: 0; margin: 0; gap: .2rem; }
+.nav-study a { font-size: .93rem; font-weight: 600; color: var(--ink-2); padding: .45rem .7rem; border-radius: 10px; }
+.nav-study a:hover { background: var(--surface-2); }
+.links a.active, .nav-study a.active { background: var(--brand-soft); color: var(--brand); box-shadow: none; border-radius: 10px; }
+:root[data-theme="dark"] .nav-study a.active, :root[data-theme="dark"] .links a.active { color: var(--brand-2); }
+@media (max-width: 1120px) { .nav-study { padding: 0; margin: 0; } }
+
+/* Section labels are just words. */
+.eyebrow .ico { display: none; }
+
+/* Home hero: a calm, still layout instead of tilted floating cards and blurred glows. */
+.hero2::before { background: linear-gradient(to bottom, var(--brand-soft), transparent 70%); opacity: .6; }
+.mock { animation: none; transform: none !important; }
+.mock-card { left: 0; }
+.marquee { border-block-color: var(--line); background: transparent; }
+.marquee span { font-style: normal; font-family: var(--font); font-weight: 600; font-size: .95rem; color: var(--muted); }
+.marquee span::before { color: var(--line-strong); }
+.facts dt { font-variant-numeric: tabular-nums; }
+
+/* Dashboard banner: the app's deep forest card rather than a flat neon slab. */
+.dash-hero { border-radius: 20px; background: linear-gradient(160deg, #1f6b47, #174f35); color: #fff; }
+.dash-ring > div { background: #1a5a3c; }
+:root[data-theme="dark"] .dash-hero { background: linear-gradient(160deg, #1d4a32, #123222); } :root[data-theme="dark"] .dash-ring > div { background: #183f2b; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .dash-hero { background: linear-gradient(160deg, #1d4a32, #123222); } :root:not([data-theme="light"]) .dash-ring > div { background: #183f2b; } }
+:root[data-theme="dark"] :is(.ap-ic, .subj-ic, .q-ic) { background: color-mix(in srgb, var(--t, var(--brand)) 62%, #000); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) :is(.ap-ic, .subj-ic, .q-ic) { background: color-mix(in srgb, var(--t, var(--brand)) 62%, #000); } }
+
+/* ---------- Home: plain headline, then the four study tools front and center ---------- */
+.hero3-inner { max-width: 1160px; margin: 0 auto; padding: 3.5rem 1rem 1.6rem; }
+.hero3 h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1.05; margin: 0 0 .9rem; max-width: 16ch; }
+.hero3 .lead { max-width: 38rem; }
+.home2 { padding-top: .5rem; }
+.doors { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2.5rem; }
+.door { display: flex; flex-direction: column; gap: .25rem; padding: 1.3rem; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); border-bottom: 3px solid var(--line-strong); color: var(--ink); text-decoration: none !important; transition: transform .12s, border-color .12s; }
+.door:hover { transform: translateY(-1px); border-bottom-color: var(--t); }
+.door:active { transform: translateY(2px); border-bottom-width: 1px; }
+.door .q-ic { width: 46px; height: 46px; border-radius: 14px; margin-bottom: .7rem; } .door .q-ic .ico { width: 24px; height: 24px; }
+.door b { font-family: var(--display); font-weight: 600; font-size: 1.45rem; line-height: 1.15; }
+.door-n { font-size: .85rem; font-weight: 700; color: var(--t); }
+:root[data-theme="dark"] .door-n { color: color-mix(in srgb, var(--t) 85%, #fff); }
+.door-d { color: var(--ink-2); font-size: .93rem; margin-top: .3rem; }
+.door-eg { margin-top: auto; padding-top: .8rem; font-size: .8rem; color: var(--muted); border-top: 1px solid var(--line); margin-top: .9rem; }
+@media (max-width: 960px) { .doors { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 520px) { .doors { grid-template-columns: 1fr; } .hero3-inner { padding-top: 2.2rem; } }
+
+/* Nav: the four study tools read as the main links; News, About, and the rest step back. */
+.links > a { color: var(--muted); font-weight: 500; font-size: .9rem; }
+.nav-study a { color: var(--ink); font-weight: 650; font-size: .97rem; }
+.nav-study { padding-right: .7rem; margin-right: .5rem; border-right: 1px solid var(--line); border-radius: 0; }
+.links > a.active { color: var(--ink); background: var(--surface-2); }
+@media (max-width: 1120px) { .nav-study { border-right: 0; border-bottom: 1px solid var(--line); padding: 0 0 .4rem; margin: 0 0 .4rem; } }
+
+/* Calmer hero: the collage stays, but it barely moves, tilts only a hair, and sits on a quiet background. */
+.hero2::before { background: none; }
+.mock { animation: floaty 14s ease-in-out infinite; }
+.mock-card { transform: rotate(-1.5deg) !important; }
+.mock-score { transform: rotate(1deg) !important; }
+@keyframes floaty { 50% { translate: 0 -3px; } }
+.marquee > div { animation-duration: 160s; }
+.hero2 + .marquee + .page .doors { margin-top: 1.5rem; }
+
+/* Creator note: real photo, and the whole card leads to About. */
+.creator-pic { object-fit: cover; object-position: 50% 15%; padding: 0; }
+.note-from { cursor: pointer; }
+.note-from:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+.about-me img { height: auto; aspect-ratio: 512 / 760; object-fit: contain; }
+@media (max-width: 640px) { .about-me img { height: auto; } }
+
+/* Practice tests: numbered full-length tests and subject half tests */
+.exam-sub { margin: 1.4rem 0 .3rem; font-size: 1.05rem; }
+.num-tests { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .7rem; margin: .7rem 0 .5rem; }
+.num-test { display: flex; flex-direction: column; align-items: flex-start; gap: .1rem; padding: .9rem 1rem; font: inherit; text-align: left; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-bottom: 3px solid var(--line-strong); border-radius: 14px; cursor: pointer; transition: transform .12s, border-color .12s; }
+.num-test:hover { transform: translateY(-1px); border-bottom-color: var(--brand); }
+.num-test:active { transform: translateY(2px); border-bottom-width: 1px; }
+.nt-n { font-family: var(--display); font-weight: 600; font-size: 1.7rem; line-height: 1; color: var(--brand); }
+.nt-l { font-weight: 650; font-size: .92rem; margin-top: .35rem; }
+.nt-s { font-size: .8rem; color: var(--muted); }
+.num-test.taken { background: var(--brand-soft); } .num-test.taken .nt-s { color: var(--brand); font-weight: 700; }
+.best-secs { display: flex; flex-wrap: wrap; gap: .5rem 1.4rem; margin-bottom: .6rem; }
+.best-secs div { display: flex; flex-direction: column; } .best-secs b { font-family: var(--display); font-size: 1.6rem; font-weight: 600; line-height: 1.1; }
+.best-secs span { font-size: .78rem; color: var(--muted); }
+
+/* "What you're studying for": search picker and the strip at the top of study pages */
+.study-picker { display: flex; flex-direction: column; gap: .5rem; margin-top: .4rem; font-weight: 400; }
+.sp-chips { display: flex; flex-wrap: wrap; gap: .4rem; min-height: 1.9rem; align-items: center; }
+.sp-chip { display: inline-flex; align-items: center; gap: .3rem; font: inherit; font-size: .85rem; font-weight: 650; padding: .3rem .4rem .3rem .75rem; border-radius: 99px; border: 1px solid var(--brand); background: var(--brand-soft); color: var(--brand); cursor: pointer; }
+.sp-chip .ico { width: 14px; height: 14px; opacity: .7; } .sp-chip:hover .ico { opacity: 1; }
+.sp-search { display: flex; align-items: center; gap: .5rem; border: 1.5px solid var(--line-strong); border-radius: 12px; padding: 0 .75rem; background: var(--surface); font-weight: 400; }
+.sp-search:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+.sp-search .ico { color: var(--muted); width: 18px; height: 18px; }
+.sp-search input { border: 0; box-shadow: none !important; padding: .6rem 0; margin: 0; background: none; }
+.sp-results { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 12px; max-height: 15rem; overflow-y: auto; }
+.sp-results li + li { border-top: 1px solid var(--line); }
+.sp-results button { display: flex; align-items: center; gap: .6rem; width: 100%; font: inherit; font-size: .92rem; text-align: left; padding: .55rem .8rem; background: none; border: 0; color: var(--ink); cursor: pointer; }
+.sp-results button:hover { background: var(--surface-2); }
+.sp-results button span { flex: 1; } .sp-results .ico { width: 17px; height: 17px; color: var(--muted); }
+.sp-none { padding: .6rem .8rem; }
+.classes-bar { display: flex; align-items: center; gap: .6rem 1rem; flex-wrap: wrap; padding: .7rem .9rem; margin: 0 0 1.2rem; border: 1px solid var(--line); border-bottom: 3px solid var(--line-strong); border-radius: 16px; background: var(--surface); }
+.classes-bar.empty { justify-content: space-between; color: var(--muted); font-size: .92rem; }
+.cb-label { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.cb-chips { display: flex; flex-wrap: wrap; gap: .4rem; flex: 1; }
+.cb-chip { display: inline-flex; align-items: center; gap: .35rem; font-size: .88rem; font-weight: 650; padding: .35rem .75rem; border-radius: 99px; background: var(--brand-soft); color: var(--brand); text-decoration: none !important; }
+.cb-chip:hover { background: var(--brand); color: var(--brand-ink); }
+.cb-chip .ico { width: 15px; height: 15px; }
+.courses-body > .classes-bar { margin-top: 1.2rem; }
+
+/* ---------- Quieter surfaces and type ----------
+   Fewer outlined boxes: panels are plain fills with no border or ledge, and only inputs keep outlines.
+   The serif is saved for page titles and the brand; everything else uses the plain sans. */
+.card, .quick a, .subj-tiles a, .resume-card, .door, .num-test, .classes-bar, .course-card, .exam.card, .mock, .note-from, .feat, .feat-list a, .mastery, .donate-card {
+  border: 0 !important; box-shadow: none !important;
+}
+.card.hover:hover, .quick a:hover, .subj-tiles a:hover, .door:hover, .num-test:hover, .course-card:hover { transform: none; background: var(--surface-2); }
+.card.hover:active, .quick a:active, .subj-tiles a:active, .door:active, .num-test:active, .course-card:active { transform: scale(.99); }
+.resume-card.empty { border: 1.5px dashed var(--line-strong) !important; background: transparent; }
+.classes-bar { background: transparent; padding: 0; }
+.btn.primary { border-bottom-width: 1.5px; }
+.btn.primary:active { border-bottom-width: 1.5px; }
+.note-from { transform: none; }
+/* Course covers: keep the color and big icon, drop the shine, dots, and bubble. */
+.cc-art { background: linear-gradient(135deg, var(--t), color-mix(in srgb, var(--t) 70%, #000)) !important; }
+.cc-art::after { display: none; }
+.mock .q-right, .mock .q-miss { box-shadow: none; }
+
+/* Type: serif only for big titles. */
+h2, .section-title, .feat h3, .course-card h3, .door b, .resume-card b, .mock-card b, .fc-title, .foot-brand b, .note-from .avatar,
+.kpi-val, .score-main b, .facts dt, .mock-score b, .big-nums span, .bp-num, .bp-of, .dash-ring b, .ch-stats dt, .nt-n, .best-secs b, .stats-strip b, .sub-n, .steps li::before, .faq summary::after {
+  font-family: var(--font) !important; font-style: normal !important; font-variation-settings: normal;
+}
+h2, .section-title { font-weight: 700; letter-spacing: -.01em; font-size: 1.35rem; }
+.course-card h3, .door b, .resume-card b { font-weight: 700; letter-spacing: -.01em; }
+.door b { font-size: 1.25rem; } .course-card h3 { font-size: 1.1rem; } .resume-card b { font-size: 1.05rem; }
+.facts dt, .ch-stats dt, .bp-num, .nt-n, .best-secs b, .dash-ring b, .mock-score b, .big-nums span, .kpi-val { font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.note-from p { font-family: var(--font); }
+.banner, .free-pill, .dash-tabs .tabs, .seg, .note, .feedback { border: 0 !important; box-shadow: none !important; }
+.dash-tabs .tabs a.on { box-shadow: none; }
+.mock { background: var(--surface); }
+.ch-stats, .ch-stats > div { border: 0 !important; }

@@ -1,3 +1,4 @@
+import { ClassesBar } from '../../../../../components/StudyPicker';
 import { router, Stack } from 'expo-router';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
@@ -31,6 +32,7 @@ export default function Practice() {
   return (
     <>
       <Screen header={{ title: 'SAT & ACT', accent: 'practice', subtitle: 'Short sets, Speed Rush, and every answer explained.' }}>
+        <ClassesBar where="practice" />
         <View style={{ marginHorizontal: 16, marginTop: 8 }}>
           <Segmented options={[['SAT', 'SAT'], ['ACT', 'ACT']]} value={focus} onChange={(f) => { d.settings.focus = f; store.save(); }} />
           <View style={{ marginTop: 14, gap: 6 }}>

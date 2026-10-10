@@ -1,5 +1,6 @@
 // Me: profile and settings, matching the website's Settings page (name, test, test date, target
 // scores, language, sign-in methods, backups), plus iPhone-only reminders and sync status.
+import { myStudying, setStudying, StudyPicker } from '../../../../components/StudyPicker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
 import { File, Paths } from 'expo-file-system';
@@ -122,6 +123,10 @@ export default function Me() {
                   onChange={(_, t) => { if (t) setReminders(true, { hour: t.getHours(), minute: t.getMinutes() }).then(() => setRem(getPrefs())); }} />
               )} />
           ) : null}
+        </Section>
+
+        <Section header="What you're studying for" footer="These show at the top of Courses, Practice, and AP Practice.">
+          <StudyPicker value={myStudying()} onChange={setStudying} />
         </Section>
 
         <Section header="Test prep">

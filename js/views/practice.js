@@ -5,6 +5,7 @@ import { taxonomy, SECTIONS, buildSet, regen } from '../gen/index.js';
 import { bank, bankNo } from '../gen/bank.js';
 import { startRun } from './runner.js';
 import { reviewHTML } from '../qview.js';
+import { classesBar } from '../studying.js';
 
 const SEC_PER_Q = { rw: 71, math: 95, english: 42, reading: 67, science: 60 };
 
@@ -41,6 +42,7 @@ export function practiceView(root) {
     const shown = st.showAll ? list : list.slice(0, 240);
     root.innerHTML = `
     <div class="page">
+      ${classesBar('practice')}
       <div class="row between wrap gap"><div><h1>${st.test} question bank</h1><p class="muted">${all.length.toLocaleString()} numbered questions, every one with a worked explanation. Pick skills to build a set, or open any question by its number.</p></div>
       <div class="seg" id="testSeg">${['SAT', 'ACT'].map((t) => `<button data-t="${t}" class="${st.test === t ? 'on' : ''}">${t}</button>`).join('')}</div></div>
 

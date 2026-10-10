@@ -1,4 +1,5 @@
 import { $, esc, toast, passwordProblem, PASSWORD_HINT } from '../util.js';
+import { studyPicker, setStudying } from '../studying.js';
 import { icon } from '../icons.js';
 import { store } from '../store.js';
 import { confirmBox } from '../tools.js';
@@ -112,6 +113,7 @@ export function settingsView(root) {
         <label>SAT target score<input id="tSAT" type="number" min="400" max="1600" step="10" value="${s.target.SAT}"></label>
         <label>ACT target score<input id="tACT" type="number" min="1" max="36" value="${s.target.ACT}"></label>
       </div>
+      <div><b class="small">What you're studying for</b><div id="studyPick"></div></div>
       ${langFields(s.lang || 'en', s.english)}
       <label class="consent"><input type="checkbox" id="emails" ${s.emails ? 'checked' : ''}> <span>Email me about new courses, features, and study opportunities.</span></label>
       <label>Theme<select id="theme"><option value="system">Match system</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
@@ -158,7 +160,10 @@ export function settingsView(root) {
       try { b.disabled = true; await linkProvider(b.dataset.link); } catch (ex) { toast(ex.message, 'bad'); b.disabled = false; }
     };
   }).catch(() => { const box = $('#links', root); if (box) box.innerHTML = '<p class="muted small">Could not load sign-in methods.</p>'; });
+  let studying = s.studying || [];
+  if ($('#studyPick', root)) studyPicker($('#studyPick', root), studying, (ids) => { studying = ids; });
   $('#saveBtn', root).onclick = () => {
+    setStudying(studying);
     if (u) store.updateProfile({ name: $('#name', root).value.trim() || u.name });
     const em = $('#emails', root).checked; if (em !== !!s.emails) { s.emails = em; s.emailsAt = new Date().toISOString(); }
     Object.assign(s, { focus: $('#focus', root).value, testDate: $('#testDate', root).value, theme: $('#theme', root).value, lang: $('#lang', root).value });

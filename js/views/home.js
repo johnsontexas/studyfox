@@ -4,7 +4,7 @@ import { store } from '../store.js';
 import { questionOfTheDay } from '../gen/index.js';
 import { L, tagLine } from '../qview.js';
 import { COURSES, SUBJECTS, lessonCount } from '../content/courses.js';
-import { CREATOR, INSTAGRAM } from '../config.js';
+import { CREATOR, CREATOR_SITE, INSTAGRAM } from '../config.js';
 import { bank } from '../gen/bank.js';
 import { newsWidget } from './news.js';
 
@@ -86,39 +86,14 @@ export function homeView(root) {
   <div class="marquee" aria-hidden="true"><div>${[0, 1].map(() => COURSES.map((c) => `<span>${esc(c.title)}</span>`).join('')).join('')}</div></div>
 
   <section class="page home2">
+    <nav class="doors" aria-label="Study tools">
+      <a class="door tone-0" href="#/learn"><span class="q-ic">${icon('book')}</span><b>Courses</b><span class="door-n">${COURSES.length} classes · ${lessonCount()} lessons</span><span class="door-d">Short lessons with worked examples and a quick check at the end.</span><span class="door-eg">${COURSES.slice(0, 3).map((c) => esc(c.title)).join(', ')}</span></a>
+      <a class="door tone-1" href="#/ap"><span class="q-ic">${icon('target')}</span><b>AP Practice</b><span class="door-n">${ap.length} AP classes</span><span class="door-d">Exam-style multiple choice by unit, each with an explanation.</span><span class="door-eg">${ap.slice(0, 3).map((c) => esc(c.title.replace(/^AP /, ''))).join(', ')}</span></a>
+      <a class="door tone-2" href="#/practice"><span class="q-ic">${icon('clipboard')}</span><b>SAT &amp; ACT</b><span class="door-n">${nSat.toLocaleString()} SAT · ${nAct.toLocaleString()} ACT</span><span class="door-d">A numbered question bank, full timed tests, and a mistake log.</span><span class="door-eg">Practice tests, speed drills, formula sheets</span></a>
+      <a class="door tone-3" href="#/flashcards"><span class="q-ic">${icon('cards')}</span><b>Flashcards</b><span class="door-n">Make, import, or share</span><span class="door-d">Paste your notes and they become cards. Study with flip, learn, test, or match.</span><span class="door-eg">Share a set with one link</span></a>
+    </nav>
     <div id="newsSlot"></div>
-    <h2 class="sec-title">What's inside</h2>
-    <div class="feature-pair">
-      <a class="feat feat-courses" href="#/learn">
-        <h3>${COURSES.length} courses, from Algebra 1 to every AP class</h3>
-        <p>Short lessons, worked examples, and a quick check at the end of each one.</p>
-        <p class="ap-list">${ap.map((c) => esc(c.title.replace(/^AP /, ''))).join(' · ')}</p>
-        <span class="go">Browse courses →</span>
-      </a>
-      <a class="feat feat-bank" href="#/practice">
-        <div class="big-nums"><span>${nSat.toLocaleString()}<small>SAT</small></span><span>${nAct.toLocaleString()}<small>ACT</small></span></div>
-        <h3>A numbered question bank with worked answers</h3>
-        <p>Track what you've done and come back to what you missed.</p>
-        ${bankArt()}
-        <span class="go">Open the bank →</span>
-      </a>
-    </div>
-    <a class="feat feat-cards" href="#/flashcards/new">
-      <div class="fc-copy">
-        <h3>Make your own flashcards in seconds</h3>
-        <p>Type a term and a definition, or paste a whole list from your notes and StudyFox splits it into cards. Then study four ways: flip cards, learn mode, a practice test, and a matching game.</p>
-        <p>Share any set with a link. Classmates open it and save their own copy.</p>
-        <span class="go">Make a set →</span>
-      </div>
-      <div class="fc-mock" aria-hidden="true">
-        <div class="fc-title">AP Bio · Unit 2 <span>4 cards</span></div>
-        <div class="fc-row"><span>Mitochondria</span><span>Makes ATP through cellular respiration</span></div>
-        <div class="fc-row"><span>Ribosome</span><span>Builds proteins from mRNA</span></div>
-        <div class="fc-row"><span>Golgi apparatus</span><span>Packages and ships proteins</span></div>
-        <div class="fc-row new"><span>Lysosome</span><span class="caret">Breaks down waste|</span></div>
-        <div class="fc-modes"><span>Flip</span><span>Learn</span><span>Test</span><span>Match</span></div>
-      </div>
-    </a>
+    <h2 class="sec-title">Also on StudyFox</h2>
     <ul class="feat-list">
       <li><a href="#/exams"><b>Full practice tests</b><span>Adaptive SAT modules and full ACT sections, timed and scored.</span></a></li>
       <li><a href="#/speed"><b>Speed practice</b><span>Timed sprints with personal bests to beat.</span></a></li>
@@ -139,7 +114,7 @@ export function homeView(root) {
     <ul class="subj-tiles">
       ${SUBJECTS.map((sub) => {
         const cs = COURSES.filter((c) => c.subject === sub);
-        return `<li><a href="#/learn?s=${encodeURIComponent(sub)}"><span class="subj-ic">${icon(SUBJECT_ICON[sub] || 'book')}</span><span><b>${esc(sub)}</b> <span class="sub-n">${cs.length}</span><span class="muted small">${tileList(cs)}</span></span></a></li>`;
+        return `<li><a href="#/learn?s=${encodeURIComponent(sub)}"><span class="subj-ic tone-${Math.max(0, SUBJECTS.indexOf(sub)) % 6}">${icon(SUBJECT_ICON[sub] || 'book')}</span><span><b>${esc(sub)}</b> <span class="sub-n">${cs.length}</span><span class="muted small">${tileList(cs)}</span></span></a></li>`;
       }).join('')}
     </ul>
 
@@ -157,8 +132,8 @@ export function homeView(root) {
         <details><summary>Where do the SAT and ACT questions come from?</summary><p>Math and science questions are generated from templates that follow each official skill. Reading and writing questions come from an original, hand-written bank. Nothing is copied from official tests, and scores are estimates.</p></details>
         <details><summary>Where is my data stored?</summary><p>Every account, email, Google, or Apple, saves your progress to the cloud, so it syncs across your devices and the StudyFox app. You can also export a backup any time from Settings.</p></details>
       </div>
-      <div class="note-from">
-        <span class="avatar" aria-hidden="true">${esc(CREATOR[0])}</span>
+      <div class="note-from" role="link" tabindex="0" aria-label="About ${esc(CREATOR)}">
+        <img class="avatar creator-pic" src="${CREATOR_SITE}/images/Media/portrait.png" alt="" loading="lazy">
         <div>
           <p class="kicker">A note from the creator</p>
           <p>I built StudyFox because good study material shouldn't depend on what you can pay. If it helps you, or you want a course added, tell me.</p>
@@ -168,5 +143,10 @@ export function homeView(root) {
       </div>
     </div>
   </section>`;
+  // The whole creator note opens the About page, except its own links.
+  const note = root.querySelector('.note-from');
+  const goAbout = (e) => { if (!e.target.closest('a')) location.hash = '#/about'; };
+  note.addEventListener('click', goAbout);
+  note.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target === note) goAbout(e); });
   newsWidget(root.querySelector('#newsSlot'));
 }
