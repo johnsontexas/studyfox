@@ -4,7 +4,7 @@ import { BUILTIN_DECKS, newSeed, parseImportShared, rng, SITE_URL, store } from 
 
 export type CardT = { t: string; d: string };
 export type SetT = { id: string; title: string; desc?: string; tag?: string; cards: CardT[]; builtin?: boolean; updated?: number };
-export type Prog = { starred: number[]; mastery: Record<number, number>; matchBest: number | null; studied: number; last?: number; session?: Session };
+export type Prog = { starred: number[]; mastery: Record<number, number>; matchBest: number | null; matchTimes?: { s: number; at: number }[]; studied: number; last?: number; edited?: number; session?: Session };
 export type Session = { queue: number[]; known: number[]; learning: number[]; size: number; shuffle?: boolean; starred?: boolean };
 
 export const getSet = (id: string): SetT | undefined => BUILTIN_DECKS.find((d: SetT) => d.id === id) || store.getSet(id);
@@ -77,3 +77,14 @@ export function writtenOk(typed: string, answer: string) {
   const a = norm(answer), g = norm(typed);
   return !!g && (g === a || (a.length > 12 && a.includes(g) && g.length >= a.length * 0.6));
 }
+
+// Match leaderboard, same keys and names as the website (js/views/flashcards.js), so both share one board.
+// Built-in decks by id; personal sets by a hash of their cards, so every copy of a shared set competes together.
+export function boardKey(s: SetT, pairs: number) {
+  if (s.builtin) return `${s.id}:${pairs}`;
+  let h = 5381;
+  for (const ch of s.cards.map((c) => `${c.t}\u0001${c.d}`).sort().join('\u0002')) h = ((h * 33) ^ ch.charCodeAt(0)) >>> 0;
+  return `set-${h.toString(36)}-${s.cards.length}:${pairs}`;
+}
+/** "Daniel Johnson" shows as "Daniel J." on the public board. */
+export const boardName = (n?: string) => { const [a, b] = String(n || 'Student').trim().split(/\s+/); return (b ? `${a} ${b[0]}.` : a).slice(0, 40); };

@@ -433,9 +433,12 @@ const boardName = (n) => { const [a, b] = String(n || 'Student').trim().split(/\
 async function fetchBoard(key) {
   if (!cloudEnabled) return [];
   const c = await db();
-  const { data, error } = await c.from('match_scores').select('user_id,name,seconds').eq('set_key', key).order('seconds').limit(300);
+  const [{ data, error }, { data: blocks }] = await Promise.all([
+    c.from('match_scores').select('user_id,name,seconds').eq('set_key', key).order('seconds').limit(300),
+    c.from('match_blocks').select('blocked'),
+  ]);
   if (error) throw error;
-  const seen = new Set();
+  const seen = new Set((blocks || []).map((b) => b.blocked));
   return data.filter((r) => !seen.has(r.user_id) && seen.add(r.user_id)).slice(0, 10);
 }
 
@@ -462,7 +465,7 @@ export function matchView(root, { id }) {
     try {
       const rows = await fetchBoard(key);
       if (tab !== 'all' || !$('#boardBody', root)) return;
-      el.innerHTML = rows.length ? `<ol class="board">${rows.map((r) => `<li class="${me?.cloud && r.user_id === me.id ? 'you' : ''}"><span>${esc(r.name)}${me?.cloud && r.user_id === me.id ? ' (you)' : ''}</span><b>${fmt(r.seconds)}</b></li>`).join('')}</ol>`
+      el.innerHTML = rows.length ? `<ol class="board">${rows.map((r) => `<li class="${me?.cloud && r.user_id === me.id ? 'you' : ''}"><span>${esc(r.name)}${me?.cloud && r.user_id === me.id ? ' (you)' : ''}</span><b>${fmt(r.seconds)}${me?.cloud && r.user_id !== me.id ? ` <button class="btn ghost sm" data-report="${esc(r.user_id)}" data-name="${esc(r.name)}">Report</button> <button class="btn ghost sm" data-block="${esc(r.user_id)}" data-name="${esc(r.name)}">Block</button>` : ''}</b></li>`).join('')}</ol>`
         : '<p class="muted small">No times yet. Be the first on the board.</p>';
       if (!me?.cloud) el.insertAdjacentHTML('beforeend', '<p class="muted small">Sign in with an account that syncs to post your times here.</p>');
     } catch { el.innerHTML = '<p class="muted small">The leaderboard could not load.</p>'; }
@@ -497,6 +500,14 @@ export function matchView(root, { id }) {
   root.addEventListener('click', (e) => {
     if (e.target.id === 'startMatch') return play();
     const bt = e.target.closest('[data-tab]'); if (bt) { tab = bt.dataset.tab; root.querySelectorAll('[data-tab]').forEach((x) => x.classList.toggle('on', x === bt)); return drawBoard(); }
+    const rep = e.target.closest('[data-report]');
+    if (rep) return db().then((c) => c.from('match_reports').insert({ set_key: key, reported_user: rep.dataset.report, name: rep.dataset.name })).then(({ error }) => toast(error ? error.message : 'Report sent. We review reports within 24 hours.', error ? 'bad' : 'good'));
+    const blk = e.target.closest('[data-block]');
+    if (blk) return confirmBox(`Block ${blk.dataset.name}? You will no longer see their times on any leaderboard.`, { ok: 'Block', danger: true }).then(async (yes) => {
+      if (!yes) return;
+      const { error } = await (await db()).from('match_blocks').upsert({ blocked: blk.dataset.block });
+      if (error) toast(error.message, 'bad'); else drawBoard();
+    });
     const b = e.target.closest('.tile');
     // Ignore matched tiles (even mid-animation) and clicks while a wrong pair is flashing.
     if (!b || busy || b.classList.contains('match') || b.classList.contains('gone')) return;

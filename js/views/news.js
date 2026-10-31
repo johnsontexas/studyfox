@@ -145,9 +145,27 @@ export function adminView(root) {
         <textarea id="msg" rows="2" maxlength="500" placeholder="We're making some updates and will be back soon.">${esc(st.message)}</textarea>
       </section>
       <a class="card hover row between gap" href="#/admin/content"><span><b>${icon('book')} Lessons, decks, and questions</b><br><span class="muted small">Edit courses and lessons, add or remove questions, and change flashcard decks. Updates the website and the app right away.</span></span>${icon('right')}</a>
+      <h2 class="dash-title">Leaderboard reports</h2>
+      <div id="reports"></div>
       <h2 class="dash-title">News posts</h2>
       ${composerHTML(false)}
       <div id="feed"></div></div>`;
+    const drawReports = async () => {
+      const { data } = await (await db()).from('match_reports').select('id,reported_user,name,created_at').order('created_at', { ascending: false });
+      $('#reports', root).innerHTML = (data || []).map((r) => `<div class="card row between wrap gap"><span><b>${esc(r.name)}</b><br><span class="muted small">${new Date(r.created_at).toLocaleString()}</span></span>
+        <span class="row gap"><button class="btn danger" data-remove="${esc(r.reported_user)}">Remove their times</button><button class="btn ghost" data-dismiss="${r.id}">Dismiss</button></span></div>`).join('') || '<p class="muted">No open reports.</p>';
+    };
+    drawReports();
+    $('#reports', root).addEventListener('click', async (e) => {
+      const rm = e.target.closest('[data-remove]'); const dis = e.target.closest('[data-dismiss]');
+      if (!rm && !dis) return;
+      const c = await db();
+      const { error } = rm
+        ? (await c.from('match_scores').delete().eq('user_id', rm.dataset.remove), await c.from('match_reports').delete().eq('reported_user', rm.dataset.remove))
+        : await c.from('match_reports').delete().eq('id', dis.dataset.dismiss);
+      if (error) toast(error.message, 'bad');
+      drawReports();
+    });
     const draw = async () => { $('#feed', root).innerHTML = (await fetchNews(100)).map((n) => postHTML(n, true)).join('') || '<p class="muted">No posts yet.</p>'; };
     draw(); wireComposer(root, draw);
     $('#toggle', root).addEventListener('click', async () => {

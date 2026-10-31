@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Field, menu, Pill, Row, Section, SwitchRow } from '../components/ui';
-import { cloudSignOut, deleteCloudData } from '../lib/cloud';
+import { cloudSignOut, deleteAccount } from '../lib/cloud';
 import { setStudying, StudyPicker } from '../components/StudyPicker';
 import { LANGS, PROFICIENCY, store, TERMS_VERSION } from '../lib/shared';
 import { AGE_BLOCK } from '../lib/store-hooks';
@@ -52,7 +52,7 @@ export default function Welcome() {
       // Under 13: keep nothing. Remember only the date they can come back, on this device.
       const b = new Date(birth); b.setFullYear(b.getFullYear() + MIN_AGE);
       try { localStorage.setItem(AGE_BLOCK, iso(b)); } catch {}
-      try { if (u?.cloud) { await deleteCloudData(); await cloudSignOut(); } } catch (e) { console.warn(e); }
+      try { if (u?.cloud) { await deleteAccount(); await cloudSignOut(); } } catch (e) { console.warn(e); }
       store.forgetAccount();
       return;
     }

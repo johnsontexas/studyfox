@@ -40,7 +40,7 @@ export function privacyView(root) {
   <p>A parent or guardian can ask us to see or delete a student's data by emailing ${mail} from, or about, the account's email address.</p>
 
   <h2>Keeping and deleting your data</h2>
-  <p>We keep synced progress until you delete it. You can delete it at any time in <a href="#/settings">Settings → Delete account data</a>, which removes it from our database and your device. You can also export a copy of your data in Settings. Local-only data can be erased with <b>Reset all progress</b> or by clearing your browser's site data.</p>
+  <p>We keep synced progress until you delete it. You can delete it at any time in <a href="#/settings">Settings → Delete account</a>, which removes your account and synced data from our database and your device. You can also export a copy of your data in Settings. Local-only data can be erased with <b>Reset all progress</b> or by clearing your browser's site data.</p>
 
   <h2>Your rights</h2>
   <p>Depending on where you live (for example, under the GDPR or California law), you may have the right to access, correct, delete, or export your personal information. Most of this is self-service in Settings; for anything else, email ${mail}.</p>
@@ -70,6 +70,9 @@ export function termsView(root) {
 
   <h2>4. Acceptable use</h2>
   <p>Don't misuse StudyFox. That includes trying to break or overload the site, accessing other people's data, scraping or reselling the content, or using the site for anything illegal. We may suspend accounts that do.</p>
+
+  <h2>Leaderboards</h2>
+  <p>There is no tolerance for offensive names or abusive behavior. You can report a name or block a player from any Match leaderboard. We review reports within 24 hours and remove offending content and users.</p>
 
   <h2>5. Content</h2>
   <p>The practice questions, explanations, and site design are owned by StudyFox and are provided for your personal, non-commercial study. Flashcard sets you create belong to you; by sharing a set link, you let anyone with the link view and copy it.</p>

@@ -97,9 +97,12 @@ export async function updatePassword(password) {
 
 export async function cloudSignOut() { const c = await client(); if (c) await c.auth.signOut(); }
 
-export async function deleteCloudData() {
+// Deletes the login and everything tied to it (progress, leaderboard times, reports, blocks).
+export async function deleteAccount() {
   const c = await client(); const u = store.user();
-  if (c && u?.cloud) await c.from('progress').delete().eq('user_id', u.id);
+  if (!c || !u?.cloud) return;
+  const { error } = await c.rpc('delete_my_account');
+  if (error) throw new Error(error.message);
 }
 
 async function pull(user) {

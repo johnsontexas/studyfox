@@ -154,7 +154,7 @@ Words already in the name and subtitle (StudyFox, courses, flashcards, every, AP
 | Field | Answer |
 |---|---|
 | **Sign-in required** | Yes |
-| **Demo account** | Leave blank and use the note below, or make a Google account just for review and enter it |
+| **Demo account** | Required: make a confirmed email account just for review and enter it here |
 | **Contact** | Daniel Johnson · danieljohnsonhtx@gmail.com · your phone number |
 
 **Notes for the reviewer** (paste this):
@@ -162,17 +162,15 @@ Words already in the name and subtitle (StudyFox, courses, flashcards, every, AP
 ```
 StudyFox is a study app for high school students: short lessons for 49 courses (including every AP class), a flashcard maker with Learn, Test, and Match modes, and SAT/ACT practice questions with explanations. There are no purchases, ads, or subscriptions.
 
-Signing in: on the first screen, use Sign in with Apple, or create an email account with any email and a password of 6+ characters. New accounts answer a short onboarding form; the date of birth must be 13 or older because the app is for ages 13+.
+Signing in: use the demo account above, or Sign in with Apple. New accounts answer a short onboarding form; the date of birth must be 13 or older because the app is for ages 13+.
 
 Things to try:
 - Today tab: Quick 5 (five practice questions with explanations)
 - Courses tab: open any course and a lesson
 - Cards tab: the pencil button makes a new set; add a few cards, open it and try Study, Learn, Test, and Match
 
-Accounts can be deleted in the Me tab.
+Accounts can be deleted in the Me tab with Delete Account. In Match, the ••• next to a name on the leaderboard reports the name or blocks the player. Reports are reviewed within 24 hours.
 ```
-
-Email accounts only exist on the device they were made on, which is why the note asks the reviewer to sign up on the spot.
 
 ---
 
@@ -231,7 +229,6 @@ Already handled: `mobile/app.json` sets `ITSAppUsesNonExemptEncryption` to `fals
 
 ## Before you submit
 
-1. **Account deletion (guideline 5.1.1(v), likely rejection).** In the Me tab, "Delete account data" deletes synced progress but leaves the Supabase login account, and it only appears for Apple and Google accounts. Apple requires deleting the account itself. Add a Supabase Edge Function that calls `auth.admin.deleteUser()` with the service-role key (the `on delete cascade` in `supabase/schema.sql` then removes the progress), call it from both `mobile/src/lib/cloud.ts` and `js/cloud.js`, and rename the button "Delete account." For Sign in with Apple users, Apple also requires revoking their token through Apple's REST API.
-2. **iPad.** `mobile/app.json` has `"supportsTablet": true`, so Apple will ask for iPad screenshots and test the app on an iPad. The app is laid out for phones and stretches edge to edge on an iPad with small text. Either set `supportsTablet` to `false` (iPads then run it as an iPhone app and no iPad screenshots are needed), or give the screens a max width before adding iPad screenshots.
-3. **Production Desmos key.** The demo key shows a "Trial Key" badge in the calculator; swap it for a real one (see the main README).
+1. **iPad.** `mobile/app.json` has `"supportsTablet": true`, so Apple will ask for iPad screenshots and test the app on an iPad. The app is laid out for phones and stretches edge to edge on an iPad with small text. Either set `supportsTablet` to `false` (iPads then run it as an iPhone app and no iPad screenshots are needed), or give the screens a max width before adding iPad screenshots.
+2. **Production Desmos key.** The demo key shows a "Trial Key" badge in the calculator; swap it for a real one (see the main README).
 4. **Supabase redirect URLs.** Add `studyfox://**` under Authentication → URL Configuration, and add `org.studyfox.app` to the Apple provider's Client IDs (steps in `mobile/README.md`), or Google and Apple sign-in will fail in the store build.

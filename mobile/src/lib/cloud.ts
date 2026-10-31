@@ -200,9 +200,12 @@ export async function emailSignIn(email: string, password: string): Promise<{ co
 
 export async function cloudSignOut() { const c = client(); if (c) await c.auth.signOut(); }
 
-export async function deleteCloudData() {
+/** Deletes the login and everything tied to it (progress, leaderboard times, reports, blocks). */
+export async function deleteAccount() {
   const c = client(); const u = store.user();
-  if (c && u?.cloud) await c.from('progress').delete().eq('user_id', u.id);
+  if (!c || !u?.cloud) return;
+  const { error } = await c.rpc('delete_my_account');
+  if (error) throw new Error(error.message);
 }
 
 // News posts and the maintenance switch, written from the website's admin console (js/views/news.js).
@@ -213,6 +216,30 @@ export async function fetchNews(limit = 50): Promise<NewsPost[]> {
   if (error) throw error;
   return data as NewsPost[];
 }
+/** Top 10 Match times for a set (one per person), like the website's leaderboard. */
+export async function fetchMatchBoard(key: string): Promise<{ user_id: string; name: string; seconds: number }[]> {
+  const c = client(); if (!c) return [];
+  const [{ data, error }, { data: blocks }] = await Promise.all([
+    c.from('match_scores').select('user_id,name,seconds').eq('set_key', key).order('seconds').limit(300),
+    c.from('match_blocks').select('blocked'),
+  ]);
+  if (error) throw error;
+  const seen = new Set<string>((blocks || []).map((b: any) => b.blocked));
+  return (data as any[]).filter((r) => !seen.has(r.user_id) && seen.add(r.user_id)).slice(0, 10);
+}
+export async function reportMatchPlayer(key: string, userId: string, name: string) {
+  const { error } = await client()!.from('match_reports').insert({ set_key: key, reported_user: userId, name });
+  if (error) throw new Error(error.message);
+}
+export async function blockMatchPlayer(userId: string) {
+  const { error } = await client()!.from('match_blocks').upsert({ blocked: userId });
+  if (error) throw new Error(error.message);
+}
+export async function postMatchTime(key: string, name: string, seconds: number) {
+  const c = client(); if (!c) return;
+  await c.from('match_scores').insert({ set_key: key, name, seconds });
+}
+
 export async function fetchStatus(): Promise<{ maintenance: boolean; message: string; admin: boolean } | null> {
   const c = client(); if (!c) return null;
   const [{ data }, { data: admin }] = await Promise.all([c.from('site_status').select('maintenance,message').eq('id', 1).maybeSingle(), c.rpc('is_admin')]);

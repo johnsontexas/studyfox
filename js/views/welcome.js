@@ -2,7 +2,7 @@
 import { $, esc, toast } from '../util.js';
 import { store } from '../store.js';
 import { langOptions, profOptions } from '../i18n.js';
-import { cloudSignOut, deleteCloudData } from '../cloud.js';
+import { cloudSignOut, deleteAccount } from '../cloud.js';
 import { recordAgreement, takeAfterLogin } from './account.js';
 import { studyPicker, setStudying } from '../studying.js';
 
@@ -95,7 +95,7 @@ export function welcomeView(root) {
       // Under 13: keep nothing. Remember only the date they can come back, on this device.
       const b = new Date(dob + 'T00:00:00'); b.setFullYear(b.getFullYear() + MIN_AGE);
       try { localStorage.setItem(AGE_BLOCK, b.toISOString().slice(0, 10)); } catch {}
-      try { if (u.cloud) { await deleteCloudData(); await cloudSignOut(); } } catch (ex) { console.warn(ex); }
+      try { if (u.cloud) { await deleteAccount(); await cloudSignOut(); } } catch (ex) { console.warn(ex); }
       store.forgetAccount();
       location.replace('#/too-young');
       return;

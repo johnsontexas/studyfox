@@ -5,7 +5,7 @@ import { store } from '../store.js';
 import { confirmBox } from '../tools.js';
 import { langOptions, profOptions } from '../i18n.js';
 import { TERMS_VERSION } from './legal.js';
-import { cloudEnabled, signInWith, cloudSignOut, deleteCloudData, linkedProviders, linkProvider, emailSignUp, emailSignIn, resetPassword, updatePassword } from '../cloud.js';
+import { cloudEnabled, signInWith, cloudSignOut, deleteAccount, linkedProviders, linkProvider, emailSignUp, emailSignIn, resetPassword, updatePassword } from '../cloud.js';
 import { a11yCardHTML, wireA11y } from '../a11y.js';
 
 // Where to go after signing in: the page a guest was bounced from, else the dashboard.
@@ -137,7 +137,7 @@ export function settingsView(root) {
         <button class="btn" id="exportBtn">Export backup</button>
         <label class="btn">Import backup<input type="file" id="importIn" accept=".json,application/json" hidden></label>
         <button class="btn danger ghost" id="resetBtn">Reset all progress</button>
-        ${u?.cloud ? '<button class="btn danger ghost" id="deleteBtn">Delete account data</button>' : ''}
+        ${u?.cloud ? '<button class="btn danger ghost" id="deleteBtn">Delete account</button>' : ''}
       </div>
     </div>
   </div>`;
@@ -173,8 +173,8 @@ export function settingsView(root) {
   };
   $('#logout', root)?.addEventListener('click', async () => { if (u?.cloud) await cloudSignOut(); store.logout(); location.hash = '#/'; });
   $('#deleteBtn', root)?.addEventListener('click', async () => {
-    if (!(await confirmBox('This deletes your synced progress from our servers and this device, then signs you out. It cannot be undone.', { ok: 'Delete my data', danger: true }))) return;
-    try { await deleteCloudData(); store.resetAll(); await cloudSignOut(); store.logout(); toast('Your data was deleted.'); location.hash = '#/'; } catch (ex) { toast(ex.message, 'bad'); }
+    if (!(await confirmBox('This permanently deletes your account, synced progress, and leaderboard times from our servers and this device. It cannot be undone.', { ok: 'Delete my account', danger: true }))) return;
+    try { await deleteAccount(); store.resetAll(); await cloudSignOut(); store.logout(); toast('Your account was deleted.'); location.hash = '#/'; } catch (ex) { toast(ex.message, 'bad'); }
   });
   $('#exportBtn', root).onclick = () => {
     const blob = new Blob([store.exportAll()], { type: 'application/json' });

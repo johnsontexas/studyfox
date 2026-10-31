@@ -11,7 +11,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, RefreshControl, Share, Text, View } from 'react-native';
 import { Card, confirm, Icon, menu, Row, Screen, Section, Stat, SwitchRow } from '../../../../components/ui';
 import { masteredCount } from '../../../../lib/cards';
-import { cloudSignOut, deleteCloudData, linkedProviders, linkProvider, syncNow, syncStatus } from '../../../../lib/cloud';
+import { cloudSignOut, deleteAccount, linkedProviders, linkProvider, syncNow, syncStatus } from '../../../../lib/cloud';
 import { openWeb } from '../../../../lib/links';
 import { getPrefs, openSystemSettings, reschedule, setReminders, timeLabel } from '../../../../lib/reminders';
 import { BUILTIN_DECKS, CREATOR, SHARE_KINDS, shareMessage, STUDYFOX_INSTAGRAM, KOFI, LANGS, PROFICIENCY, SITE_URL, store, SUPPORT_EMAIL, SUPPORT_FORM_URL, timeAgo } from '../../../../lib/shared';
@@ -192,9 +192,9 @@ export default function Me() {
         </Section>
         <Section footer="SAT®, AP®, and ACT® are trademarks of their owners, which are not affiliated with and do not endorse this app.">
           <Row title="Reset All Progress" destructive accessory="none" onPress={async () => { if (await confirm('Reset all progress?', 'This permanently deletes your scores, mistakes, and flashcard sets.', 'Reset')) store.resetAll(); }} />
-          {u?.cloud ? <Row title="Delete Account Data" destructive accessory="none" onPress={async () => {
-            if (!(await confirm('Delete your data?', 'This deletes your synced progress from our servers and this iPhone, then signs you out. It cannot be undone.', 'Delete'))) return;
-            try { await deleteCloudData(); store.resetAll(); await cloudSignOut(); store.logout(); } catch (e: any) { Alert.alert('Could not delete', e.message); }
+          {u?.cloud ? <Row title="Delete Account" destructive accessory="none" onPress={async () => {
+            if (!(await confirm('Delete your account?', 'This permanently deletes your account, synced progress, and leaderboard times from our servers and this iPhone. It cannot be undone.', 'Delete Account'))) return;
+            try { await deleteAccount(); store.resetAll(); await cloudSignOut(); store.logout(); } catch (e: any) { Alert.alert('Could not delete', e.message); }
           }} /> : null}
         </Section>
       </Screen>
