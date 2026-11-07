@@ -1,19 +1,20 @@
 // Me: profile and settings, matching the website's Settings page (name, test, test date, target
 // scores, language, sign-in methods, backups), plus iPhone-only reminders and sync status.
 import { myStudying, setStudying, StudyPicker } from '../../../../components/StudyPicker';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { showPrompt } from '../../../../components/AndroidDialogs';
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
 import { File, Paths } from 'expo-file-system';
 import { router, Stack } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import * as Sharing from 'expo-sharing';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, RefreshControl, Share, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, Pressable, RefreshControl, Share, Text, View } from 'react-native';
 import { Card, confirm, Icon, menu, Row, Screen, Section, Stat, SwitchRow } from '../../../../components/ui';
 import { masteredCount } from '../../../../lib/cards';
 import { cloudSignOut, deleteAccount, linkedProviders, linkProvider, syncNow, syncStatus } from '../../../../lib/cloud';
 import { openWeb } from '../../../../lib/links';
-import { getPrefs, openSystemSettings, reschedule, setReminders, timeLabel } from '../../../../lib/reminders';
+import { getPrefs, KINDS, openSystemSettings, reschedule, setKind, setReminders, timeLabel, type Kind } from '../../../../lib/reminders';
 import { BUILTIN_DECKS, CREATOR, SHARE_KINDS, shareMessage, STUDYFOX_INSTAGRAM, KOFI, LANGS, PROFICIENCY, SITE_URL, store, SUPPORT_EMAIL, SUPPORT_FORM_URL, timeAgo } from '../../../../lib/shared';
 import { useStore } from '../../../../lib/store-hooks';
 import { type, useColors } from '../../../../lib/theme';
@@ -23,7 +24,20 @@ const langName = (l: string[]) => (l[2] === l[1] ? l[1] : `${l[2]} (${l[1]})`);
 
 function ask(title: string, msg: string | undefined, value: string, keyboard: 'default' | 'number-pad', done: (v: string) => void) {
   if (Platform.OS === 'ios') Alert.prompt(title, msg, (v) => v != null && done(v), 'plain-text', value, keyboard);
+  else if (Platform.OS === 'android') showPrompt(title, msg, value, keyboard, done);
   else { const v = window.prompt(title, value); if (v != null) done(v); }
+}
+
+// On iOS the picker sits in the row. On Android it can only open as a dialog, so the row shows a button.
+function PickDateTime({ mode, value, label, minimumDate, onPick }: { mode: 'date' | 'time'; value: Date; label: string; minimumDate?: Date; onPick: (d: Date) => void }) {
+  const c = useColors();
+  if (Platform.OS === 'android') return (
+    <Pressable accessibilityRole="button" hitSlop={10} onPress={() => DateTimePickerAndroid.open({ mode, value, minimumDate, onValueChange: (_, d) => onPick(d) })}>
+      <Text style={[type.body, { color: c.tint }]}>{label}</Text>
+    </Pressable>
+  );
+  return <DateTimePicker mode={mode} display="compact" accentColor={c.tint} minuteInterval={mode === 'time' ? 5 : undefined} value={value} minimumDate={minimumDate}
+    onChange={(_, d) => { if (d) onPick(d); }} />;
 }
 
 export default function Me() {
@@ -114,16 +128,23 @@ export default function Me() {
           <Stat value={lessons} label="lessons done" />
         </Card>
 
-        <Section header="Study reminders" footer={rem.on ? "Skipped on days you've already studied." : 'A short daily nudge to keep your streak going. Turn it off anytime.'}>
+        <Section header="Study reminders" footer={rem.on ? "One a day at this time, picked from the kinds below. Skipped on days you've already studied." : 'A short daily nudge about what to practice next. Turn it off anytime.'}>
           <SwitchRow icon="bell" iconColor={c.red} title="Daily Reminder" value={rem.on} onChange={toggleReminders} />
           {rem.on ? (
             <Row icon="clock" iconColor={c.orange} title="Time" accessory="none"
               right={Platform.OS === 'web' ? <Text style={[type.body, { color: c.label2 }]}>{timeLabel(rem)}</Text> : (
-                <DateTimePicker mode="time" display="compact" accentColor={c.tint} minuteInterval={5} value={new Date(2000, 0, 1, rem.hour, rem.minute)}
-                  onChange={(_, t) => { if (t) setReminders(true, { hour: t.getHours(), minute: t.getMinutes() }).then(() => setRem(getPrefs())); }} />
+                <PickDateTime mode="time" label={timeLabel(rem)} value={new Date(2000, 0, 1, rem.hour, rem.minute)}
+                  onPick={(t) => { setReminders(true, { hour: t.getHours(), minute: t.getMinutes() }).then(() => setRem(getPrefs())); }} />
               )} />
           ) : null}
         </Section>
+        {rem.on ? (
+          <Section header="Remind me about" footer="Tapping a reminder opens that exact thing, like a Rush, a flashcard set, or your next lesson.">
+            {(Object.keys(KINDS) as Kind[]).map((k) => (
+              <SwitchRow key={k} title={KINDS[k][0]} subtitle={KINDS[k][1]} value={rem.kinds[k]} onChange={(v) => setKind(k, v).then(() => setRem(getPrefs()))} />
+            ))}
+          </Section>
+        ) : null}
 
         <Section header="What you're studying for" footer="These show at the top of Courses, Practice, and AP Practice.">
           <StudyPicker value={myStudying()} onChange={setStudying} />
@@ -134,8 +155,8 @@ export default function Me() {
           <Row icon="calendar" iconColor={c.red} title="Test Date" accessory="none"
             subtitle={days != null && days >= 0 ? `${days} day${days === 1 ? '' : 's'} to go` : undefined}
             right={Platform.OS === 'web' ? <Text style={[type.body, { color: c.label2 }]}>{s.testDate || 'Not set'}</Text> : (
-              <DateTimePicker value={s.testDate ? new Date(s.testDate + 'T12:00') : new Date()} mode="date" display="compact" accentColor={c.tint} minimumDate={new Date()}
-                onChange={(_, date) => { if (date) set({ testDate: date.toISOString().slice(0, 10) }); }} />
+              <PickDateTime mode="date" label={s.testDate || 'Set date'} value={s.testDate ? new Date(s.testDate + 'T12:00') : new Date()} minimumDate={new Date()}
+                onPick={(date) => set({ testDate: date.toISOString().slice(0, 10) })} />
             )} />
           <Row icon="trophy" iconColor={c.yellow} title="SAT Target" value={String(s.target?.SAT ?? 1400)} onPress={() => setTarget('SAT')} />
           <Row icon="trophy" iconColor={c.yellow} title="ACT Target" value={String(s.target?.ACT ?? 30)} onPress={() => setTarget('ACT')} />

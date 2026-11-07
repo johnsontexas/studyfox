@@ -6,6 +6,7 @@ import { RefreshControl, Text, View } from 'react-native';
 import { Bar, Card, Empty, Row, Screen, Section, Segmented, Stat } from '../../../../../components/ui';
 import { syncNow } from '../../../../../lib/cloud';
 import { setSession } from '../../../../../lib/questions';
+import { SECTION_NAMES } from '../../../../../lib/exams';
 import { keysFor, buildSet, newSeed, SECTIONS, store, taxonomy, timeAgo, today } from '../../../../../lib/shared';
 import { useStore } from '../../../../../lib/store-hooks';
 import { type, useColors } from '../../../../../lib/theme';
@@ -23,6 +24,9 @@ export default function Progress() {
   const tax = taxonomy(test);
   const totals = Object.entries(d.stats as Record<string, { c: number; t: number }>).filter(([k]) => k.startsWith(test + '|')).reduce((a, [, x]) => ({ c: a.c + x.c, t: a.t + x.t }), { c: 0, t: 0 });
   const exams = (d.attempts as any[]).filter((a) => a.kind === 'exam' && a.test === test && /Total|Composite/.test(a.headlineLabel || ''));
+  const tests = (d.attempts as any[]).filter((a) => a.kind === 'exam' && a.test === test && a.sections);
+  const best: Record<string, number> = {};
+  for (const t of tests) for (const [k, v] of Object.entries(t.sections as Record<string, { score: number }>)) best[k] = Math.max(best[k] || 0, v.score);
   const recent = (d.attempts as any[]).filter((a) => a.test === test).slice(0, 8);
   const runs = (d.speed?.runs || []).filter((r: any) => r.test === test).slice(0, 5);
   const color = (p: number | null) => (p == null ? c.fill2 : p >= 80 ? c.green : p >= 60 ? c.orange : c.red);
@@ -73,9 +77,24 @@ export default function Progress() {
           </Section>
         ))}
 
+        <Section header="Practice test scores" footer={tests.length ? 'Best score per section across full, half, and section tests.' : undefined}>
+          {tests.length ? (
+            <>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingVertical: 14 }}>
+                {Object.keys(SECTION_NAMES).filter((k) => best[k]).map((k) => <Stat key={k} value={best[k]} label={`Best ${SECTION_NAMES[k]}`} />)}
+              </View>
+              {tests.slice(0, 5).map((a) => (
+                <Row key={a.id} title={a.title} subtitle={`${timeAgo(a.date)} · ${Object.entries(a.sections).map(([k, v]: any) => `${SECTION_NAMES[k] || k} ${v.score}`).join(' · ')}`} onPress={() => router.push(`/results/${a.id}`)}
+                  value={<Text style={[type.headline, { color: c.tint, fontVariant: ['tabular-nums'] }]}>{a.headline}</Text>} />
+              ))}
+            </>
+          ) : <Row icon="test2" iconColor={c.blue} title="Take a practice test" subtitle="Your scores will be saved here." onPress={() => router.push('/practice/exams')} />}
+          {tests.length ? <Row icon="test2" iconColor={c.blue} title="All Practice Tests" onPress={() => router.push('/practice/exams')} /> : null}
+        </Section>
+
         <Section header="Recent practice" footer="Includes sets and tests you did on studyfox.org.">
           {recent.length ? recent.map((a) => (
-            <Row key={a.id} title={a.title} subtitle={timeAgo(a.date)}
+            <Row key={a.id} title={a.title} subtitle={timeAgo(a.date)} onPress={() => router.push(`/results/${a.id}`)}
               value={<Text style={[type.subhead, { color: c.label2, fontVariant: ['tabular-nums'] }]}>{a.kind === 'exam' ? a.headline : `${a.correct}/${a.total}`}</Text>} />
           )) : <Empty title="No practice yet" body="Sets you finish on the app or website show up here." />}
         </Section>

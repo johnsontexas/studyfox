@@ -8,12 +8,13 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, AppState, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AgreeGate from '../components/AgreeGate';
+import { DialogHost } from '../components/AndroidDialogs';
 import { contentClient, fetchStatus, initCloud, isPulling } from '../lib/cloud';
 import { Icon } from '../components/ui';
 import { SUPPORT_EMAIL } from '../lib/shared';
 import { type } from '../lib/theme';
 import { bank, initContent, store, TERMS_VERSION } from '../lib/shared';
-import { reschedule } from '../lib/reminders';
+import { reschedule, wireNotificationTaps } from '../lib/reminders';
 import { hydrate } from '../lib/storage';
 import { ageBlockedUntil, needsOnboarding, useStore, wireStore } from '../lib/store-hooks';
 import { useAppearanceSetting, useColors, useScheme } from '../lib/theme';
@@ -37,6 +38,7 @@ export default function RootLayout() {
       let t: ReturnType<typeof setTimeout> | null = null;
       const later = () => { if (t) clearTimeout(t); t = setTimeout(reschedule, 3000); };
       reschedule();
+      wireNotificationTaps();
       store.onSave(later);
       store.onChange(later);
       AppState.addEventListener('change', (a) => {
@@ -109,6 +111,7 @@ function App() {
           <Stack.Screen name="auth-callback" />
         </Stack>
         {needsAgree ? <AgreeGate /> : null}
+        <DialogHost />
       </ThemeProvider>
     </GestureHandlerRootView>
   );

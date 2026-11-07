@@ -216,6 +216,7 @@ export async function fetchNews(limit = 50): Promise<NewsPost[]> {
   if (error) throw error;
   return data as NewsPost[];
 }
+/** Admin kill switch for email sign-up (site_status.email_signup). Assumes on if it can't be read. */
 /** Top 10 Match times for a set (one per person), like the website's leaderboard. */
 export async function fetchMatchBoard(key: string): Promise<{ user_id: string; name: string; seconds: number }[]> {
   const c = client(); if (!c) return [];
@@ -240,6 +241,11 @@ export async function postMatchTime(key: string, name: string, seconds: number) 
   await c.from('match_scores').insert({ set_key: key, name, seconds });
 }
 
+export async function emailSignupOn(): Promise<boolean> {
+  const c = client(); if (!c) return true;
+  const { data } = await c.from('site_status').select('email_signup').eq('id', 1).maybeSingle();
+  return (data as any)?.email_signup !== false;
+}
 export async function fetchStatus(): Promise<{ maintenance: boolean; message: string; admin: boolean } | null> {
   const c = client(); if (!c) return null;
   const [{ data }, { data: admin }] = await Promise.all([c.from('site_status').select('maintenance,message').eq('id', 1).maybeSingle(), c.rpc('is_admin')]);

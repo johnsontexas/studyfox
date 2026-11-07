@@ -7,6 +7,7 @@ import { langOptions, profOptions } from '../i18n.js';
 import { TERMS_VERSION } from './legal.js';
 import { cloudEnabled, signInWith, cloudSignOut, deleteAccount, linkedProviders, linkProvider, emailSignUp, emailSignIn, resetPassword, updatePassword } from '../cloud.js';
 import { a11yCardHTML, wireA11y } from '../a11y.js';
+import { fetchStatus } from './news.js';
 
 // Where to go after signing in: the page a guest was bounced from, else the dashboard.
 export function takeAfterLogin() {
@@ -89,6 +90,11 @@ function authPage(root, mode) {
       if (signup) location.hash = '#/welcome';
     } catch (ex) { err.textContent = ex.message; btn.disabled = false; }
   });
+  // Email sign-up kill switch (admin console): hide the email form and point to the other sign-in options.
+  if (signup && cloudEnabled) fetchStatus().then((st) => {
+    if (st?.email_signup !== false || !$('#authForm', root)) return;
+    $('#authForm', root).outerHTML = `<div class="banner">Email sign-up is paused right now. Create your account with Google, Apple, or Microsoft above. Already have an email account? <a href="#/login">Sign in</a>.</div>`;
+  }).catch(() => {});
   $('#forgot', root)?.addEventListener('click', async () => {
     const email = $('[name=email]', root).value.trim(), err = $('#err', root);
     if (!/^\S+@\S+\.\S+$/.test(email)) { err.textContent = 'Type your email above first, then tap "Forgot your password?"'; return; }

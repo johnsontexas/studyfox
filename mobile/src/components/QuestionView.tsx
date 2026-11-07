@@ -10,8 +10,10 @@ import { tap } from './ui';
 
 const L = (i: number) => 'ABCD'[i];
 
-export default function QuestionView({ q, chosen, reveal, onChoose, bankNo, showMeta = true, review }: {
+export default function QuestionView({ q, chosen, reveal, onChoose, bankNo, showMeta = true, review, struck, onStrike }: {
   q: Q; chosen?: number | string | null; reveal?: boolean; onChoose?: (i: number) => void; bankNo?: number | null; showMeta?: boolean; review?: boolean;
+  /** Answer eliminator (practice tests): crossed-out choices, toggled with a long press. */
+  struck?: number[]; onStrike?: (i: number) => void;
 }) {
   const c = useColors();
   const right = reveal && isRight(q, chosen);
@@ -38,12 +40,13 @@ export default function QuestionView({ q, chosen, reveal, onChoose, bankNo, show
             const bg = st === 'right' ? c.goodSoft : st === 'wrong' ? c.badSoft : c.card;
             return (
               <Pressable key={i} disabled={reveal || !onChoose} accessibilityRole="button" accessibilityLabel={`Choice ${L(i)}`}
-                onPress={() => { tap(); onChoose?.(i); }}
-                style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 16, borderWidth: 2, borderColor: border, backgroundColor: bg, opacity: st === 'dim' ? 0.55 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
+                onPress={() => { tap(); onChoose?.(i); }} onLongPress={onStrike ? () => { tap(); onStrike(i); } : undefined}
+                style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 16, borderWidth: 2, borderColor: border, backgroundColor: bg, opacity: st === 'dim' || struck?.includes(i) ? 0.45 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
                 <View style={{ width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: st === 'right' ? c.green : st === 'wrong' ? c.red : c.fill }}>
                   {st === 'right' ? <Icon name="check" size={15} color="#fff" weight="bold" /> : st === 'wrong' ? <Icon name="close" size={14} color="#fff" weight="bold" /> : <Text style={[type.subhead, { fontWeight: '700', color: c.label2 }]}>{L(i)}</Text>}
                 </View>
                 <View style={{ flex: 1 }}><RichText html={ch} size={17} /></View>
+                {struck?.includes(i) ? <View pointerEvents="none" style={{ position: 'absolute', left: 10, right: 10, top: '50%', height: 2, backgroundColor: c.label2 }} /> : null}
               </Pressable>
             );
           })}

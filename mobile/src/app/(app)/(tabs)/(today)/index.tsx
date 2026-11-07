@@ -8,6 +8,7 @@ import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, w
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
 import { Bar, Button, cardStyle, Icon, IconTile, Logo, Row, Scribble, Screen, Section, Tag, tap } from '../../../../components/ui';
+import { ClassesBar } from '../../../../components/StudyPicker';
 import { masteredCount, recentSets } from '../../../../lib/cards';
 import { fetchNews, syncNow, type NewsPost } from '../../../../lib/cloud';
 import { mistakes, quickSet, setSession, type Q } from '../../../../lib/questions';
@@ -103,6 +104,13 @@ export default function Today() {
           {nameW ? <Scribble width={nameW} /> : null}
         </View>
       </View>
+
+      <ClassesBar where="today" />
+      {store.data().inProgress?.kind === 'exam' ? (
+        <View style={{ marginHorizontal: 16, marginTop: 12 }}>
+          <Row icon="pause" iconColor={c.orange} title={`Resume ${store.data().inProgress.title}`} subtitle="You have a practice test in progress" onPress={() => router.push('/exam')} />
+        </View>
+      ) : null}
 
       {/* Goal and streak, tilted like the website's mock cards */}
       <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 20, marginTop: 20 }}>

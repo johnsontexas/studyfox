@@ -39,7 +39,16 @@ function merge(a, b) {
   out.sets = byId(a.sets, b.sets).filter((s) => !(out.deletedSets[s.id] >= (s.updated || 0)));
   out.mistakes = { ...b.mistakes, ...a.mistakes };
   out.saved = { ...b.saved, ...a.saved };
-  out.setProgress = { ...b.setProgress, ...a.setProgress };
+  // Each set's progress (mastery, stars, the Know / Still learning round) comes from whichever device
+  // changed it last, so studying a set on one device isn't undone by an older copy from another.
+  out.setProgress = { ...b.setProgress };
+  for (const k in a.setProgress) {
+    const x = a.setProgress[k], y = out.setProgress[k];
+    if (!y) { out.setProgress[k] = x; continue; }
+    const t = (p) => p.edited || p.last || 0;
+    const best = [x.matchBest, y.matchBest].filter((v) => v != null);
+    out.setProgress[k] = { ...(t(x) >= t(y) ? x : y), studied: Math.max(x.studied || 0, y.studied || 0), matchBest: best.length ? Math.min(...best) : null };
+  }
   out.stats = bigger(a.stats, b.stats);
   out.skillStats = bigger(a.skillStats, b.skillStats);
   out.activity = { ...b.activity };
@@ -56,6 +65,18 @@ function merge(a, b) {
 }
 
 let cache = null, cacheKey = null;
+
+// Stamps set progress with the time it last changed (p.edited), so merge() can tell which copy is newer.
+// Snapshots are taken when data loads or merges; each save compares against them.
+const setSnap = new Map();
+const progJSON = (p) => JSON.stringify({ ...p, edited: undefined });
+function snapSets(d) { setSnap.clear(); for (const [id, p] of Object.entries(d.setProgress || {})) setSnap.set(id, progJSON(p)); }
+function stampSets(d) {
+  for (const [id, p] of Object.entries(d.setProgress || {})) {
+    const j = progJSON(p);
+    if (setSnap.get(id) !== j) { p.edited = Date.now(); setSnap.set(id, j); }
+  }
+}
 const dataKey = () => 'fm_data_' + (read(K_SESSION, null) || 'guest');
 const listeners = new Set(), saveListeners = new Set();
 
@@ -115,7 +136,7 @@ export const store = {
     const u = read(K_USERS, {})[email];
     return !!u && u.pw === (await hashPw(email, password));
   },
-  mergeIn(remote) { cache = merge(this.data(), remote); cacheKey = dataKey(); write(dataKey(), cache); this.emit(); },
+  mergeIn(remote) { cache = merge(this.data(), remote); cacheKey = dataKey(); snapSets(cache); write(dataKey(), cache); this.emit(); },
   logout() { localStorage.removeItem(K_SESSION); cache = null; this.emit(); },
   // Removes the signed-in account and all of its data from this device, then signs out.
   forgetAccount() {
@@ -133,10 +154,10 @@ export const store = {
 
   data() {
     const k = dataKey();
-    if (!cache || cacheKey !== k) { cache = Object.assign(blank(), read(k, {})); cache.settings = Object.assign(blank().settings, cache.settings); cacheKey = k; }
+    if (!cache || cacheKey !== k) { cache = Object.assign(blank(), read(k, {})); cache.settings = Object.assign(blank().settings, cache.settings); cacheKey = k; snapSets(cache); }
     return cache;
   },
-  save() { if (!write(dataKey(), this.data())) console.warn('Storage full'); saveListeners.forEach((f) => f()); },
+  save() { stampSets(this.data()); if (!write(dataKey(), this.data())) console.warn('Storage full'); saveListeners.forEach((f) => f()); },
 
   recordAnswer(q, correct) {
     const d = this.data();

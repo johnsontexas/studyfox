@@ -54,8 +54,9 @@ export default function APCourse() {
                 <Segmented options={[['smart', 'New first'], ['new', 'Only new'], ['missed', 'Only missed']]} value={mode} onChange={setMode} />
               </View>
             </Section>
-            <View style={{ marginHorizontal: 16, marginTop: 14 }}>
+            <View style={{ marginHorizontal: 16, marginTop: 14, gap: 10 }}>
               <Button title="Mixed from All Units" icon="shuffle" onPress={() => start(qs, 'Mixed review')} />
+              <Button title={`${title.replace(/^AP /, '')} Rush`} icon="bolt" kind="tinted" onPress={() => router.push({ pathname: '/speed', params: { test: 'AP', ap: id, go: '1' } })} />
             </View>
 
             <Section header="Units" footer="Tap a unit to see its concepts.">

@@ -24,7 +24,7 @@ export async function fetchNews(limit = 50) {
 export async function fetchStatus() {
   if (!cloudEnabled) return null;
   const c = await db();
-  const { data } = await c.from('site_status').select('maintenance,message,ios_app_url').eq('id', 1).maybeSingle();
+  const { data } = await c.from('site_status').select('maintenance,message,ios_app_url,email_signup').eq('id', 1).maybeSingle();
   return data;
 }
 
@@ -144,6 +144,10 @@ export function adminView(root) {
         <label class="small muted" for="msg">Message shown while shut down</label>
         <textarea id="msg" rows="2" maxlength="500" placeholder="We're making some updates and will be back soon.">${esc(st.message)}</textarea>
       </section>
+      <section class="card admin-status ${st.email_signup === false ? 'down' : 'up'}">
+        <div class="row between wrap gap"><div><h2 class="h3">${icon('mail')} Email sign-up</h2><p class="muted small">${st.email_signup === false ? 'Off. New accounts can only use Google, Apple, or Microsoft, on the site and the app. Existing email accounts can still sign in.' : 'On. People can create accounts with an email and password.'}</p></div>
+          <button class="btn ${st.email_signup === false ? 'primary' : 'danger'}" id="emailToggle">${st.email_signup === false ? 'Turn email sign-up on' : 'Turn email sign-up off'}</button></div>
+      </section>
       <a class="card hover row between gap" href="#/admin/content"><span><b>${icon('book')} Lessons, decks, and questions</b><br><span class="muted small">Edit courses and lessons, add or remove questions, and change flashcard decks. Updates the website and the app right away.</span></span>${icon('right')}</a>
       <h2 class="dash-title">Leaderboard reports</h2>
       <div id="reports"></div>
@@ -168,6 +172,15 @@ export function adminView(root) {
     });
     const draw = async () => { $('#feed', root).innerHTML = (await fetchNews(100)).map((n) => postHTML(n, true)).join('') || '<p class="muted">No posts yet.</p>'; };
     draw(); wireComposer(root, draw);
+    $('#emailToggle', root).addEventListener('click', async () => {
+      const next = st.email_signup === false;
+      if (!next && !(await confirmBox('Turn off email sign-up on the website and the app? People can still sign up with Google, Apple, or Microsoft.', { ok: 'Turn off', danger: true }))) return;
+      const c = await db();
+      const { error } = await c.from('site_status').update({ email_signup: next, updated_at: new Date().toISOString() }).eq('id', 1);
+      if (error) return toast(error.message, 'bad');
+      toast(next ? 'Email sign-up is on.' : 'Email sign-up is off.', 'good');
+      adminView(root);
+    });
     $('#toggle', root).addEventListener('click', async () => {
       const next = !st.maintenance;
       if (next && !(await confirmBox('Shut StudyFox down for everyone except admins?', { ok: 'Shut down', danger: true }))) return;

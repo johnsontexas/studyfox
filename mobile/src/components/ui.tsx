@@ -10,6 +10,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, SvgXml } from 'react-native-svg';
 import { fonts, type, useColors } from '../lib/theme';
+import { showMenu } from './AndroidDialogs';
 import Backdrop from './Backdrop';
 import Icon, { type IconName } from './Icon';
 
@@ -38,7 +39,7 @@ export function menu(title: string | undefined, items: MenuItem[]) {
     const k = window.prompt(`${title || ''}\n${items.map((i, n) => `${n + 1}. ${i.title}`).join('\n')}\nType a number:`);
     if (k) items[+k - 1]?.onPress();
   } else {
-    Alert.alert(title || '', undefined, [...items.slice(0, 2).map((i) => ({ text: i.title, onPress: i.onPress, style: i.destructive ? 'destructive' as const : 'default' as const })), { text: 'Cancel', style: 'cancel' }]);
+    showMenu(title, items);
   }
 }
 

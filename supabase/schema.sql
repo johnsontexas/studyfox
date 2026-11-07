@@ -51,6 +51,19 @@ create table if not exists public.site_status (
 );
 -- App Store link for the "Download on iOS" footer button; hidden while empty.
 alter table public.site_status add column if not exists ios_app_url text not null default '' check (ios_app_url = '' or ios_app_url ~ '^https://');
+-- Kill switch for email sign-up (admin console). Off hides it on the site and app, and the trigger below
+-- refuses new email accounts on the server, so a flood of sign-ups can't exhaust the SMTP quota.
+alter table public.site_status add column if not exists email_signup boolean not null default true;
+create or replace function public.block_email_signup() returns trigger language plpgsql security definer set search_path = '' as $$
+begin
+  if coalesce(new.raw_app_meta_data->>'provider', 'email') = 'email'
+     and not coalesce((select email_signup from public.site_status where id = 1), true) then
+    raise exception 'Email sign-up is paused. Sign up with Google, Apple, or Microsoft instead.';
+  end if;
+  return new;
+end $$;
+drop trigger if exists block_email_signup on auth.users;
+create trigger block_email_signup before insert on auth.users for each row execute function public.block_email_signup();
 insert into public.site_status (id) values (1) on conflict do nothing;
 alter table public.site_status enable row level security;
 create policy "anyone reads status" on public.site_status for select using (true);
@@ -186,3 +199,36 @@ end $$;
 revoke all on function public.delete_my_account() from public, anon;
 grant execute on function public.delete_my_account() to authenticated;
 
+-- User count: one row per day with the running total of accounts. A trigger on auth.users keeps today's
+-- row current on every sign-up or account deletion, so the table is a growth history. Admins only.
+create table if not exists public.user_count (
+  day date primary key,
+  total_users int not null,
+  new_users int not null default 0,
+  updated_at timestamptz not null default now()
+);
+alter table public.user_count enable row level security;
+drop policy if exists "admins read user count" on public.user_count;
+create policy "admins read user count" on public.user_count for select to authenticated using ((select public.is_admin()));
+create or replace function public.track_user_count() returns trigger language plpgsql security definer set search_path = '' as $$
+declare today date := (now() at time zone 'America/Chicago')::date;
+begin
+  insert into public.user_count (day, total_users, new_users, updated_at)
+  values (today, (select count(*) from auth.users), case when tg_op = 'INSERT' then 1 else 0 end, now())
+  on conflict (day) do update set
+    total_users = excluded.total_users,
+    new_users = public.user_count.new_users + excluded.new_users,
+    updated_at = now();
+  return null;
+end $$;
+revoke all on function public.track_user_count() from public, anon, authenticated;
+drop trigger if exists track_user_count on auth.users;
+create trigger track_user_count after insert or delete on auth.users for each row execute function public.track_user_count();
+-- Backfill one row per day from the first sign-up to today.
+insert into public.user_count (day, total_users, new_users)
+select d::date,
+  (select count(*) from auth.users u where (u.created_at at time zone 'America/Chicago')::date <= d::date),
+  (select count(*) from auth.users u where (u.created_at at time zone 'America/Chicago')::date = d::date)
+from generate_series((select min(created_at at time zone 'America/Chicago')::date from auth.users),
+                     (now() at time zone 'America/Chicago')::date, interval '1 day') d
+on conflict (day) do nothing;

@@ -32,9 +32,11 @@ export default function Speed() {
   const c = useColors();
   const ins = useSafeAreaInsets();
   const d = store.data();
-  const { go } = useLocalSearchParams<{ go?: string }>();
+  const { go, test: pTest, section: pSec, ap: pAp } = useLocalSearchParams<{ go?: string; test?: Src; section?: string; ap?: string }>();
   const [cfg, setCfg] = useState<Cfg>(() => {
     const l = d.speed?.runs?.[0];
+    // Opened from a SAT, ACT, or AP page: start on that test (and section or class), keeping the last mode and length.
+    if (pTest) return { mode: l?.mode || 'clock', test: pTest, section: pSec || (l?.test === pTest && l?.section) || 'math', ap: pAp || (pTest === 'AP' ? l?.ap || null : null), dur: l?.dur || 120, diff: l?.diff || 'mixed' };
     return l ? { mode: l.mode || 'clock', test: l.test, section: l.section || 'math', ap: l.ap || null, dur: l.dur || 120, diff: l.diff || 'mixed' } : { mode: 'clock', test: d.settings.focus || 'SAT', section: 'math', ap: null, dur: 120, diff: 'mixed' };
   });
   const [apList, setApList] = useState<{ id: string; title: string }[]>([]);
@@ -83,7 +85,8 @@ export default function Speed() {
     setLeft(eff.mode === 'clock' ? eff.dur : SURVIVAL_SEC); setPhase('play'); await nextQ();
   };
 
-  useEffect(() => { if (autostart.current) { autostart.current = false; start(); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // AP needs its class list before it can start.
+  useEffect(() => { if (autostart.current && (!isAP || apId)) { autostart.current = false; start(); } }, [apId]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (phase !== 'play') return;
     const iv = setInterval(() => { if (!reveal) { game.current.elapsed++; setLeft((l) => (cfg.mode === 'sprint' ? l : l - 1)); } }, 1000);

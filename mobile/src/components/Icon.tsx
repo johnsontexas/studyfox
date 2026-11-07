@@ -27,7 +27,8 @@ const MAP = {
   leaf: ['leaf', 'leaf'], scale: ['scalemass', 'scale'], coins: ['dollarsign.circle', 'coins'], map: ['map', 'map'], music: ['music.note', 'music'],
   palette: ['paintpalette', 'palette'], scroll: ['scroll', 'scroll'], users: ['person.2', 'users'], brain: ['brain', 'brain'], home: ['house', 'home'],
   pen: ['pencil.line', 'edit'], bell: ['bell.fill', 'timer'], clock: ['clock.fill', 'timer'], sync: ['arrow.triangle.2.circlepath', 'shuffle'], download: ['square.and.arrow.down', 'upload'],
-  rush: ['bolt.circle.fill', 'bolt'], chartBar: ['chart.bar.fill', 'chart'], puzzle: ['puzzlepiece', 'puzzle'],
+  rush: ['bolt.circle.fill', 'bolt'], bookmark: ['bookmark', 'bookmark'], bookmarkFill: ['bookmark.fill', 'bookmark'], pause: ['pause.fill', 'pause'],
+  eye: ['eye', 'timer'], eyeSlash: ['eye.slash', 'timer'], strike: ['strikethrough', 'x'], chartBar: ['chart.bar.fill', 'chart'], puzzle: ['puzzlepiece', 'puzzle'],
 } as const;
 export type IconName = keyof typeof MAP;
 

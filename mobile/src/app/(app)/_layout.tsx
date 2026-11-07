@@ -17,6 +17,8 @@ export default function AppLayout() {
       <Stack.Screen name="quiz" options={{ ...full, gestureEnabled: false }} />
       <Stack.Screen name="ap-quiz" options={{ ...full, gestureEnabled: false }} />
       <Stack.Screen name="speed" options={{ ...full, gestureEnabled: false }} />
+      <Stack.Screen name="exam" options={{ ...full, gestureEnabled: false }} />
+      <Stack.Screen name="results/[id]" options={full} />
       <Stack.Screen name="edit-set" options={{ presentation: 'modal' }} />
       <Stack.Screen name="import-set" options={{ presentation: 'formSheet', sheetAllowedDetents: [0.6, 1], sheetGrabberVisible: true, contentStyle: { backgroundColor: c.bg } }} />
       <Stack.Screen name="share/[data]" options={{ presentation: 'modal' }} />

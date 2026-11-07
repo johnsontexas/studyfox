@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 import Backdrop from '../components/Backdrop';
 import { Button, Field, Logo, Scribble, Section, tap } from '../components/ui';
-import { appleAvailable, cloudEnabled, emailSignIn, emailSignUp, signInWithApple, signInWithGoogle } from '../lib/cloud';
+import { appleAvailable, cloudEnabled, emailSignIn, emailSignupOn, emailSignUp, signInWithApple, signInWithGoogle } from '../lib/cloud';
 import { COURSES, lessonCount, SITE_URL, store, passwordProblem, PASSWORD_HINT } from '../lib/shared';
 import { openWeb } from '../lib/links';
 import { fonts, type, useColors, useScheme } from '../lib/theme';
@@ -27,7 +27,10 @@ export default function Login() {
   const [note, setNote] = useState('');
   const [apple, setApple] = useState(false);
   const [accentW, setAccentW] = useState(0);
+  const [signupOn, setSignupOn] = useState(true);
   useEffect(() => { appleAvailable().then(setApple); }, []);
+  // Admin kill switch: with email sign-up off, the email form only signs in.
+  useEffect(() => { emailSignupOn().then((on) => { setSignupOn(on); if (!on) setMode('login'); }, () => {}); }, []);
 
   const run = async (what: string, fn: () => Promise<unknown>) => {
     setErr(''); setBusy(what);
@@ -89,12 +92,12 @@ export default function Login() {
               <Text style={[type.headline, { color: c.label }]}>Continue with Google</Text>
             </Pressable>
           ) : null}
-          {!email ? <Button title="Continue with Email" kind="gray" icon="mail" onPress={() => setEmail(true)} /> : null}
+          {!email ? <Button title={signupOn ? 'Continue with Email' : 'Sign In with Email'} kind="gray" icon="mail" onPress={() => setEmail(true)} /> : null}
         </View>
 
         {email ? (
           <>
-            <Section footer={note || (mode === 'signup' ? 'Your progress syncs with studyfox.org and your other devices.' : undefined)}>
+            <Section footer={note || (mode === 'signup' ? 'Your progress syncs with studyfox.org and your other devices.' : !signupOn ? 'Email sign-up is paused right now. New here? Use Google or Apple above.' : undefined)}>
               {mode === 'signup' ? <Field value={form.name} onChangeText={(name) => setForm({ ...form, name })} placeholder="First name" textContentType="givenName" autoComplete="given-name" /> : null}
               <Field value={form.email} onChangeText={(v) => setForm({ ...form, email: v })} placeholder="Email" autoCapitalize="none" keyboardType="email-address" textContentType="emailAddress" autoComplete="email" />
               <Field value={form.password} onChangeText={(password) => setForm({ ...form, password })} placeholder={mode === 'signup' ? `Password (${PASSWORD_HINT})` : 'Password'} secureTextEntry
@@ -103,7 +106,7 @@ export default function Login() {
             <View style={{ paddingHorizontal: 20, paddingTop: 14, gap: 4 }}>
               <Button title={mode === 'signup' ? 'Create Account' : 'Sign In'} loading={busy === 'email'} onPress={submitEmail} />
               {mode === 'login' ? <Button title="Forgot your password?" kind="plain" size="medium" onPress={() => openWeb(`${SITE_URL}/#/login`)} /> : null}
-              <Button title={mode === 'signup' ? 'I already have an account' : 'Create a new account'} kind="plain" size="medium" onPress={() => { setMode(mode === 'signup' ? 'login' : 'signup'); setErr(''); }} />
+              {signupOn ? <Button title={mode === 'signup' ? 'I already have an account' : 'Create a new account'} kind="plain" size="medium" onPress={() => { setMode(mode === 'signup' ? 'login' : 'signup'); setErr(''); }} /> : null}
             </View>
           </>
         ) : null}

@@ -9,7 +9,7 @@ export { store, today } from '../../../js/store.js';
 export { BUILTIN_DECKS } from '../../../js/content/decks.js';
 export { initContent, onContent, live } from '../../../js/content/live.js';
 export { parseImport as parseImportShared, importPrefs } from '../../../js/cardimport.js';
-export { isCorrect } from '../../../js/exams.js';
+export { isCorrect, EXAMS, createExam, ensureModule, scoreExam, numberedTests } from '../../../js/exams.js';
 export { checkSpr, rng, newSeed, uid, fmtTime, timeAgo, DIFF_LABEL, esc, tex, passwordProblem, PASSWORD_HINT } from '../../../js/util.js';
 export { icon } from '../../../js/icons.js';
 export { LANGS, PROFICIENCY } from '../../../js/i18n.js';
