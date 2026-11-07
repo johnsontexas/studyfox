@@ -179,6 +179,8 @@ function router() {
 }
 
 function boot() {
+  // index.html shows a static hero before the app loads; keep that same element so it isn't painted twice.
+  const shellCopy = document.querySelector('#shell .hero2-copy');
   document.body.innerHTML = `<header id="nav" class="nav"></header><main id="main"></main>
     <footer class="site-foot"><div class="foot-inner">
       <div class="foot-brand"><b>${BRAND}</b><p>Free study material for school and the SAT and ACT, made by ${CREATOR}. No ads, no paywalls, no limits.</p>
@@ -214,6 +216,8 @@ function boot() {
     if (changed && /^\/($|learn|flashcards$|practice|dashboard)/.test(p)) router();
   });
   router();
+  const fresh = shellCopy && $('#main .hero2-copy');
+  if (fresh && fresh.textContent.replace(/\s+/g, ' ') === shellCopy.textContent.replace(/\s+/g, ' ')) fresh.replaceWith(shellCopy);
   const refresh =() => Promise.all([fetchStatus().catch(() => null), isAdmin()]).then(([st, a]) => {
     const changed = !!st?.maintenance !== !!status?.maintenance || a !== admin;
     status = st; admin = a;
