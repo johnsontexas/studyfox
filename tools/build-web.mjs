@@ -21,6 +21,13 @@ const css = await build({
 const out = (meta, start) => basename(Object.keys(meta.outputs).find((f) => basename(f).startsWith(start) && !f.endsWith('.map')));
 const appJs = out(js.metafile, 'app-'), stylesCss = out(css.metafile, 'styles-');
 
+// Every file the home page needs at startup (app.js and its static imports), preloaded in parallel instead of
+// discovered one level at a time.
+const metaOut = js.metafile.outputs, preload = new Set();
+const walk = (f) => { for (const i of metaOut[f].imports) if (i.kind === 'import-statement' && !i.external && !preload.has(i.path)) { preload.add(i.path); walk(i.path); } };
+walk(Object.keys(metaOut).find((f) => basename(f) === appJs));
+const preloadTags = [...preload].map((f) => `<link rel="modulepreload" href="build/${basename(f)}">`).join('\n  ');
+
 const file = join(ROOT, 'index.html');
 let html = readFileSync(file, 'utf8');
 const swaps = [['href="css/styles.css"', `href="build/${stylesCss}"`], ['href="js/app.js"', `href="build/${appJs}"`], ['src="js/app.js"', `src="build/${appJs}"`]];
@@ -28,5 +35,6 @@ for (const [a, b] of swaps) {
   if (!html.includes(a)) throw new Error(`index.html is missing ${a}`);
   html = html.replace(a, b);
 }
+html = html.replace(`<link rel="modulepreload" href="build/${appJs}">`, `<link rel="modulepreload" href="build/${appJs}">\n  ${preloadTags}`);
 writeFileSync(file, html);
 console.log(`Built build/${appJs}, build/${stylesCss} and ${Object.keys(js.metafile.outputs).length - 1} more files.`);
