@@ -169,20 +169,18 @@ function router() {
   document.body.classList.remove('testing', 'nav-open');
   $('#nav').innerHTML = navHTML(path === '/' && store.user() ? '/dashboard' : path);
   // Swap in a fresh <main> so click handlers that views attach to it don't pile up across visits.
-  const old = $('#main'), main = old.cloneNode(false);
-  old.replaceWith(main);
+  const old = $('#main'), main = old.dataset.shell ? old : old.cloneNode(false);
+  if (main !== old) old.replaceWith(main);
   scrollTo(0, 0);
   try { cleanup = (tabGroup(m.pat) ? tabShell(main, m, tabGroup(m.pat)[1]) : m.view(main, m.params)) || null; }
   catch (e) { console.error(e); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><pre class="err">${esc(e.stack || e)}</pre><a class="btn" href="#/">Go home</a></div>`; }
+  delete main.dataset.shell;
   const title = { '/': store.user() ? 'Dashboard' : 'Free Study Material for School', '/learn': 'Free Courses', '/privacy': 'Privacy Policy', '/terms': 'Terms of Use', '/speed': 'Speed Practice', '/donate': 'Donate', '/news': 'News', '/contact': 'Contact', '/about': 'About', '/admin': 'Admin', '/welcome': 'Welcome', '/too-young': 'Welcome' }[path] || (path.startsWith('/learn') ? 'Free Courses' : path.startsWith('/ap') ? 'AP Practice' : null) || path.split('/')[1]?.replace(/^\w/, (c) => c.toUpperCase());
   document.title = `${BRAND} · ${title || 'Free Study Material for School'}`;
 }
 
 function boot() {
-  // index.html shows a static hero before the app loads; keep that same element so it isn't painted twice.
-  const shellCopy = document.querySelector('#shell .hero2-copy');
-  document.body.innerHTML = `<header id="nav" class="nav"></header><main id="main"></main>
-    <footer class="site-foot"><div class="foot-inner">
+  const footer = `<footer class="site-foot"><div class="foot-inner">
       <div class="foot-brand"><b>${BRAND}</b><p>Free study material for school and the SAT and ACT, made by ${CREATOR}. No ads, no paywalls, no limits.</p>
         <a class="foot-ig" href="https://instagram.com/${STUDYFOX_INSTAGRAM}" target="_blank" rel="noopener">${icon('instagram')}@${STUDYFOX_INSTAGRAM}</a>
         <a class="foot-ig" href="https://www.tiktok.com/@${STUDYFOX_TIKTOK}" target="_blank" rel="noopener">${icon('tiktok')}@${STUDYFOX_TIKTOK} on TikTok</a>
@@ -193,6 +191,9 @@ function boot() {
       <nav class="foot-links" aria-label="Footer"><a href="#/learn">Courses</a><a href="#/practice">SAT &amp; ACT</a><a href="#/flashcards">Flashcards</a><a href="#/news">News</a><a href="#/about">About</a><a href="#/contact">Contact</a><a href="#/donate">Donate</a><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a></nav>
       <p class="foot-legal">SAT®, AP®, and ACT® are trademarks of their respective owners, which are not affiliated with and do not endorse this site. Questions are original and generated for practice; scores are estimates.</p>
     </div></footer>`;
+  // index.html may already show the nav and home hero (data-shell); keep them and add the footer.
+  if ($('#main[data-shell]')) { $('#nav').removeAttribute('data-shell'); document.body.insertAdjacentHTML('beforeend', footer); }
+  else document.body.innerHTML = `<header id="nav" class="nav"></header><main id="main"></main>` + footer;
   applyTheme();
   applyA11y();
   initI18n();
@@ -213,11 +214,10 @@ function boot() {
   // The saved copy shows immediately; if the server has newer content, redraw pages that show it.
   initContent(db()).then((changed) => {
     const p = (location.hash.slice(1) || '/').split('?')[0];
-    if (changed && /^\/($|learn|flashcards$|practice|dashboard)/.test(p)) router();
+    // The signed-out home page only lists courses, which match the built-in copy; skip redrawing it.
+    if (changed && /^\/($|learn|flashcards$|practice|dashboard)/.test(p) && !(p === '/' && !store.user())) router();
   });
   router();
-  const fresh = shellCopy && $('#main .hero2-copy');
-  if (fresh && fresh.textContent.replace(/\s+/g, ' ') === shellCopy.textContent.replace(/\s+/g, ' ')) fresh.replaceWith(shellCopy);
   const refresh =() => Promise.all([fetchStatus().catch(() => null), isAdmin()]).then(([st, a]) => {
     const changed = !!st?.maintenance !== !!status?.maintenance || a !== admin;
     status = st; admin = a;

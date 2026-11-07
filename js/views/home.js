@@ -42,6 +42,21 @@ const bankArt = () => {
 };
 const barsArt = (vals) => `<div class="art-bars" aria-hidden="true">${vals.map((v, i) => `<i style="height:${v}%"${i === vals.length - 1 ? ' class="on"' : ''}></i>`).join('')}</div>`;
 
+// On the first load index.html already shows the hero (data-shell). Build the rest of the page around it
+// instead of replacing it, so the browser doesn't count the headline as painted twice.
+function fill(root, html) {
+  const keep = root.dataset.shell === 'home' && root.querySelector('.hero2-copy');
+  delete root.dataset.shell;
+  const t = document.createElement('div');
+  t.innerHTML = html;
+  const fresh = t.querySelector('.hero2-copy'), norm = (e) => e.textContent.replace(/\s+/g, ' ').trim();
+  if (!keep || !fresh || norm(keep) !== norm(fresh)) { root.innerHTML = html; return; }
+  const hero = root.querySelector('section.hero2');
+  root.querySelector('.collage')?.replaceWith(t.querySelector('.collage'));
+  t.querySelector('section.hero2').remove();
+  hero.after(...t.childNodes);
+}
+
 export function homeView(root) {
   const u = store.user();
   // Building the numbered bank generates thousands of questions, so the home page shows the counts saved
@@ -50,7 +65,7 @@ export function homeView(root) {
   const nSat = saved?.sat || 1754, nAct = saved?.act || 2312;
   const ap = COURSES.filter((c) => /^AP /.test(c.title));
   const cta = u ? '<a class="btn primary lg" href="#/dashboard">Go to your dashboard</a>' : '<a class="btn primary lg" href="#/signup">Start studying, it\'s free</a>';
-  root.innerHTML = `
+  const html = `
   <section class="hero2">
     <div class="hero2-inner">
       <div class="hero2-copy">
@@ -145,6 +160,7 @@ export function homeView(root) {
       </div>
     </div>
   </section>`;
+  fill(root, html);
   // The whole creator note opens the About page, except its own links.
   const note = root.querySelector('.note-from');
   const goAbout = (e) => { if (!e.target.closest('a')) location.hash = '#/about'; };
