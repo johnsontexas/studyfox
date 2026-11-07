@@ -4,8 +4,7 @@ import { store } from '../store.js';
 import { questionOfTheDay } from '../gen/index.js';
 import { L, tagLine } from '../qview.js';
 import { COURSES, SUBJECTS, lessonCount } from '../content/courses.js';
-import { CREATOR, CREATOR_SITE, INSTAGRAM } from '../config.js';
-import { bank } from '../gen/bank.js';
+import { CREATOR, INSTAGRAM } from '../config.js';
 import { newsWidget } from './news.js';
 
 export function qotdWidget(root, test) {
@@ -45,7 +44,10 @@ const barsArt = (vals) => `<div class="art-bars" aria-hidden="true">${vals.map((
 
 export function homeView(root) {
   const u = store.user();
-  const nSat = bank('SAT').length, nAct = bank('ACT').length;
+  // Building the numbered bank generates thousands of questions, so the home page shows the counts saved
+  // the last time another page built it (js/gen/bank.js), or the current totals on a first visit.
+  let saved = null; try { saved = JSON.parse(localStorage.getItem('sf_bank_counts')); } catch {}
+  const nSat = saved?.sat || 1754, nAct = saved?.act || 2312;
   const ap = COURSES.filter((c) => /^AP /.test(c.title));
   const cta = u ? '<a class="btn primary lg" href="#/dashboard">Go to your dashboard</a>' : '<a class="btn primary lg" href="#/signup">Start studying, it\'s free</a>';
   root.innerHTML = `
@@ -53,13 +55,13 @@ export function homeView(root) {
     <div class="hero2-inner">
       <div class="hero2-copy">
         <h1>Study for every class.<br><em class="scribble">Pay for none of it.</em></h1>
-        <p class="lead">Courses for ${COURSES.length} classes including every AP subject, flashcards, practice tests, and a ${(nSat + nAct).toLocaleString()}-question SAT and ACT bank. All in one place.</p>
+        <p class="lead">Courses for ${COURSES.length} classes including every AP subject, flashcards, practice tests, and a <span class="bank-n">${(nSat + nAct).toLocaleString()}</span>-question SAT and ACT bank. All in one place.</p>
         <div class="row gap wrap">${cta}<a class="btn lg ghost" href="#/learn">Browse courses</a></div>
         <a class="free-pill" href="#/about">${icon('heart')}<span><b>100% free, for everyone.</b> No ads, no paywall, no catch.</span><span class="free-why">Why? ${icon('arrow')}</span></a>
         <dl class="facts">
           <div><dt>${COURSES.length}</dt><dd>courses</dd></div>
           <div><dt>${lessonCount()}</dt><dd>lessons</dd></div>
-          <div><dt>${(nSat + nAct).toLocaleString()}</dt><dd>practice questions</dd></div>
+          <div><dt class="bank-n">${(nSat + nAct).toLocaleString()}</dt><dd>practice questions</dd></div>
           <div><dt>25+</dt><dd>languages</dd></div>
         </dl>
       </div>
@@ -89,7 +91,7 @@ export function homeView(root) {
     <nav class="doors" aria-label="Study tools">
       <a class="door tone-0" href="#/learn"><span class="q-ic">${icon('book')}</span><b>Courses</b><span class="door-n">${COURSES.length} classes · ${lessonCount()} lessons</span><span class="door-d">Short lessons with worked examples and a quick check at the end.</span><span class="door-eg">${COURSES.slice(0, 3).map((c) => esc(c.title)).join(', ')}</span></a>
       <a class="door tone-1" href="#/ap"><span class="q-ic">${icon('target')}</span><b>AP Practice</b><span class="door-n">${ap.length} AP classes</span><span class="door-d">Exam-style multiple choice by unit, each with an explanation.</span><span class="door-eg">${ap.slice(0, 3).map((c) => esc(c.title.replace(/^AP /, ''))).join(', ')}</span></a>
-      <a class="door tone-2" href="#/practice"><span class="q-ic">${icon('clipboard')}</span><b>SAT &amp; ACT</b><span class="door-n">${nSat.toLocaleString()} SAT · ${nAct.toLocaleString()} ACT</span><span class="door-d">A numbered question bank, full timed tests, and a mistake log.</span><span class="door-eg">Practice tests, speed drills, formula sheets</span></a>
+      <a class="door tone-2" href="#/practice"><span class="q-ic">${icon('clipboard')}</span><b>SAT &amp; ACT</b><span class="door-n"><span class="bank-sat">${nSat.toLocaleString()}</span> SAT · <span class="bank-act">${nAct.toLocaleString()}</span> ACT</span><span class="door-d">A numbered question bank, full timed tests, and a mistake log.</span><span class="door-eg">Practice tests, speed drills, formula sheets</span></a>
       <a class="door tone-3" href="#/flashcards"><span class="q-ic">${icon('cards')}</span><b>Flashcards</b><span class="door-n">Make, import, or share</span><span class="door-d">Paste your notes and they become cards. Study with flip, learn, test, or match.</span><span class="door-eg">Share a set with one link</span></a>
     </nav>
     <div id="newsSlot"></div>
@@ -133,7 +135,7 @@ export function homeView(root) {
         <details><summary>Where is my data stored?</summary><p>Every account, email, Google, or Apple, saves your progress to the cloud, so it syncs across your devices and the StudyFox app. You can also export a backup any time from Settings.</p></details>
       </div>
       <div class="note-from" role="link" tabindex="0" aria-label="About ${esc(CREATOR)}">
-        <img class="avatar creator-pic" src="${CREATOR_SITE}/images/Media/portrait.png" alt="" loading="lazy">
+        <img class="avatar creator-pic" src="assets/creator-thumb.jpg" alt="" width="52" height="52" loading="lazy">
         <div>
           <p class="kicker">A note from the creator</p>
           <p>I built StudyFox because good study material shouldn't depend on what you can pay. If it helps you, or you want a course added, tell me.</p>

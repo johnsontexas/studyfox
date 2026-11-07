@@ -24,7 +24,7 @@ export function aboutView(root) {
     </section>
 
     <section class="card about-me">
-      <img src="${CREATOR_SITE}/images/Media/portrait.png" alt="Portrait of ${CREATOR}" loading="lazy">
+      <img src="assets/creator.jpg" alt="Portrait of ${CREATOR}" width="480" height="712" loading="lazy">
       <div class="stack">
         <h2 class="h3">About me</h2>
         <p>I'm ${CREATOR}, the creator of StudyFox.</p>

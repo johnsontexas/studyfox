@@ -5,28 +5,68 @@ import { store } from './store.js';
 import { initI18n } from './i18n.js';
 import { homeView } from './views/home.js';
 import { loginView, signupView, settingsView, requireAgreement } from './views/account.js';
-import { dashboardView } from './views/dashboard.js';
-import { practiceView, reviewView } from './views/practice.js';
-import { examsView } from './views/exams.js';
-import { resultsView } from './views/results.js';
-import { runnerView } from './views/runner.js';
-import { libraryView, setView, editView, learnView, testView, matchView, importView } from './views/flashcards.js';
-import { formulasView, calculatorView } from './views/formulas.js';
-import { speedView } from './views/speed.js';
-import { learnHubView, courseView, lessonView } from './views/learn.js';
-import { privacyView, termsView } from './views/legal.js';
 import { initCloud } from './cloud.js';
 import { welcomeView, ageBlockedView, ageBlockedUntil, needsOnboarding } from './views/welcome.js';
 import { CREATOR, STUDYFOX_INSTAGRAM, STUDYFOX_TIKTOK, CREATOR_EMAIL, KOFI } from './config.js';
-import { donateView } from './views/donate.js';
 import { newsView, adminView, contactView, maintenanceHTML, fetchStatus } from './views/news.js';
 import { isAdmin, db } from './cloud.js';
 import { initContent } from './content/live.js';
-import { contentAdminView } from './views/content-admin.js';
-import { apHubView, apCourseView } from './views/ap.js';
-import { aboutView } from './views/about.js';
 import { applyA11y } from './a11y.js';
 import { openShare } from './share.js';
+
+// Pages other than the home page load on first visit, so the home page downloads and runs less code.
+function lazy(load, name) {
+  return (main, params) => {
+    let done = null, gone = false;
+    main.innerHTML = '<div class="page"><p class="muted">Loading…</p></div>';
+    load().then((m) => {
+      if (gone) return;
+      done = m[name](main, params) || null;
+      if (main.id === 'dashBody') main.querySelector('.page')?.classList.add('in-dash');
+    }).catch((e) => { console.error(e); if (!gone) main.innerHTML = `<div class="page narrow"><h1>Could not load this page</h1><p>Check your connection and try again.</p><a class="btn" href="javascript:location.reload()">Reload</a></div>`; });
+    return () => { gone = true; if (typeof done === 'function') done(); };
+  };
+}
+const load_dashboard = () => import('./views/dashboard.js');
+const dashboardView = lazy(load_dashboard, 'dashboardView');
+const load_practice = () => import('./views/practice.js');
+const practiceView = lazy(load_practice, 'practiceView');
+const reviewView = lazy(load_practice, 'reviewView');
+const load_exams = () => import('./views/exams.js');
+const examsView = lazy(load_exams, 'examsView');
+const load_results = () => import('./views/results.js');
+const resultsView = lazy(load_results, 'resultsView');
+const load_runner = () => import('./views/runner.js');
+const runnerView = lazy(load_runner, 'runnerView');
+const load_flashcards = () => import('./views/flashcards.js');
+const libraryView = lazy(load_flashcards, 'libraryView');
+const setView = lazy(load_flashcards, 'setView');
+const editView = lazy(load_flashcards, 'editView');
+const learnView = lazy(load_flashcards, 'learnView');
+const testView = lazy(load_flashcards, 'testView');
+const matchView = lazy(load_flashcards, 'matchView');
+const importView = lazy(load_flashcards, 'importView');
+const load_formulas = () => import('./views/formulas.js');
+const formulasView = lazy(load_formulas, 'formulasView');
+const calculatorView = lazy(load_formulas, 'calculatorView');
+const load_speed = () => import('./views/speed.js');
+const speedView = lazy(load_speed, 'speedView');
+const load_learn = () => import('./views/learn.js');
+const learnHubView = lazy(load_learn, 'learnHubView');
+const courseView = lazy(load_learn, 'courseView');
+const lessonView = lazy(load_learn, 'lessonView');
+const load_legal = () => import('./views/legal.js');
+const privacyView = lazy(load_legal, 'privacyView');
+const termsView = lazy(load_legal, 'termsView');
+const load_donate = () => import('./views/donate.js');
+const donateView = lazy(load_donate, 'donateView');
+const load_content_admin = () => import('./views/content-admin.js');
+const contentAdminView = lazy(load_content_admin, 'contentAdminView');
+const load_ap = () => import('./views/ap.js');
+const apHubView = lazy(load_ap, 'apHubView');
+const apCourseView = lazy(load_ap, 'apCourseView');
+const load_about = () => import('./views/about.js');
+const aboutView = lazy(load_about, 'aboutView');
 
 export const BRAND = 'StudyFox';
 

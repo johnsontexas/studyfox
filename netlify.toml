@@ -1,0 +1,5 @@
+# Netlify runs the production build on every deploy: it bundles and minifies js/ and css/ into build/
+# and points index.html at it (tools/build-web.mjs). The repo itself still runs unbuilt for local work.
+[build]
+  publish = "."
+  command = "npm run build"

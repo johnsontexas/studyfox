@@ -44,6 +44,12 @@ export function bank(test) {
   cache[test + ':ids'] = new Map(out.map((e) => [e.id, e.no]));
   // Questions an admin removed keep their number but leave the bank.
   cache[test] = live.hidden.size ? out.filter((e) => !live.hidden.has(e.id)) : out;
+  // Saved for the home page, which shows the counts without building the bank.
+  try {
+    const n = JSON.parse(localStorage.getItem('sf_bank_counts') || '{}');
+    n[test === 'SAT' ? 'sat' : 'act'] = cache[test].length;
+    localStorage.setItem('sf_bank_counts', JSON.stringify(n));
+  } catch {}
   return cache[test];
 }
 
