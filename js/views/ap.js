@@ -5,7 +5,7 @@ import { $, esc, tex, toast, DIFF_LABEL } from '../util.js';
 import { store } from '../store.js';
 import { db, cloudEnabled } from '../cloud.js';
 import { COURSES, SUBJECTS } from '../content/courses.js';
-import { L, choiceFeedbackHTML, choiceNoteHTML, whatWentWrongHTML } from '../qview.js';
+import { L, choiceFeedbackHTML, choiceNoteHTML, tappableChoicesHTML, whatWentWrongHTML } from '../qview.js';
 import { choiceNotes } from '../explain.js';
 import { setting } from '../content/settings.js';
 import { classesBar, myStudying } from '../studying.js';
@@ -170,7 +170,7 @@ export function apCourseView(main, { course: cid }) {
         <div class="row gap center wrap"><button class="btn primary" id="apAgain">Another set</button><button class="btn" id="apBack">Back to units</button></div>
       </div>
       ${missed.length ? `<h2 class="h3">Review what you missed</h2><div class="stack">${missed.map(({ q, a }) => `<details class="card"><summary><b>${esc(q.concept || q.unit)}</b></summary>
-        <div class="stem">${rich(q.stem)}</div><ol class="choices static">${q.choices.map((c, i) => `<li class="${i === q.answer ? 'correct' : i === a ? 'wrong' : ''}"><span class="letter">${L(i)}</span> ${rich(c)}</li>`).join('')}</ol>
+        <div class="stem">${rich(q.stem)}</div>${tappableChoicesHTML(q, a, rich)}
         ${choiceFeedbackHTML(q, a, rich, { open: true })}
         <div class="expl"><b>Explanation.</b> ${rich(q.expl)}</div>${stepsHTML(q)}${whatWentWrongHTML('ap:' + q.id)}</details>`).join('')}</div>` : ''}`;
     st.lastPool = st.lastPool || null;

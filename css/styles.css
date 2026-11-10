@@ -1292,3 +1292,11 @@ h2, .section-title { font-weight: 700; letter-spacing: -.01em; font-size: 1.35re
 .feedback .choice-why, .feedback .why-yours { color: var(--ink); font-weight: 400; }
 .feedback .choice-why .cw-why { color: var(--ink-2); font-weight: 400; } .feedback .choice-why summary { color: var(--ink); }
 .theme-custom[hidden] { display: none; }
+.choices.tappable li { flex-wrap: wrap; padding: 0; border: 0; }
+.choices.tappable .choice-tap { flex: 1; display: flex; align-items: center; gap: .8rem; text-align: left; font: inherit; color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: 10px; padding: .6rem .8rem; cursor: pointer; }
+.choices.tappable .choice-tap:hover { border-color: var(--brand); }
+.choices.tappable li.correct .choice-tap { border-color: var(--good); background: var(--good-soft); }
+.choices.tappable li.wrong .choice-tap { border-color: var(--bad); background: var(--bad-soft); }
+.choices.tappable .choice-tap .ok, .choices.tappable .choice-tap .bad, .choices.tappable .cp-hint { margin-left: auto; font-size: .8rem; }
+.choices.tappable .choice-note { margin-top: .35rem; }
+.choice-why > summary, .q-steps > summary { display: block; }

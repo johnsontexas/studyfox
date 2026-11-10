@@ -3,7 +3,7 @@ import { icon, sticker } from '../icons.js';
 import { $, esc, tex, toast, newSeed, fmtTime, uid, checkSpr, DIFF_LABEL } from '../util.js';
 import { store } from '../store.js';
 import { SECTIONS, keysFor, buildSet } from '../gen/index.js';
-import { L, reviewHTML } from '../qview.js';
+import { L, reviewHTML, tappableChoicesHTML } from '../qview.js';
 import { COURSES } from '../content/courses.js';
 import { apCounts, apQuestions, pickAP, recordAP, rich } from './ap.js';
 
@@ -200,7 +200,7 @@ export function speedView(main) {
         <div class="row gap center"><button class="btn primary" id="again">Go again</button><button class="btn" id="change">Change settings</button></div>
       </div>
       ${missed.length ? `<h2 class="h3">Review what you missed</h2><div class="stack">${missed.map((x) => { const q = byId.get(x.id); if (!q) return ''; return `<details class="card"><summary><b>${esc(q.skill || 'Question')}</b></summary>${q.ap
-        ? `<div class="stem">${rich(q.stem)}</div><ol class="choices static">${q.choices.map((c, i) => `<li class="${i === q.answer ? 'correct' : i === x.a ? 'wrong' : ''}"><span class="letter">${L(i)}</span> ${rich(c)}</li>`).join('')}</ol><div class="expl">${rich(q.expl)}</div>`
+        ? `<div class="stem">${rich(q.stem)}</div>${tappableChoicesHTML(q, x.a, rich)}<div class="expl">${rich(q.expl)}</div>`
         : reviewHTML(q, x.a, { showTags: false })}</details>`; }).join('')}</div>` : ''}
     </div>`;
   }

@@ -19,6 +19,17 @@ export function choiceNoteHTML(q, i, fmt = tex) {
 }
 
 /**
+ * Answered choices that stay tappable: tap any one to open why it's right or wrong underneath it.
+ * Works anywhere (results, mistake log, reviews) through the document click handler below.
+ */
+export function tappableChoicesHTML(q, chosen, fmt = tex) {
+  return `<ol class="choices static tappable">${q.choices.map((c, i) => `<li class="${i === q.answer ? 'correct' : i === chosen ? 'wrong' : ''}">
+    <button type="button" class="choice-tap" data-cpeek aria-expanded="false"><span class="letter">${L(i)}</span><span class="ctext">${fmt(c)}</span>${i === q.answer ? '<span class="ok">Correct</span>' : i === chosen ? '<span class="bad">Your answer</span>' : '<span class="muted small cp-hint">Why not?</span>'}</button>
+    <div class="choice-note ${i === q.answer ? 'right' : 'wrong'}" hidden>${choiceNoteHTML(q, i, fmt)}</div></li>`).join('')}</ol>
+    <p class="small muted tap-hint">Tap any choice to see why it's right or wrong.</p>`;
+}
+
+/**
  * Explanations for a multiple-choice question after it's answered: why the student's pick is wrong,
  * then every choice explained. `fmt` renders text (tex or rich).
  */
@@ -73,7 +84,7 @@ export function reviewHTML(q, chosen, { showTags = true } = {}) {
   if (q.type === 'spr') {
     ans = `<div class="spr-review"><div>Your answer: <b>${chosen ? esc(chosen) : '—'}</b> ${chosen ? (right ? `<span class="ok">${icon('check')}</span>` : `<span class="bad">${icon('x')}</span>`) : ''}</div><div>Correct answer: <b>${tex(`$${q.answerDisplay}$`)}</b>${q.accept.length && !Number.isInteger(q.accept[0]) ? ` <span class="muted">(${+q.accept[0].toFixed(4)} also accepted)</span>` : ''}</div></div>`;
   } else {
-    ans = `<ol class="choices static">${q.choices.map((c, i) => `<li class="${i === q.answer ? 'correct' : ''} ${i === chosen && i !== q.answer ? 'wrong' : ''}"><span class="letter">${L(i)}</span><span class="ctext">${tex(c)}</span>${i === q.answer ? '<span class="ok">Correct</span>' : i === chosen ? '<span class="bad">Your answer</span>' : ''}</li>`).join('')}</ol>`;
+    ans = tappableChoicesHTML(q, chosen);
   }
   return `<div class="qreview">
     ${showTags ? tagLine(q) : ''}
@@ -90,4 +101,14 @@ export function reviewHTML(q, chosen, { showTags = true } = {}) {
   </div>`;
 }
 
-if (typeof document !== 'undefined') document.addEventListener('click', handleWhatWentWrong);
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', handleWhatWentWrong);
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-cpeek]');
+    if (!b) return;
+    const note = b.nextElementSibling, open = note.hidden;
+    note.hidden = !open;
+    b.setAttribute('aria-expanded', open);
+    b.closest('li').classList.toggle('peeking', open);
+  });
+}
