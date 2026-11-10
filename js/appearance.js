@@ -35,6 +35,7 @@ function css(p) {
   const light = `--brand: ${p.light}; --brand-2: color-mix(in srgb, ${p.light} 80%, #000); --brand-ink: ${inkOn(p.light)};
     --brand-soft: color-mix(in srgb, ${p.light} 13%, #ffffff); --accent: ${p.accent};
     --bg: color-mix(in srgb, ${p.light} ${p.tint}%, #f8f8f6); --surface-2: color-mix(in srgb, ${p.light} ${Math.max(4, p.tint + 4)}%, #f3f3f1);
+    --hero-a: ${p.light}; --hero-b: color-mix(in srgb, ${p.light} 78%, #000); --hero-da: color-mix(in srgb, ${p.light} 70%, #000); --hero-db: color-mix(in srgb, ${p.light} 45%, #000); --hero-ring: color-mix(in srgb, ${p.light} 55%, #000); --hero-ring-l: color-mix(in srgb, ${p.light} 85%, #000);
     --line: color-mix(in srgb, ${p.light} ${Math.max(6, p.tint + 6)}%, #e4e4e1); --line-strong: color-mix(in srgb, ${p.light} ${Math.max(10, p.tint + 10)}%, #cfcfcb);`;
   const darkInk = p.dark.startsWith('#') ? inkOn(p.dark) : '#0b0d0c';
   const dark = `--brand: ${p.dark}; --brand-2: color-mix(in srgb, ${p.dark} 80%, #fff); --brand-ink: ${darkInk};

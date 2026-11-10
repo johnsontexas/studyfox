@@ -1067,10 +1067,10 @@ input, select, textarea { border-radius: 12px; }
 .facts dt { font-variant-numeric: tabular-nums; }
 
 /* Dashboard banner: the app's deep forest card rather than a flat neon slab. */
-.dash-hero { border-radius: 20px; background: linear-gradient(160deg, #1f6b47, #174f35); color: #fff; }
-.dash-ring > div { background: #1a5a3c; }
-:root[data-theme="dark"] .dash-hero { background: linear-gradient(160deg, #1d4a32, #123222); } :root[data-theme="dark"] .dash-ring > div { background: #183f2b; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .dash-hero { background: linear-gradient(160deg, #1d4a32, #123222); } :root:not([data-theme="light"]) .dash-ring > div { background: #183f2b; } }
+.dash-hero { border-radius: 20px; background: linear-gradient(160deg, var(--hero-a, #1f6b47), var(--hero-b, #174f35)); color: #fff; }
+.dash-ring > div { background: var(--hero-ring-l, #1a5a3c); }
+:root[data-theme="dark"] .dash-hero { background: linear-gradient(160deg, var(--hero-da, #1d4a32), var(--hero-db, #123222)); } :root[data-theme="dark"] .dash-ring > div { background: var(--hero-ring, #183f2b); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .dash-hero { background: linear-gradient(160deg, var(--hero-da, #1d4a32), var(--hero-db, #123222)); } :root:not([data-theme="light"]) .dash-ring > div { background: var(--hero-ring, #183f2b); } }
 :root[data-theme="dark"] :is(.ap-ic, .subj-ic, .q-ic) { background: color-mix(in srgb, var(--t, var(--brand)) 62%, #000); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) :is(.ap-ic, .subj-ic, .q-ic) { background: color-mix(in srgb, var(--t, var(--brand)) 62%, #000); } }
 
