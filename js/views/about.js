@@ -1,8 +1,46 @@
 // About StudyFox: why it's free, the philosophy behind it, and the person who made it. Bio from johnsontexas.com.
+// The page text is editable in Supabase (site_pages, slug 'about'; Admin > Content > People and pages).
+// The built-in version below is used until that loads, or if the row is missing.
 import { icon } from '../icons.js';
+import { esc } from '../util.js';
+import { PEOPLE } from '../content/people.js';
+import { onContent } from '../content/live.js';
+import { teamHTML } from './contributors.js';
 import { BETTERU_URL, CREATOR, CREATOR_SITE, CREATOR_EMAIL, INSTAGRAM, STUDYFOX_INSTAGRAM, STUDYFOX_TIKTOK, SUPPORT_EMAIL } from '../config.js';
 
+const withIcons = (html) => String(html || '').replace(/\{\{icon:([a-z-]+)\}\}/g, (_, n) => icon(n));
+
+function followHTML() {
+  return `<section class="card row between wrap gap">
+      <div><h2 class="h3">Follow StudyFox</h2><p class="muted">New courses, features, and study tips.</p></div>
+      <div class="row gap wrap">
+        <a class="btn primary" href="https://www.tiktok.com/@${STUDYFOX_TIKTOK}" target="_blank" rel="noopener">${icon('tiktok')} @${STUDYFOX_TIKTOK}</a>
+        <a class="btn" href="https://instagram.com/${STUDYFOX_INSTAGRAM}" target="_blank" rel="noopener">${icon('instagram')} @${STUDYFOX_INSTAGRAM}</a>
+      </div>
+    </section>`;
+}
+
+/** The About page from site_pages: a title, an intro, then sections (card, plain, or the team list). */
+function livePage(root, p) {
+  const sec = (x) => {
+    if (x.style === 'team') return `<section class="stack">${x.title ? `<h2 class="h3">${esc(x.title)}</h2>` : ''}${teamHTML()}<p class="small"><a href="#/contributors">${icon('users')} All contributors and top sharers</a></p></section>`;
+    if (x.image) return `<section class="card about-me"><img src="${esc(x.image)}" alt="${esc(x.image_alt || '')}" width="480" height="712" loading="lazy"><div class="stack">${x.title ? `<h2 class="h3">${esc(x.title)}</h2>` : ''}${withIcons(x.html)}</div></section>`;
+    return `<section class="${x.style === 'plain' ? '' : 'card '}stack">${x.title ? `<h2 class="h3">${esc(x.title)}</h2>` : ''}${withIcons(x.html)}</section>`;
+  };
+  root.innerHTML = `<div class="page narrow-wide about stack">
+    <div class="page-head"><span class="eyebrow">${icon('heart')} About</span><h1>${esc(p.title)}</h1>${p.intro ? `<p class="muted">${esc(p.intro)}</p>` : ''}</div>
+    ${(p.sections || []).map(sec).join('')}
+    ${followHTML()}
+  </div>`;
+}
+
 export function aboutView(root) {
+  const draw = () => { if (PEOPLE.pages.about?.sections?.length) livePage(root, PEOPLE.pages.about); else builtIn(root); };
+  draw();
+  return onContent(draw);
+}
+
+function builtIn(root) {
   root.innerHTML = `<div class="page narrow-wide about stack">
     <div class="page-head"><span class="eyebrow">${icon('heart')} About</span><h1>Free, because everyone deserves the resources to learn</h1>
       <p class="muted">StudyFox gives every high school student free courses for every AP class, AP practice questions, SAT and ACT prep, and flashcards. No ads, no paywalls, no premium tier, and no limits.</p></div>

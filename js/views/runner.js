@@ -6,7 +6,7 @@ import { regen } from '../gen/index.js';
 import { bankNo } from '../gen/bank.js';
 import { ensureModule, scoreExam, isCorrect } from '../exams.js';
 import { toggleCalculator, destroyCalculator, openReference, modal } from '../tools.js';
-import { L, diffPill } from '../qview.js';
+import { L, diffPill, choiceFeedbackHTML, whatWentWrongHTML } from '../qview.js';
 import { explainHelp, questionHelp } from '../i18n.js';
 
 let run = null;
@@ -103,7 +103,7 @@ export function runnerView(root) {
       }).join('')}</ol>`;
     }
     const feedback = run.feedback ? (checked
-      ? `<div class="feedback ${isCorrect(q, chosen) ? 'ok' : 'bad'}"><b>${isCorrect(q, chosen) ? 'Correct!' : 'Not quite.'}</b> ${q.type === 'spr' ? `Correct answer: ${tex(`$${q.answerDisplay}$`)}. ` : `The answer is ${L(q.answer)}. `}<div class="expl">${tex(q.expl)}</div>${explainHelp(q.expl)}</div>`
+      ? `<div class="feedback ${isCorrect(q, chosen) ? 'ok' : 'bad'}"><b>${isCorrect(q, chosen) ? 'Correct!' : 'Not quite.'}</b> ${q.type === 'spr' ? `Correct answer: ${tex(`$${q.answerDisplay}$`)}. ` : `The answer is ${L(q.answer)}. `}<div class="expl">${tex(q.expl)}</div>${choiceFeedbackHTML(q, chosen)}${isCorrect(q, chosen) ? '' : whatWentWrongHTML(q.id)}${explainHelp(q.expl)}</div>`
       : `<div class="row gap"><button class="btn primary" data-act="check" ${chosen == null || chosen === '' ? 'disabled' : ''}>Check answer</button><button class="btn ghost" data-act="reveal">Show explanation</button></div>`) : '';
     const sprHelp = q.type === 'spr' ? `<details class="spr-help"><summary>How to enter your answer</summary><ul><li>Enter one correct answer, even if more than one is possible.</li><li>Positive answers: up to 5 characters; negative answers: up to 6 (including the sign).</li><li>Fractions like <b>3/4</b> or decimals like <b>.75</b> are both fine. Don't enter symbols like %, commas, or $.</li></ul></details>` : '';
 
@@ -321,7 +321,7 @@ export function runnerView(root) {
         store.recordAnswer(q, isCorrect(q, m.answers[run.qi])); store.save();
         persist(true); render(); break;
       }
-      case 'reveal': $('#revealed', tr).innerHTML = `<div class="feedback"><b>Answer:</b> ${curQ().type === 'spr' ? tex(`$${curQ().answerDisplay}$`) : L(curQ().answer)}<div class="expl">${tex(curQ().expl)}</div>${explainHelp(curQ().expl)}</div>`; break;
+      case 'reveal': $('#revealed', tr).innerHTML = `<div class="feedback"><b>Answer:</b> ${curQ().type === 'spr' ? tex(`$${curQ().answerDisplay}$`) : L(curQ().answer)}<div class="expl">${tex(curQ().expl)}</div>${choiceFeedbackHTML(curQ(), null)}${explainHelp(curQ().expl)}</div>`; break;
       case 'home': {
         const exam = run.kind === 'exam';
         const hm = modal(`<p>Going home will <b>end this ${exam ? 'practice test' : 'practice session'}</b>. ${run.feedback ? 'Answers you already checked stay in your progress, but' : 'Your answers in'} this ${exam ? 'test' : 'set'} won't be saved or scored.</p>

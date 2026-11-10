@@ -90,6 +90,7 @@ export function customQuestion(id) {
     id, key: 'custom', test, section: q.section, domain: q.domain, skill: q.skill, difficulty: q.difficulty,
     passage: q.passage || '', stem: q.stem, figure: '', expl: q.expl || '', uid: id, group: null,
     type: 'mc', choices: q.choices, answer: q.answer,
+    ...(q.choice_expl ? { choiceExpl: q.choice_expl } : {}), hint: q.hint || '', steps: q.steps || null,
   };
 }
 

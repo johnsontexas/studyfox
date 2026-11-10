@@ -4,7 +4,8 @@ import { icon } from './icons.js';
 import { toast } from './util.js';
 import { modal } from './tools.js';
 import { SHARE_KINDS, shareMessage } from './share-text.js';
-import { SITE_URL } from './config.js';
+import { referralUrl, myNumber } from './members.js';
+import { store } from './store.js';
 
 const W = 1080, H = 1920;
 const FOX = 'M8 6l16 14h16l16-14-2 30-22 24-22-24z';
@@ -115,7 +116,7 @@ export function openShare(start = 'streak') {
     const msg = shareMessage(kind);
     if (a === 'text') location.href = `sms:?&body=${encodeURIComponent(msg.text)}`;
     else if (a === 'email') location.href = `mailto:?subject=${encodeURIComponent('Check out StudyFox')}&body=${encodeURIComponent(msg.text)}`;
-    else if (a === 'copy') { try { await navigator.clipboard.writeText(kind === 'site' ? SITE_URL : msg.text); toast('Copied.', 'good'); } catch { toast("Couldn't copy. Select the text above instead."); } }
+    else if (a === 'copy') { try { await navigator.clipboard.writeText(kind === 'site' ? referralUrl(store.user() ? myNumber() : null) : msg.text); toast('Copied.', 'good'); } catch { toast("Couldn't copy. Select the text above instead."); } }
     else if (a === 'story' || a === 'save') {
       const blob = await toBlob(drawCard(kind, theme));
       const file = new File([blob], `studyfox-${kind}.png`, { type: 'image/png' });

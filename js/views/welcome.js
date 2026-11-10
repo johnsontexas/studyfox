@@ -2,7 +2,9 @@
 import { $, esc, toast } from '../util.js';
 import { store } from '../store.js';
 import { langOptions, profOptions } from '../i18n.js';
-import { cloudSignOut, deleteAccount } from '../cloud.js';
+import { cloudSignOut, deleteAccount, db } from '../cloud.js';
+import { setting } from '../content/settings.js';
+import { pendingRef, clearRef, setReferrer, updateMemberProfile, loadMember, ordinal } from '../members.js';
 import { recordAgreement, takeAfterLogin } from './account.js';
 import { studyPicker, setStudying } from '../studying.js';
 
@@ -14,6 +16,24 @@ const GOALS = [
   ['flashcards', 'Making flashcards'], ['english', 'Improving my English'], ['other', 'Something else'],
 ];
 const GRADES = ['6th grade or below', '7th grade', '8th grade', '9th grade', '10th grade', '11th grade', '12th grade', 'College', 'Not in school'];
+
+// "How did you hear about StudyFox?" (optional). The choices come from content_settings.onboarding.
+const DETAIL_FOR = ['other', 'other_creator', 'teacher'];
+function heardAboutHTML(s) {
+  const cfg = setting('onboarding');
+  if (!cfg.ask_heard_about) return '';
+  const cur = s.heardAbout?.source || (pendingRef() ? 'friend' : '');
+  return `<label>How did you hear about StudyFox? <span class="muted small">Optional</span>
+      <select name="heard"><option value="">Choose one</option>${(cfg.heard_about_options || []).map((o) => `<option value="${esc(o.id)}" ${cur === o.id ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}</select></label>
+    <label id="heardMore" ${DETAIL_FOR.includes(cur) ? '' : 'hidden'}>Tell us more <span class="muted small">Optional, like the creator's name</span><input name="heardDetail" maxlength="200" value="${esc(s.heardAbout?.detail || '')}"></label>`;
+}
+function saveHeardAbout(f, u) {
+  const source = f.heard?.value;
+  if (!source) return;
+  const detail = DETAIL_FOR.includes(source) ? (f.heardDetail?.value || '').trim().slice(0, 200) : '';
+  store.data().settings.heardAbout = { source, detail };
+  if (u.cloud) db().then((c) => c?.from('signup_sources').upsert({ user_id: u.id, source, detail, platform: 'web' })).then((r) => r?.error && console.warn(r.error)).catch(console.warn);
+}
 
 export const needsOnboarding = () => !!store.user() && !store.data().settings.onboarded;
 
@@ -70,6 +90,10 @@ export function welcomeView(root) {
       <label>Primary language<select name="lang" id="lang">${langOptions(s.lang || 'en')}</select></label>
       <label id="profWrap" ${(s.lang || 'en') === 'en' ? 'hidden' : ''}>How well do you read English?<select name="english">${profOptions(s.english || 'intermediate')}</select></label>
 
+      ${heardAboutHTML(s)}
+      ${store.user()?.cloud ? `<label>Did a friend share StudyFox with you? <span class="muted small">Optional: their StudyFox user number, from their link or their Settings page</span>
+        <span class="row gap"><b aria-hidden="true">#</b><input name="friend" inputmode="numeric" pattern="[0-9]*" maxlength="9" value="${esc(pendingRef())}" placeholder="Like 42" aria-label="Friend's user number"></span></label>` : ''}
+
       <div class="consents">
         <label class="consent"><input type="checkbox" name="emails" ${s.emails ? 'checked' : ''}> <span>Email me about new courses, features, and study opportunities like scholarships and competitions. You can turn this off anytime in Settings.</span></label>
         <label class="consent"><input type="checkbox" name="agree" required> <span>I agree to the <a href="#/terms" target="_blank">Terms of Use</a> and <a href="#/privacy" target="_blank">Privacy Policy</a>.</span></label>
@@ -82,6 +106,8 @@ export function welcomeView(root) {
   let studying = s.studying || [];
   studyPicker($('#studyPick', root), studying, (ids) => { studying = ids; });
   $('#lang', root).onchange = (e) => { $('#profWrap', root).hidden = e.target.value === 'en'; };
+  const heard = f.querySelector('[name=heard]');
+  if (heard) heard.onchange = () => { $('#heardMore', root).hidden = !DETAIL_FOR.includes(heard.value); };
   f.addEventListener('submit', async (e) => {
     e.preventDefault();
     const err = $('#err', root); err.textContent = '';
@@ -90,6 +116,8 @@ export function welcomeView(root) {
     if (!f.name.value.trim()) return fail('Enter your name.', f.name);
     if (!dob || isNaN(new Date(dob)) || dob > maxDob || ageOn(dob) > 120) return fail('Enter a valid date of birth.', f.dob);
     if (!f.agree.checked) return fail('Please agree to the Terms of Use and Privacy Policy to continue.', f.agree);
+    const friend = (f.friend?.value || '').trim().replace(/^#/, '');
+    if (friend && !/^\d{1,9}$/.test(friend)) return fail("A friend's user number is digits only, like 42.", f.friend);
 
     if (ageOn(dob) < MIN_AGE) {
       // Under 13: keep nothing. Remember only the date they can come back, on this device.
@@ -100,6 +128,14 @@ export function welcomeView(root) {
       location.replace('#/too-young');
       return;
     }
+
+    // Which friend shared StudyFox (checked by the server: the number must exist and can't be yours).
+    if (friend && u.cloud) {
+      const r = await setReferrer(db(), friend);
+      if (r === 'not_found') return fail(`We couldn't find user #${friend}. Check the number with your friend, or leave it blank.`, f.friend);
+      if (r === 'self') return fail("That's your own user number. Enter your friend's number, or leave it blank.", f.friend);
+      clearRef();
+    } else if (!friend) clearRef();
 
     // Goals keep their old shape (sat, act, ap, ...) so anything reading them still works.
     const goals = [...f.querySelectorAll('[name=goals]:checked')].map((x) => x.value);
@@ -114,10 +150,14 @@ export function welcomeView(root) {
       focus: goals.includes('act') && !goals.includes('sat') ? 'ACT' : (cur.focus || 'SAT'),
       lang: f.lang.value, english: f.lang.value === 'en' ? '' : f.english.value,
     });
+    saveHeardAbout(f, u);
     setStudying(studying);
     recordAgreement(); // also saves
     store.updateProfile({ name: f.name.value.trim() });
-    toast(`Welcome to StudyFox, ${f.name.value.trim()}!`, 'good');
+    if (u.cloud) {
+      updateMemberProfile(db(), f.name.value.trim(), true);
+      loadMember(db()).then((m) => m && toast(`Welcome to StudyFox, ${f.name.value.trim()}! You're user #${m.no}, the ${ordinal(m.no)} student to join.`, 'good'));
+    } else toast(`Welcome to StudyFox, ${f.name.value.trim()}!`, 'good');
     location.hash = takeAfterLogin();
   });
 }

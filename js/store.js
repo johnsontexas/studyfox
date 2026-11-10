@@ -39,6 +39,10 @@ function merge(a, b) {
   out.sets = byId(a.sets, b.sets).filter((s) => !(out.deletedSets[s.id] >= (s.updated || 0)));
   out.mistakes = { ...b.mistakes, ...a.mistakes };
   out.saved = { ...b.saved, ...a.saved };
+  out.mistakeTags = { ...b.mistakeTags, ...a.mistakeTags };
+  // Interactive lesson progress: keep the furthest screen reached on either device.
+  out.lessonState = { ...b.lessonState };
+  for (const k in a.lessonState || {}) if (!out.lessonState[k] || (a.lessonState[k].ts || 0) > (out.lessonState[k].ts || 0)) out.lessonState[k] = a.lessonState[k];
   // Each set's progress (mastery, stars, the Know / Still learning round) comes from whichever device
   // changed it last, so studying a set on one device isn't undone by an older copy from another.
   out.setProgress = { ...b.setProgress };

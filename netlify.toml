@@ -3,3 +3,14 @@
 [build]
   publish = "."
   command = "npm run build"
+
+# Referral links (studyfox.org/referral/123) open the site with ?ref=123; js/members.js remembers it
+# so onboarding can fill in which friend shared StudyFox. The misspelling is caught too.
+[[redirects]]
+  from = "/referral/:no"
+  to = "/?ref=:no"
+  status = 302
+[[redirects]]
+  from = "/refferal/:no"
+  to = "/?ref=:no"
+  status = 302

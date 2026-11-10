@@ -232,3 +232,15 @@ select d::date,
 from generate_series((select min(created_at at time zone 'America/Chicago')::date from auth.users),
                      (now() at time zone 'America/Chicago')::date, interval '1 day') d
 on conflict (day) do nothing;
+
+-- Student retention: one row per student per active day (web + app log it after sync). Admins read.
+-- Views: retention_daily (DAU/WAU/MAU), retention_cohorts (week 1/2/4/8 return rates by signup week).
+-- Full definition applied as migration "student_retention".
+
+-- Interactive lessons (lessons.blocks), per-choice question explanations (choice_expl, hint, steps),
+-- editable behavior settings (content_settings), and "How did you hear about StudyFox?" (signup_sources).
+-- Full definition in supabase/interactive_courses.sql (applied as migration "interactive_courses_and_rich_explanations").
+
+-- Contributors page and footer credit (contributors), editable About page (site_pages), permanent user numbers
+-- (members: #1 was the first sign-up, never reused), and friend referrals (members.referred_by, top_sharers()).
+-- Full definition in supabase/members_and_contributors.sql (applied as migration "members_contributors_referrals").
