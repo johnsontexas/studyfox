@@ -1,7 +1,7 @@
 // What students can share: their streak, their progress, or the site itself.
 // No DOM here, so the iOS app uses the same wording and numbers.
 import { store } from './store.js';
-import { SITE_URL } from './config.js';
+import { referralUrl, myNumber } from './members.js';
 
 export const SHARE_KINDS = [
   ['streak', 'My streak', 'flame'],
@@ -24,7 +24,8 @@ export function shareStats() {
 /** { title, big, small, text } for a share card and message. */
 export function shareMessage(kind) {
   const s = shareStats();
-  const url = SITE_URL.replace(/\/$/, '');
+  // Signed-in students share their referral link, so a friend's sign-up fills in who sent them.
+  const url = referralUrl(store.user() ? myNumber() : null);
   if (kind === 'streak') {
     const big = String(s.streak);
     return { title: 'Study streak', big, small: s.streak === 1 ? 'day in a row studying' : 'days in a row studying',

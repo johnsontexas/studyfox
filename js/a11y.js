@@ -1,4 +1,4 @@
-// Accessibility options from Settings: reading font (incl. OpenDyslexic), text size, spacing,
+// Accessibility options from Settings: reading font (incl. OpenDyslexic; picked in the Appearance card), text size, spacing,
 // contrast, motion, and link underlines. Each one is a data attribute on <html> that styles.css reads.
 import { store } from './store.js';
 
@@ -8,6 +8,8 @@ const FONT_CSS = {
   dyslexic: ['https://cdn.jsdelivr.net/npm/@fontsource/opendyslexic@5/index.css', 'https://cdn.jsdelivr.net/npm/@fontsource/opendyslexic@5/700.css'],
   lexend: ['https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap'],
   atkinson: ['https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap'],
+  nunito: ['https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap'],
+  comic: ['https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap'],
 };
 
 export const a11y = () => ({ ...A11Y_DEFAULTS, ...(store.data().settings.a11y || {}) });
@@ -31,14 +33,8 @@ const toggle = (key, label, hint) => `<label class="a11y-toggle"><span><b>${labe
 
 export const a11yCardHTML = () => `<div class="card stack" id="a11yCard">
   <h2 class="h3">Accessibility</h2>
-  <p class="muted small">Changes apply right away on this device.</p>
+  <p class="muted small">Changes apply right away. Fonts, including OpenDyslexic, are under Appearance.</p>
   <div class="grid2">
-    <label>Reading font<select data-a11y="font">
-      <option value="default">StudyFox default</option>
-      <option value="dyslexic">OpenDyslexic (dyslexia-friendly)</option>
-      <option value="lexend">Lexend (easier reading)</option>
-      <option value="atkinson">Atkinson Hyperlegible (low vision)</option>
-    </select></label>
     <label>Text size<select data-a11y="size">
       <option value="normal">Normal</option><option value="large">Large</option><option value="xl">Extra large</option>
     </select></label>

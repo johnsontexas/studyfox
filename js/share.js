@@ -4,7 +4,9 @@ import { icon } from './icons.js';
 import { toast } from './util.js';
 import { modal } from './tools.js';
 import { SHARE_KINDS, shareMessage } from './share-text.js';
-import { SITE_URL } from './config.js';
+import { referralUrl, myNumber, loadMember, ordinal } from './members.js';
+import { db } from './cloud.js';
+import { store } from './store.js';
 
 const W = 1080, H = 1920;
 const FOX = 'M8 6l16 14h16l16-14-2 30-22 24-22-24z';
@@ -71,7 +73,9 @@ function drawCard(kind, themeId = 'forest') {
   g.font = `800 ${bigSize}px system-ui, sans-serif`; g.fillStyle = t.accent; g.fillText(m.big, W / 2, 820 + 60 + bigSize);
   g.fillStyle = t.ink; g.font = '500 66px system-ui, sans-serif';
   wrap(g, m.small, W / 2, 1360, 820, 84);
-  g.font = '800 88px system-ui, sans-serif'; g.fillText('studyfox.org', W / 2, 1700);
+  // Signed-in students' cards carry their referral link, so a friend can type it in.
+  const link = referralUrl(store.user() ? myNumber() : null).replace(/^https?:\/\//, '');
+  g.font = `800 ${link.length > 14 ? 64 : 88}px system-ui, sans-serif`; g.fillText(link, W / 2, 1700);
   g.font = '500 48px system-ui, sans-serif'; g.fillStyle = t.sub; g.fillText('Free. No ads. No paywalls.', W / 2, 1770);
   return cv;
 }
@@ -92,6 +96,7 @@ export function openShare(start = 'streak') {
       <div class="seg full" id="shKind">${SHARE_KINDS.map(([k, t]) => `<button data-k="${k}">${t}</button>`).join('')}</div>
       <div class="share-preview"><img id="shImg" alt="Preview of the image you'll share"></div>
       <div class="share-themes" id="shTheme" aria-label="Card design">${THEMES.map((t) => `<button data-t="${t.id}" class="sw-${t.id}" title="${t.name}"><span>${t.name}</span></button>`).join('')}</div>
+      <div class="share-link" id="shLink"></div>
       <p class="muted small" id="shText"></p>
       <div class="share-actions">
         <button class="btn" data-a="text">${icon('mail')} Text</button>
@@ -107,6 +112,10 @@ export function openShare(start = 'streak') {
     el.querySelectorAll('[data-t]').forEach((b) => b.classList.toggle('on', b.dataset.t === theme));
     el.querySelector('#shImg').src = drawCard(kind, theme).toDataURL('image/png');
     el.querySelector('#shText').textContent = shareMessage(kind).text;
+    const no = store.user() ? myNumber() : null;
+    el.querySelector('#shLink').innerHTML = no
+      ? `<div><b>Your link</b> <span class="muted small">You're student #${no}, the ${ordinal(no)} to join. Friends who sign up with it get your number filled in.</span></div><code>${referralUrl(no).replace(/^https?:\/\//, '')}</code>`
+      : store.user()?.cloud ? '<span class="muted small">Loading your link…</span>' : '';
   };
   el.addEventListener('click', async (e) => {
     const k = e.target.closest('[data-k]'); if (k) { kind = k.dataset.k; return draw(); }
@@ -115,7 +124,7 @@ export function openShare(start = 'streak') {
     const msg = shareMessage(kind);
     if (a === 'text') location.href = `sms:?&body=${encodeURIComponent(msg.text)}`;
     else if (a === 'email') location.href = `mailto:?subject=${encodeURIComponent('Check out StudyFox')}&body=${encodeURIComponent(msg.text)}`;
-    else if (a === 'copy') { try { await navigator.clipboard.writeText(kind === 'site' ? SITE_URL : msg.text); toast('Copied.', 'good'); } catch { toast("Couldn't copy. Select the text above instead."); } }
+    else if (a === 'copy') { try { await navigator.clipboard.writeText(referralUrl(store.user() ? myNumber() : null)); toast('Link copied.', 'good'); } catch { toast("Couldn't copy. Select the text above instead."); } }
     else if (a === 'story' || a === 'save') {
       const blob = await toBlob(drawCard(kind, theme));
       const file = new File([blob], `studyfox-${kind}.png`, { type: 'image/png' });
@@ -129,5 +138,6 @@ export function openShare(start = 'streak') {
     }
   });
   draw();
+  if (store.user()?.cloud && !myNumber()) loadMember(db()).then(() => { if (el.isConnected) draw(); });
   return m;
 }

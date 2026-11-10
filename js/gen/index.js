@@ -59,6 +59,7 @@ function finalize(base, out, { key, test, d, seed }) {
     q.type = 'spr'; q.accept = out.spr.accept; q.answerDisplay = out.spr.display;
   } else {
     q.type = 'mc'; q.choices = out.mc.choices; q.answer = out.mc.answer;
+    if (out.mc.why?.some(Boolean)) q.choiceExpl = out.mc.why;
   }
   return q;
 }
@@ -90,6 +91,7 @@ export function customQuestion(id) {
     id, key: 'custom', test, section: q.section, domain: q.domain, skill: q.skill, difficulty: q.difficulty,
     passage: q.passage || '', stem: q.stem, figure: '', expl: q.expl || '', uid: id, group: null,
     type: 'mc', choices: q.choices, answer: q.answer,
+    ...(q.choice_expl ? { choiceExpl: q.choice_expl } : {}), hint: q.hint || '', steps: q.steps || null,
   };
 }
 

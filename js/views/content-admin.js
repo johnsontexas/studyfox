@@ -9,6 +9,8 @@ import { SUBJECTS } from '../content/courses.js';
 import { initContent, invalidateContent } from '../content/live.js';
 import { SECTIONS, taxonomy } from '../gen/index.js';
 import { bank } from '../gen/bank.js';
+import { mountBlockEditor } from './content-admin-blocks.js';
+import { apQuestionsPane, settingsPane, peoplePane } from './content-admin-more.js';
 
 const slug = (s) => String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
 const val = (root, sel) => $(sel, root)?.value ?? '';
@@ -33,12 +35,15 @@ export function contentAdminView(root) {
       <a class="small" href="#/admin">${icon('left')} Admin console</a>
       <div class="page-head"><span class="eyebrow">${icon('shield')} Content</span><h1>Lessons, decks, and questions</h1>
         <p class="muted">Edits go live on studyfox.org and the iOS app right away. No update needed. Students see changes the next time they open the site or the app.</p></div>
-      <div class="tabs">${[['courses', 'Courses and lessons'], ['questions', 'Questions'], ['decks', 'Flashcard decks']].map(([k, l]) => `<a class="${k === tab ? 'on' : ''}" href="#/admin/content?t=${k}">${l}</a>`).join('')}</div>
+      <div class="tabs">${[['courses', 'Courses and lessons'], ['questions', 'SAT/ACT questions'], ['ap', 'AP questions'], ['decks', 'Flashcard decks'], ['people', 'People and pages'], ['settings', 'Settings']].map(([k, l]) => `<a class="${k === tab ? 'on' : ''}" href="#/admin/content?t=${k}">${l}</a>`).join('')}</div>
       <div id="ce"></div></div>`;
     const host = $('#ce', root);
     const route = () => {
       const p = new URLSearchParams(location.hash.split('?')[1] || '');
       if (tab === 'questions') return questionsPane(host);
+      if (tab === 'ap') return apQuestionsPane(host, p.get('course') || '');
+      if (tab === 'settings') return settingsPane(host);
+      if (tab === 'people') return peoplePane(host);
       if (tab === 'decks') return p.get('deck') != null ? deckEditor(host, p.get('deck')) : decksPane(host);
       if (p.get('lesson') != null) return lessonEditor(host, p.get('course'), p.get('lesson'));
       if (p.get('course') != null) return courseEditor(host, p.get('course'));
@@ -114,7 +119,7 @@ async function courseEditor(host, id) {
 async function lessonEditor(host, courseId, lessonId) {
   const c = await db();
   const isNew = !lessonId;
-  const l = isNew ? { id: '', title: '', mins: 5, body: '', check: null, practice: null, desmos: null, hidden: false } : (await c.from('lessons').select('*').eq('course_id', courseId).eq('id', lessonId).single()).data;
+  const l = isNew ? { id: '', title: '', mins: 5, body: '', check: null, practice: null, desmos: null, blocks: null, hidden: false } : (await c.from('lessons').select('*').eq('course_id', courseId).eq('id', lessonId).single()).data;
   if (!l) { host.innerHTML = '<p class="muted">Lesson not found.</p>'; return; }
   const k = l.check || { q: '', choices: ['', '', '', ''], answer: 0, why: '' };
   host.innerHTML = `<a class="small" href="#/admin/content?course=${courseId}">${icon('left')} Back to course</a>
@@ -131,7 +136,11 @@ async function lessonEditor(host, courseId, lessonId) {
       <details open><summary><b>Preview</b></summary><article class="card lesson-body" id="preview"></article></details>
     </div>
     <div class="card stack">
-      <h2 class="h3">Quick check <span class="muted small">(optional; leave the question blank for none)</span></h2>
+      <h2 class="h3">${icon('bolt')} Interactive lesson</h2>
+      <div id="blocksEd"></div>
+    </div>
+    <div class="card stack">
+      <h2 class="h3">Quick check <span class="muted small">(classic lessons only; optional; leave the question blank for none)</span></h2>
       <label>Question<textarea id="kq" rows="2">${esc(k.q)}</textarea></label>
       ${[0, 1, 2, 3].map((i) => `<label class="row gap"><input type="radio" name="kans" value="${i}" ${k.answer === i ? 'checked' : ''} aria-label="Correct answer"> <span class="grow">Choice ${L(i)}<input data-kc="${i}" value="${esc(k.choices[i] || '')}"></span></label>`).join('')}
       <p class="muted small">Pick the circle next to the correct choice.</p>
@@ -145,6 +154,7 @@ async function lessonEditor(host, courseId, lessonId) {
     <div class="row gap wrap"><button class="btn primary lg" id="save">${isNew ? 'Create lesson' : 'Save lesson'}</button>${isNew ? '' : '<button class="btn ghost danger-text" id="del">Delete lesson</button>'}</div>`;
   const preview = () => { $('#preview', host).innerHTML = tex(val(host, '#body')); };
   preview();
+  const blocksEd = mountBlockEditor($('#blocksEd', host), l);
   $('#body', host).addEventListener('input', preview);
   $('#title', host).addEventListener('input', (e) => { if (isNew) $('#lid', host).value = slug(e.target.value); });
   $('#save', host).onclick = async () => {
@@ -157,9 +167,11 @@ async function lessonEditor(host, courseId, lessonId) {
     const row = {
       course_id: courseId, id: slug(val(host, '#lid')), title: val(host, '#title').trim(), mins: +val(host, '#mins') || 5, body: val(host, '#body'),
       check, practice: pr.length >= 2 ? { test: pr[0].toUpperCase(), section: pr[1], ...(pr.length > 2 ? { skills: pr.slice(2) } : {}) } : null,
-      desmos: desmos.length ? desmos : null, hidden: $('#hidden', host).checked,
+      desmos: desmos.length ? desmos : null, hidden: $('#hidden', host).checked, blocks: blocksEd.get(),
     };
     if (!row.title || !row.id) return toast('Add a title.', 'bad');
+    const probs = blocksEd.problems();
+    if (probs.length && !(await confirmBox(`Some blocks aren't finished:<br>${probs.slice(0, 6).map(esc).join('<br>')}<br><br>Save anyway?`, { ok: 'Save anyway' }))) return;
     if (isNew) {
       const { data: last } = await c.from('lessons').select('sort').eq('course_id', courseId).order('sort', { ascending: false }).limit(1);
       row.sort = (last?.[0]?.sort ?? -1) + 1;
@@ -212,7 +224,7 @@ async function questionsPane(host) {
 }
 
 function questionForm(box, q, done) {
-  const x = q || { test: 'SAT', section: 'math', domain: '', skill: '', difficulty: 2, passage: '', stem: '', choices: ['', '', '', ''], answer: 0, expl: '', hidden: false };
+  const x = q || { test: 'SAT', section: 'math', domain: '', skill: '', difficulty: 2, passage: '', stem: '', choices: ['', '', '', ''], answer: 0, expl: '', choice_expl: null, hint: '', steps: null, hidden: false };
   const opts = (test) => Object.entries(SECTIONS[test]).map(([k, v]) => `<option value="${k}" ${k === x.section ? 'selected' : ''}>${esc(v)}</option>`).join('');
   const lists = (test, section) => {
     const doms = taxonomy(test)[section] || {};
@@ -228,9 +240,12 @@ function questionForm(box, q, done) {
     </div><span id="qlists">${lists(x.test, x.section)}</span>
     <label>Passage <span class="muted small">(optional)</span><textarea id="qpass" rows="3">${esc(x.passage)}</textarea></label>
     <label>Question<textarea id="qstem" rows="3" placeholder="Math goes between dollar signs, like $2x + 3 = 11$.">${esc(x.stem)}</textarea></label>
-    ${[0, 1, 2, 3].map((i) => `<label class="row gap"><input type="radio" name="qans" value="${i}" ${x.answer === i ? 'checked' : ''} aria-label="Correct answer"> <span class="grow">Choice ${L(i)}<input data-qc="${i}" value="${esc(x.choices[i] || '')}"></span></label>`).join('')}
-    <p class="muted small">Pick the circle next to the correct choice.</p>
+    ${[0, 1, 2, 3].map((i) => `<div class="be-choice"><label class="row gap"><input type="radio" name="qans" value="${i}" ${x.answer === i ? 'checked' : ''} aria-label="Correct answer"> <span class="grow">Choice ${L(i)}<input data-qc="${i}" value="${esc(x.choices[i] || '')}"></span></label>
+      <label class="small">Why this choice is right, or the mistake that leads to it<textarea data-qw="${i}" rows="2">${esc((x.choice_expl || [])[i] || '')}</textarea></label></div>`).join('')}
+    <p class="muted small">Pick the circle next to the correct choice. Students who pick a wrong choice see its note first.</p>
     <label>Explanation<textarea id="qexpl" rows="3">${esc(x.expl)}</textarea></label>
+    <label>Hint <span class="muted small">(optional, shown before answering)</span><input id="qhint" value="${esc(x.hint || '')}"></label>
+    <label>Step-by-step solution <span class="muted small">(optional, one step per line)</span><textarea id="qsteps" rows="3">${esc((x.steps || []).join('\n'))}</textarea></label>
     <details><summary>Preview</summary><div class="card" id="qprev"></div></details>
     <div class="row gap"><button class="btn primary" id="qsave">${q ? 'Save question' : 'Add question'}</button>${q ? '<button class="btn ghost" id="qcancel">Cancel</button>' : ''}</div>`;
   const prev = () => {
@@ -244,7 +259,11 @@ function questionForm(box, q, done) {
   $('#qsave', box).onclick = async () => {
     const choices = [0, 1, 2, 3].map((i) => $(`[data-qc="${i}"]`, box).value.trim());
     const row = { test: val(box, '#qtest'), section: val(box, '#qsec'), domain: val(box, '#qdom').trim(), skill: val(box, '#qskill').trim(), difficulty: +val(box, '#qdiff'),
-      passage: val(box, '#qpass').trim(), stem: val(box, '#qstem').trim(), choices, answer: +(box.querySelector('[name=qans]:checked')?.value || 0), expl: val(box, '#qexpl').trim() };
+      passage: val(box, '#qpass').trim(), stem: val(box, '#qstem').trim(), choices, answer: +(box.querySelector('[name=qans]:checked')?.value || 0), expl: val(box, '#qexpl').trim(),
+      hint: val(box, '#qhint').trim(), steps: val(box, '#qsteps').split('\n').map((t) => t.trim()).filter(Boolean) };
+    const why = [0, 1, 2, 3].map((i) => $(`[data-qw="${i}"]`, box).value.trim());
+    row.choice_expl = why.some(Boolean) ? why : null;
+    if (!row.steps.length) row.steps = null;
     if (!row.stem || choices.some((ch) => !ch) || !row.domain || !row.skill) return toast('Fill in the question, all four choices, the domain, and the skill.', 'bad');
     const c = await db();
     await run(q ? c.from('questions').update(row).eq('id', q.id) : c.from('questions').insert(row), q ? 'Saved.' : 'Question added.');

@@ -26,7 +26,7 @@ export async function apCounts(client) {
   return read(COUNTS) || {};
 }
 
-/** All questions for one AP course: [{ id, unit, concept, difficulty, stem, choices, answer, expl }]. */
+/** All questions for one AP course: [{ id, unit, concept, difficulty, stem, choices, answer, expl, choiceExpl?, hint, steps }]. */
 export async function apQuestions(client, cid) {
   const cached = read(CACHE(cid));
   const sb = await client;
@@ -34,16 +34,17 @@ export async function apQuestions(client, cid) {
   try {
     const { data: version, error: ve } = await sb.rpc('ap_bank_version', { cid });
     if (ve) throw ve;
-    if (cached && cached.version === version) return cached.qs;
+    if (cached && cached.version === version && cached.v === 2) return cached.qs;
     const qs = [];
     for (let from = 0; ; from += 1000) {
-      const { data, error } = await sb.from('ap_questions').select('id,unit,concept,difficulty,stem,choices,answer,expl')
+      const { data, error } = await sb.from('ap_questions').select('id,unit,concept,difficulty,stem,choices,answer,expl,choice_expl,hint,steps')
         .eq('course_id', cid).eq('hidden', false).order('id').range(from, from + 999);
       if (error) throw error;
       qs.push(...data);
       if (data.length < 1000) break;
     }
-    write(CACHE(cid), { version, qs });
+    for (const q of qs) { if (q.choice_expl) q.choiceExpl = q.choice_expl; delete q.choice_expl; }
+    write(CACHE(cid), { version, qs, v: 2 });
     return qs;
   } catch (e) {
     console.warn('Could not load AP questions; using the saved copy.', e);
@@ -63,7 +64,7 @@ const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math
 export function shuffled(q) {
   if (q.choices.some((c) => /\b(all|none|both) of the above\b/i.test(c))) return { ...q };
   const order = shuffle(q.choices.map((_, i) => i));
-  return { ...q, choices: order.map((i) => q.choices[i]), answer: order.indexOf(q.answer) };
+  return { ...q, choices: order.map((i) => q.choices[i]), answer: order.indexOf(q.answer), ...(q.choiceExpl ? { choiceExpl: order.map((i) => q.choiceExpl[i] ?? '') } : {}) };
 }
 
 export const apDone = () => (store.data().ap ||= {});

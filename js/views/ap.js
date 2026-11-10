@@ -5,7 +5,9 @@ import { $, esc, tex, toast, DIFF_LABEL } from '../util.js';
 import { store } from '../store.js';
 import { db, cloudEnabled } from '../cloud.js';
 import { COURSES, SUBJECTS } from '../content/courses.js';
-import { L } from '../qview.js';
+import { L, choiceFeedbackHTML, choiceNoteHTML, tappableChoicesHTML, whatWentWrongHTML } from '../qview.js';
+import { choiceNotes } from '../explain.js';
+import { setting } from '../content/settings.js';
 import { classesBar, myStudying } from '../studying.js';
 import { apCounts as bankCounts, apQuestions as bankQuestions, apUnits, apDone, pickAP, recordAP, apStats } from '../content/ap-bank.js';
 
@@ -108,28 +110,46 @@ export function apCourseView(main, { course: cid }) {
     drawQ();
   }
 
+  // Solution steps, if the question has them.
+  const stepsHTML = (q) => Array.isArray(q.steps) && q.steps.length ? `<details class="q-steps"><summary>${icon('clipboard')} Step-by-step solution</summary><ol>${q.steps.map((x) => `<li>${rich(x)}</li>`).join('')}</ol></details>` : '';
+
   function drawQ() {
     const s = st.session, q = s.qs[s.i], shown = s.picked != null;
+    const fb = setting('question_feedback');
+    const retry = s.firstWrong != null && !shown;
     host().innerHTML = `
       <div class="row between wrap gap"><button class="link sm" id="apQuit">${icon('left')} ${esc(course.title)}</button><span class="muted small">${esc(s.title)}</span></div>
       <div class="ap-prog"><div class="bar thin"><i style="width:${(100 * s.i) / s.qs.length}%"></i></div><span class="small muted">Question ${s.i + 1} of ${s.qs.length} · ${s.right} right</span></div>
       <div class="card ap-q">
         <div class="row gap wrap small muted"><span class="tag subtle">${esc(q.unit)}</span>${q.concept ? `<span class="tag subtle">${esc(q.concept)}</span>` : ''}<span>${DIFF_LABEL[q.difficulty] || ''}</span></div>
         <div class="stem">${rich(q.stem)}</div>
-        <ol class="choices">${q.choices.map((c, i) => `<li class="${shown ? (i === q.answer ? 'correct' : i === s.picked ? 'wrong' : '') : ''}"><button class="choice" data-pick="${i}" ${shown ? 'disabled' : ''}><span class="letter">${L(i)}</span><span class="ctext">${rich(c)}</span></button></li>`).join('')}</ol>
-        ${shown ? `<div class="banner ${s.picked === q.answer ? 'good' : 'bad'}">${s.picked === q.answer ? `${icon('check')} Correct` : `${icon('x')} The answer is ${L(q.answer)}`}</div>
-          ${q.expl ? `<div class="expl">${rich(q.expl)}</div>` : ''}
+        <ol class="choices">${q.choices.map((c, i) => `<li class="${shown ? (i === q.answer ? 'correct' : i === s.picked || i === s.firstWrong ? 'wrong' : '') : i === s.firstWrong ? 'wrong' : ''}${shown && s.peek === i ? ' peeking' : ''}"><button class="choice" ${shown ? `data-apeek="${i}" aria-expanded="${s.peek === i}"` : `data-pick="${i}"`} ${!shown && i === s.firstWrong ? 'disabled' : ''}><span class="letter">${L(i)}</span><span class="ctext">${rich(c)}</span></button>${shown && s.peek === i ? `<div class="choice-note ${i === q.answer ? 'right' : 'wrong'}">${choiceNoteHTML(q, i, rich)}</div>` : ''}</li>`).join('')}</ol>
+        ${retry ? `<div class="lb-try">${icon('x')} <b>Not quite.</b> ${choiceNotes(q)[s.firstWrong].why ? rich(choiceNotes(q)[s.firstWrong].why) : 'Rule that one out and try once more.'}</div>` : ''}
+        ${shown ? `<div class="banner ${s.picked === q.answer ? 'good' : 'bad'}">${s.picked === q.answer ? `${icon('check')} Correct${s.firstWrong != null ? ' on the second try' : ''}` : `${icon('x')} The answer is ${L(q.answer)}`}</div>
+          <p class="small muted tap-hint">Tap any choice above to see why it's right or wrong.</p>
+          ${choiceFeedbackHTML(q, s.picked === q.answer ? s.firstWrong : s.picked, rich)}
+          ${q.expl ? `<div class="expl"><b>Explanation.</b> ${rich(q.expl)}</div>` : ''}
+          ${stepsHTML(q)}
+          ${s.picked !== q.answer || s.firstWrong != null ? whatWentWrongHTML('ap:' + q.id) : ''}
           <div class="row end"><button class="btn primary" id="apNext">${s.i + 1 < s.qs.length ? 'Next question' : 'See results'} ${icon('right')}</button></div>`
-          : `<p class="muted small">Keys A to ${L(q.choices.length - 1)} work too.</p>`}
+          : `<div class="row between wrap gap">${q.hint && fb.show_hint_button ? (s.hint ? `<div class="lb-hint grow">${icon('brain')} <b>Hint.</b> ${rich(q.hint)}</div>` : `<button class="btn ghost sm" id="apHint">${icon('brain')} Hint</button>`) : '<span></span>'}<p class="muted small">Keys A to ${L(q.choices.length - 1)} work too.</p></div>`}
       </div>`;
     $('#apNext', root)?.focus();
   }
 
   function pick(i) {
     const s = st.session, q = s.qs[s.i];
-    if (s.picked != null) return;
-    s.picked = i;
+    if (s.picked != null || i === s.firstWrong) return;
     const ok = i === q.answer;
+    // One retry (question_feedback.second_try): the first miss is what counts for progress.
+    if (!ok && s.firstWrong == null && setting('question_feedback').second_try) {
+      s.firstWrong = i;
+      recordAP(cid, q, false); store.save();
+      s.log.push({ q, a: i, ok: false });
+      return drawQ();
+    }
+    s.picked = i;
+    if (s.firstWrong != null) return drawQ();
     if (ok) s.right++;
     s.log.push({ q, a: i, ok });
     recordAP(cid, q, ok);
@@ -139,7 +159,7 @@ export function apCourseView(main, { course: cid }) {
 
   function next() {
     const s = st.session;
-    s.i++; s.picked = null;
+    s.i++; s.picked = null; s.firstWrong = null; s.hint = false; s.peek = null;
     if (s.i < s.qs.length) return drawQ();
     const missed = s.log.filter((x) => !x.ok);
     const pctRight = Math.round((100 * s.right) / s.qs.length);
@@ -150,12 +170,16 @@ export function apCourseView(main, { course: cid }) {
         <div class="row gap center wrap"><button class="btn primary" id="apAgain">Another set</button><button class="btn" id="apBack">Back to units</button></div>
       </div>
       ${missed.length ? `<h2 class="h3">Review what you missed</h2><div class="stack">${missed.map(({ q, a }) => `<details class="card"><summary><b>${esc(q.concept || q.unit)}</b></summary>
-        <div class="stem">${rich(q.stem)}</div><ol class="choices static">${q.choices.map((c, i) => `<li class="${i === q.answer ? 'correct' : i === a ? 'wrong' : ''}"><span class="letter">${L(i)}</span> ${rich(c)}</li>`).join('')}</ol>
-        <div class="expl">${rich(q.expl)}</div></details>`).join('')}</div>` : ''}`;
+        <div class="stem">${rich(q.stem)}</div>${tappableChoicesHTML(q, a, rich)}
+        ${choiceFeedbackHTML(q, a, rich, { open: true })}
+        <div class="expl"><b>Explanation.</b> ${rich(q.expl)}</div>${stepsHTML(q)}${whatWentWrongHTML('ap:' + q.id)}</details>`).join('')}</div>` : ''}`;
     st.lastPool = st.lastPool || null;
   }
 
   root.addEventListener('click', (e) => {
+    if (e.target.closest('#apHint')) { st.session.hint = true; return drawQ(); }
+    const pk = e.target.closest('[data-apeek]');
+    if (pk) { const i = +pk.dataset.apeek; st.session.peek = st.session.peek === i ? null : i; return drawQ(); }
     const t = e.target.closest('[data-count],[data-mode],[data-start],[data-open],[data-concept],[data-pick],#apNext,#apQuit,#apAgain,#apBack');
     if (!t) return;
     const units = host()?._units || [];

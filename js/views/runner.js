@@ -6,7 +6,7 @@ import { regen } from '../gen/index.js';
 import { bankNo } from '../gen/bank.js';
 import { ensureModule, scoreExam, isCorrect } from '../exams.js';
 import { toggleCalculator, destroyCalculator, openReference, modal } from '../tools.js';
-import { L, diffPill } from '../qview.js';
+import { L, diffPill, choiceFeedbackHTML, choiceNoteHTML, whatWentWrongHTML } from '../qview.js';
 import { explainHelp, questionHelp } from '../i18n.js';
 
 let run = null;
@@ -99,11 +99,13 @@ export function runnerView(root) {
     } else {
       answerArea = `<ol class="choices ${ui.elimMode ? 'elim-on' : ''}">${q.choices.map((c, i) => {
         const cls = [i === chosen ? 'sel' : '', elim.includes(i) ? 'struck' : '', checked && i === q.answer ? 'correct' : '', checked && i === chosen && i !== q.answer ? 'wrong' : ''].join(' ');
-        return `<li class="${cls}"><button class="choice" data-choice="${i}" ${checked ? 'disabled' : ''}><span class="letter">${L(i)}</span><span class="ctext">${tex(c)}</span></button>${ui.elimMode ? `<button class="strike" data-strike="${i}" title="${elim.includes(i) ? 'Undo' : 'Cross out'} ${L(i)}">${elim.includes(i) ? 'Undo' : `<s>${L(i)}</s>`}</button>` : ''}</li>`;
+        // After checking, every choice stays tappable and shows why it's right or wrong.
+        const peek = checked && ui.peek === `${run.qi}:${i}`;
+        return `<li class="${cls}${peek ? ' peeking' : ''}"><button class="choice" ${checked ? `data-peek="${i}" aria-expanded="${peek}"` : `data-choice="${i}"`}><span class="letter">${L(i)}</span><span class="ctext">${tex(c)}</span></button>${peek ? `<div class="choice-note ${i === q.answer ? 'right' : 'wrong'}">${choiceNoteHTML(q, i)}</div>` : ''}${ui.elimMode ? `<button class="strike" data-strike="${i}" title="${elim.includes(i) ? 'Undo' : 'Cross out'} ${L(i)}">${elim.includes(i) ? 'Undo' : `<s>${L(i)}</s>`}</button>` : ''}</li>`;
       }).join('')}</ol>`;
     }
     const feedback = run.feedback ? (checked
-      ? `<div class="feedback ${isCorrect(q, chosen) ? 'ok' : 'bad'}"><b>${isCorrect(q, chosen) ? 'Correct!' : 'Not quite.'}</b> ${q.type === 'spr' ? `Correct answer: ${tex(`$${q.answerDisplay}$`)}. ` : `The answer is ${L(q.answer)}. `}<div class="expl">${tex(q.expl)}</div>${explainHelp(q.expl)}</div>`
+      ? `<div class="feedback ${isCorrect(q, chosen) ? 'ok' : 'bad'}"><b>${isCorrect(q, chosen) ? 'Correct!' : 'Not quite.'}</b> ${q.type === 'spr' ? `Correct answer: ${tex(`$${q.answerDisplay}$`)}. ` : `The answer is ${L(q.answer)}. `}<div class="expl">${tex(q.expl)}</div>${q.type === 'mc' ? '<p class="small muted tap-hint">Tap any choice above to see why it\'s right or wrong.</p>' : ''}${choiceFeedbackHTML(q, chosen)}${isCorrect(q, chosen) ? '' : whatWentWrongHTML(q.id)}${explainHelp(q.expl)}</div>`
       : `<div class="row gap"><button class="btn primary" data-act="check" ${chosen == null || chosen === '' ? 'disabled' : ''}>Check answer</button><button class="btn ghost" data-act="reveal">Show explanation</button></div>`) : '';
     const sprHelp = q.type === 'spr' ? `<details class="spr-help"><summary>How to enter your answer</summary><ul><li>Enter one correct answer, even if more than one is possible.</li><li>Positive answers: up to 5 characters; negative answers: up to 6 (including the sign).</li><li>Fractions like <b>3/4</b> or decimals like <b>.75</b> are both fine. Don't enter symbols like %, commas, or $.</li></ul></details>` : '';
 
@@ -286,6 +288,8 @@ export function runnerView(root) {
     const t = e.target;
     const go = t.closest('[data-go]');
     if (go) { run.qi = +go.dataset.go; run.view = 'q'; ui.navOpen = false; return render(); }
+    const pk = t.closest('[data-peek]');
+    if (pk) { const k = `${run.qi}:${pk.dataset.peek}`; ui.peek = ui.peek === k ? null : k; return render(); }
     const ch = t.closest('[data-choice]');
     if (ch) return setAnswer(+ch.dataset.choice);
     const st = t.closest('[data-strike]');
@@ -321,7 +325,7 @@ export function runnerView(root) {
         store.recordAnswer(q, isCorrect(q, m.answers[run.qi])); store.save();
         persist(true); render(); break;
       }
-      case 'reveal': $('#revealed', tr).innerHTML = `<div class="feedback"><b>Answer:</b> ${curQ().type === 'spr' ? tex(`$${curQ().answerDisplay}$`) : L(curQ().answer)}<div class="expl">${tex(curQ().expl)}</div>${explainHelp(curQ().expl)}</div>`; break;
+      case 'reveal': $('#revealed', tr).innerHTML = `<div class="feedback"><b>Answer:</b> ${curQ().type === 'spr' ? tex(`$${curQ().answerDisplay}$`) : L(curQ().answer)}<div class="expl">${tex(curQ().expl)}</div>${choiceFeedbackHTML(curQ(), null)}${explainHelp(curQ().expl)}</div>`; break;
       case 'home': {
         const exam = run.kind === 'exam';
         const hm = modal(`<p>Going home will <b>end this ${exam ? 'practice test' : 'practice session'}</b>. ${run.feedback ? 'Answers you already checked stay in your progress, but' : 'Your answers in'} this ${exam ? 'test' : 'set'} won't be saved or scored.</p>

@@ -1,6 +1,6 @@
 // ACT Science: procedurally generated experiments (data shown as a table or graph)
 // with question types covering the three ACT Science reporting categories.
-import { rng, buildMC, numMC, round } from '../util.js';
+import { rng, buildMC, numMC, round, W as Wx } from '../util.js';
 import { svgLineChart, htmlTable } from '../figures.js';
 
 const r1 = (v) => Math.round(v * 10) / 10;
@@ -139,14 +139,14 @@ const Q = {
     const best = sc.names[col.indexOf(hi)];
     return {
       stem: `Based on ${sc.src}, at ${sc.xv(sc.xs[j])}, which of the following had the greatest ${sc.yName.toLowerCase()}?`,
-      mc: buildMC(r, best, [...sc.names.filter((n) => n !== best), 'All were equal', 'It cannot be determined from the data']),
+      mc: buildMC(r, best, [...sc.names.filter((n) => n !== best).map((n) => Wx(n, 'Compare the values in the table again for this one: it is not the extreme value the question asks about.')), Wx('All were equal', 'The values in the data differ, so they were not equal.'), Wx('It cannot be determined from the data', 'The data give a value for each one, so you can compare them directly.')]),
       expl: `At ${sc.xv(sc.xs[j])} the values are ${sc.names.map((n, i) => `${n}: ${col[i]}`).join('; ')}. The greatest is ${best}.`,
     };
   } },
   mass: { d: 2, cat: 'eval', make(r, sc) {
     return {
       stem: `Based on ${sc.src}, how did changing the mass of the bob from 50 g to 200 g affect the period of the pendulum?`,
-      mc: buildMC(r, 'It had little or no effect on the period.', ['It increased the period at every length.', 'It decreased the period at every length.', 'It doubled the period at every length.']),
+      mc: buildMC(r, 'It had little or no effect on the period.', [Wx('It increased the period at every length.', 'Compare rows with the same length: the period barely changes, so there is no steady increase.'), Wx('It decreased the period at every length.', 'Compare rows with the same length: the period barely changes, so there is no steady decrease.'), Wx('It doubled the period at every length.', 'Nothing in the data doubles. Compare rows with the same length.')]),
       expl: 'At each string length, the periods for the two bobs are the same (or differ by at most 0.01 s, within measurement error). Mass has essentially no effect on period.',
     };
   } },
@@ -186,7 +186,7 @@ const Q = {
     const correct = which === 'indep' ? sc.indep : sc.controlled;
     return {
       stem: which === 'indep' ? `In this experiment, which of the following was an independent variable (a variable deliberately changed by the experimenters)?` : `Which of the following was kept the same in every trial of this experiment?`,
-      mc: buildMC(r, correct, [sc.dep, which === 'indep' ? sc.controlled : sc.indep, which === 'indep' ? 'The date of each trial' : sc.seriesVar].filter((x) => x !== correct)),
+      mc: buildMC(r, correct, [Wx(sc.dep, 'That is the dependent variable: what was measured as the result.'), Wx(which === 'indep' ? sc.controlled : sc.indep, which === 'indep' ? 'That was kept the same in every trial (a controlled variable).' : 'That is the independent variable: what the scientists deliberately changed.'), Wx(which === 'indep' ? 'The date of each trial' : sc.seriesVar, which === 'indep' ? 'The date is not something the experiment changed on purpose.' : 'That varied between the series, but it is not what the question asks about.')].filter((x) => x.v !== correct)),
       expl: which === 'indep' ? `The experimenters chose and changed the ${sc.indep.toLowerCase()}; the ${sc.dep.toLowerCase()} was measured (dependent variable).` : `The passage says the ${sc.controlled.toLowerCase()} was the same in every trial, making it a controlled variable.`,
     };
   } },

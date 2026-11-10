@@ -7,7 +7,11 @@ import { langOptions, profOptions } from '../i18n.js';
 import { TERMS_VERSION } from './legal.js';
 import { cloudEnabled, signInWith, cloudSignOut, deleteAccount, linkedProviders, linkProvider, emailSignUp, emailSignIn, resetPassword, updatePassword } from '../cloud.js';
 import { a11yCardHTML, wireA11y } from '../a11y.js';
+import { appearanceCardHTML, wireAppearance } from '../appearance.js';
 import { fetchStatus } from './news.js';
+import { db } from '../cloud.js';
+import { loadMember, referralUrl, updateMemberProfile, ordinal } from '../members.js';
+import { openShare } from '../share.js';
 
 // Where to go after signing in: the page a guest was bounced from, else the dashboard.
 export function takeAfterLogin() {
@@ -125,6 +129,11 @@ export function settingsView(root) {
       <label>Theme<select id="theme"><option value="system">Match system</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
       <div class="row gap"><button class="btn primary" id="saveBtn">Save changes</button>${u ? '<button class="btn ghost" id="logout">Sign out</button>' : ''}</div>
     </div>
+    ${u?.cloud ? `<div class="card stack" id="memberCard"><h2 class="h3">${icon('users')} Your StudyFox number</h2><p class="muted small">Loading...</p></div>` : ''}
+    ${appearanceCardHTML()}
+    <div class="card stack"><h2 class="h3">Leaderboards</h2>
+      <label class="a11y-toggle"><span><b>Hide other students' names</b><span class="muted small">Shows other players as "Player 1", "Player 2", and so on, on the Match leaderboard and Top sharers. Your own name still shows to you.</span></span><input type="checkbox" class="switch" id="hideNamesSet" ${s.hideNames ? 'checked' : ''}></label>
+    </div>
     ${a11yCardHTML()}
     ${u?.cloud && u.provider === 'email' ? `<form class="card stack" id="pwForm">
       <h2 class="h3">Password</h2>
@@ -155,8 +164,11 @@ export function settingsView(root) {
     try { await updatePassword(e.target.pw.value); e.target.reset(); toast('Password changed.', 'good'); } catch (ex) { toast(ex.message, 'bad'); }
   });
   if (/reset=1/.test(location.hash)) $('#pwForm', root)?.scrollIntoView();
+  if (u?.cloud) memberCard($('#memberCard', root), u);
   wireLang(root);
   wireA11y(root);
+  wireAppearance(root);
+  $('#hideNamesSet', root).onchange = (e) => { store.data().settings.hideNames = e.target.checked; store.save(); toast('Saved.', 'good'); };
   if (u?.cloud) linkedProviders().then((have) => {
     const box = $('#links', root); if (!box) return;
     box.innerHTML = PROVIDERS.map(([id, name, logo]) => `<div class="row between gap"><span class="row gap">${logo}<b>${name}</b></span>${have.includes(id)
@@ -171,6 +183,7 @@ export function settingsView(root) {
   $('#saveBtn', root).onclick = () => {
     setStudying(studying);
     if (u) store.updateProfile({ name: $('#name', root).value.trim() || u.name });
+    if (u?.cloud) updateMemberProfile(db(), $('#name', root).value.trim() || u.name);
     const em = $('#emails', root).checked; if (em !== !!s.emails) { s.emails = em; s.emailsAt = new Date().toISOString(); }
     Object.assign(s, { focus: $('#focus', root).value, testDate: $('#testDate', root).value, theme: $('#theme', root).value, lang: $('#lang', root).value });
     s.english = s.lang === 'en' ? '' : $('#english', root).value;
@@ -211,4 +224,24 @@ export function requireAgreement() {
   ok.onclick = () => { recordAgreement(); wrap.remove(); };
   wrap.querySelector('[data-out]').onclick = async () => { if (store.user()?.cloud) await cloudSignOut(); store.logout(); wrap.remove(); location.hash = '#/'; };
   document.body.appendChild(wrap);
+}
+
+// User number: every account is numbered in the order it joined (#1 was the first student), and a
+// student's link fills in their number when a friend signs up. Low-key on purpose: StudyFox is free.
+function memberCard(box, u) {
+  loadMember(db()).then((m) => {
+    if (!box.isConnected) return;
+    if (!m) { box.innerHTML = `<h2 class="h3">${icon('users')} Your StudyFox number</h2><p class="muted small">Couldn't load your number right now. Try again later.</p>`; return; }
+    const link = referralUrl(m.no);
+    box.innerHTML = `<h2 class="h3">${icon('users')} Your StudyFox number</h2>
+      <div class="member-no"><span class="member-big">#${m.no}</span><span class="muted">You're the ${ordinal(m.no)} student to join StudyFox. Numbers go in the order people sign up, and they never change.</span></div>
+      <p class="small">If a friend could use free study help, send them your link. When they sign up with it, your number is filled in for them${m.referrals ? `, and so far <b>${m.referrals} ${m.referrals === 1 ? 'friend has' : 'friends have'}</b> joined with it` : ''}.</p>
+      <div class="row gap wrap"><input class="grow" readonly value="${esc(link)}" aria-label="Your referral link" id="refLink"><button class="btn sm" id="copyRef">${icon('link')} Copy link</button><button class="btn sm ghost" id="shareRef">${icon('arrow')} Share</button></div>
+      <label class="consent"><input type="checkbox" id="showBoard" ${m.show_on_leaderboard ? 'checked' : ''}> <span>Show my first name on <a href="#/contributors">Top sharers</a> if friends join with my link</span></label>`;
+    box.onclick = async (e) => {
+      if (e.target.closest('#copyRef')) { try { await navigator.clipboard.writeText(link); toast('Link copied.', 'good'); } catch { $('#refLink', box).select(); } }
+      if (e.target.closest('#shareRef')) openShare('site');
+    };
+    $('#showBoard', box).onchange = (e) => { updateMemberProfile(db(), u.name || m.display_name, e.target.checked).then(() => toast('Saved.', 'good')); };
+  });
 }

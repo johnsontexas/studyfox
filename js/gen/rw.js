@@ -1,8 +1,11 @@
 // Reading & Writing (SAT) + English/Reading (ACT) generators built on the authored bank.
-import { buildMC, esc } from '../util.js';
+import { buildMC, esc, W as Wx } from '../util.js';
 import { htmlTable } from '../figures.js';
 import { VOCAB, TRANSITIONS, TRANSITION_WORDS, TRANSITION_EXPL, CONVENTIONS, PASSAGES, SYNTHESIS, QUANT_TOPICS } from '../content/rw-bank.js';
 import { ACT_PASSAGES } from '../content/act-reading.js';
+
+// Bank items may list why each wrong answer is wrong in `ww` (same order as `w`); shown after answering.
+const whyWrong = (it) => (it.ww ? it.w.map((x, i) => (it.ww[i] ? Wx(x, it.ww[i]) : x)) : it.w);
 
 export const rwGens = [];
 const add = (g) => rwGens.push(g);
@@ -31,7 +34,7 @@ function actify(r, text, options, correctIdx, expl, stem) {
 
 function satBlankItem(r, it, q) {
   const opts = [it.a, ...it.w];
-  return { passage: withBlank(esc(it.text)), stem: q, mc: buildMC(r, it.a, it.w), expl: it.x, uid: 'bank:' + it.id };
+  return { passage: withBlank(esc(it.text)), stem: q, mc: buildMC(r, it.a, whyWrong(it)), expl: it.x, uid: 'bank:' + it.id };
 }
 
 add({
@@ -85,7 +88,7 @@ const passageGen = (key, skill, satDomain, actDomain) => {
     gen(r, d) {
       const it = pickItem(r, bank, d);
       const passage = it.passage.startsWith('<p>') ? it.passage : `<p>${withBlank(it.passage)}</p>`;
-      return { passage, stem: it.q, mc: buildMC(r, it.a, it.w), expl: it.x, uid: 'bank:' + it.id };
+      return { passage, stem: it.q, mc: buildMC(r, it.a, whyWrong(it)), expl: it.x, uid: 'bank:' + it.id };
     },
   });
 };
@@ -104,7 +107,7 @@ add({
     return {
       passage: `<p>While researching a topic, a student has taken the following notes:</p><ul class="notes">${it.notes.map((n) => `<li>${n}</li>`).join('')}</ul>`,
       stem: `The student wants to ${it.goal}. Which choice most effectively uses relevant information from the notes to accomplish this goal?`,
-      mc: buildMC(r, it.a, it.w), expl: it.x, uid: 'bank:' + it.id,
+      mc: buildMC(r, it.a, whyWrong(it)), expl: it.x, uid: 'bank:' + it.id,
     };
   },
 });
@@ -160,6 +163,6 @@ export function actPassagePassage(p) {
   return `<p class="pass-head"><b>${p.genre}:</b> “${p.title}” <span class="muted">(original passage)</span></p>${p.paras.map((t, n) => `<p><span class="pnum">${n + 1}</span>${esc(t)}</p>`).join('')}`;
 }
 export function actPassageQ(r, p, q, i) {
-  return { passage: actPassagePassage(p), stem: q.q, mc: buildMC(r, q.a, q.w), expl: q.x, uid: `bank:${p.id}-${i}`, group: p.id, domainOverride: q.skill, dOverride: q.d };
+  return { passage: actPassagePassage(p), stem: q.q, mc: buildMC(r, q.a, whyWrong(q)), expl: q.x, uid: `bank:${p.id}-${i}`, group: p.id, domainOverride: q.skill, dOverride: q.d };
 }
 export { ACT_PASSAGES };

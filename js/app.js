@@ -10,8 +10,11 @@ import { welcomeView, ageBlockedView, ageBlockedUntil, needsOnboarding } from '.
 import { CREATOR, STUDYFOX_INSTAGRAM, STUDYFOX_TIKTOK, CREATOR_EMAIL, KOFI } from './config.js';
 import { newsView, adminView, contactView, maintenanceHTML, fetchStatus } from './views/news.js';
 import { isAdmin, db } from './cloud.js';
-import { initContent } from './content/live.js';
+import { initContent, onContent } from './content/live.js';
+import { creditLine } from './content/people.js';
+import { captureRef, loadMember, myNumber } from './members.js';
 import { applyA11y } from './a11y.js';
+import { applyAppearance } from './appearance.js';
 import { openShare } from './share.js';
 
 // Pages other than the home page load on first visit, so the home page downloads and runs less code.
@@ -67,6 +70,8 @@ const apHubView = lazy(load_ap, 'apHubView');
 const apCourseView = lazy(load_ap, 'apCourseView');
 const load_about = () => import('./views/about.js');
 const aboutView = lazy(load_about, 'aboutView');
+const load_contributors = () => import('./views/contributors.js');
+const contributorsView = lazy(load_contributors, 'contributorsView');
 
 export const BRAND = 'StudyFox';
 
@@ -78,7 +83,7 @@ const routes = [
   ['/flashcards/:id/learn', learnView], ['/flashcards/:id/test', testView], ['/flashcards/:id/match', matchView], ['/share/:data', importView],
   ['/learn', learnHubView], ['/learn/:course', courseView], ['/learn/:course/:lesson', lessonView],
   ['/formulas', formulasView], ['/calculator', calculatorView], ['/speed', speedView],
-  ['/ap', apHubView], ['/ap/:course', apCourseView], ['/about', aboutView], ['/news', newsView], ['/admin', adminView], ['/admin/content', contentAdminView], ['/contact', contactView],
+  ['/ap', apHubView], ['/ap/:course', apCourseView], ['/about', aboutView], ['/contributors', contributorsView], ['/news', newsView], ['/admin', adminView], ['/admin/content', contentAdminView], ['/contact', contactView],
   ['/donate', donateView], ['/privacy', privacyView], ['/terms', termsView], ['/welcome', welcomeView], ['/too-young', ageBlockedView],
 ];
 
@@ -96,6 +101,7 @@ function applyTheme() {
   const t = store.data().settings.theme;
   if (t === 'system') document.documentElement.removeAttribute('data-theme');
   else document.documentElement.setAttribute('data-theme', t);
+  applyAppearance();
 }
 
 function navHTML(path) {
@@ -110,6 +116,7 @@ function navHTML(path) {
     </nav>
     <div class="nav-right">
       <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">${icon('contrast')}</button>
+      ${u && myNumber() ? `<a class="nav-no" href="#/settings" title="Your StudyFox student number">#${myNumber()}</a>` : ''}
       <button class="btn sm ghost share-btn" id="shareBtn" title="Share" aria-label="Share">${icon('upload')}<span>Share</span></button>
       ${u ? '' : `<a class="btn sm ghost" href="#/login">Log in</a><a class="btn sm primary" href="#/signup">Sign up free</a>`}
     </div>
@@ -134,7 +141,7 @@ function tabShell(main, m, tabs) {
   return r;
 }
 
-const PUBLIC = ['/', '/about', '/news', '/contact', '/donate', '/login', '/signup', '/privacy', '/terms', '/too-young'];
+const PUBLIC = ['/', '/about', '/contributors', '/news', '/contact', '/donate', '/login', '/signup', '/privacy', '/terms', '/too-young'];
 export const AFTER_LOGIN = 'sf_after_login';
 
 let cleanup = null;
@@ -175,20 +182,33 @@ function router() {
   try { cleanup = (tabGroup(m.pat) ? tabShell(main, m, tabGroup(m.pat)[1]) : m.view(main, m.params)) || null; }
   catch (e) { console.error(e); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><pre class="err">${esc(e.stack || e)}</pre><a class="btn" href="#/">Go home</a></div>`; }
   delete main.dataset.shell;
-  const title = { '/': store.user() ? 'Dashboard' : 'Free Study Material for School', '/learn': 'Free Courses', '/privacy': 'Privacy Policy', '/terms': 'Terms of Use', '/speed': 'Speed Practice', '/donate': 'Donate', '/news': 'News', '/contact': 'Contact', '/about': 'About', '/admin': 'Admin', '/welcome': 'Welcome', '/too-young': 'Welcome' }[path] || (path.startsWith('/learn') ? 'Free Courses' : path.startsWith('/ap') ? 'AP Practice' : null) || path.split('/')[1]?.replace(/^\w/, (c) => c.toUpperCase());
+  const title = { '/': store.user() ? 'Dashboard' : 'Free Study Material for School', '/learn': 'Free Courses', '/privacy': 'Privacy Policy', '/terms': 'Terms of Use', '/speed': 'Speed Practice', '/donate': 'Donate', '/news': 'News', '/contact': 'Contact', '/about': 'About', '/contributors': 'Contributors', '/admin': 'Admin', '/welcome': 'Welcome', '/too-young': 'Welcome' }[path] || (path.startsWith('/learn') ? 'Free Courses' : path.startsWith('/ap') ? 'AP Practice' : null) || path.split('/')[1]?.replace(/^\w/, (c) => c.toUpperCase());
   document.title = `${BRAND} · ${title || 'Free Study Material for School'}`;
 }
 
+// Ask the server for this student's user number once per sign-in (cached in settings for sharing).
+let memberFor = null;
+function syncMember() {
+  const u = store.user();
+  if (!u?.cloud) { memberFor = null; return; }
+  if (memberFor === u.id) return;
+  memberFor = u.id;
+  // If the server isn't ready yet (session still restoring), try again shortly.
+  loadMember(db()).then((m) => { if (!m && store.user()?.id === u.id) { memberFor = null; setTimeout(syncMember, 15000); } });
+}
+
 function boot() {
+  captureRef();
   const footer = `<footer class="site-foot"><div class="foot-inner">
-      <div class="foot-brand"><b>${BRAND}</b><p>Free study material for school and the SAT and ACT, made by ${CREATOR}. No ads, no paywalls, no limits.</p>
+      <div class="foot-brand"><b>${BRAND}</b><p>Free study material for school and the SAT and ACT. No ads, no paywalls, no limits.</p>
+        <p class="foot-credit" id="footCredit"><a href="#/contributors">${esc(creditLine() || `Made by ${CREATOR}.`)}</a></p>
         <a class="foot-ig" href="https://instagram.com/${STUDYFOX_INSTAGRAM}" target="_blank" rel="noopener">${icon('instagram')}@${STUDYFOX_INSTAGRAM}</a>
         <a class="foot-ig" href="https://www.tiktok.com/@${STUDYFOX_TIKTOK}" target="_blank" rel="noopener">${icon('tiktok')}@${STUDYFOX_TIKTOK} on TikTok</a>
         <a class="foot-ig" href="mailto:${CREATOR_EMAIL}">${icon('mail')}Contact ${CREATOR}: ${CREATOR_EMAIL}</a>
         <a class="foot-ig" href="mailto:support@studyfox.org">${icon('mail')}Support: support@studyfox.org</a>
         <a class="foot-ig" href="${KOFI}" target="_blank" rel="noopener">${icon('heart')}Support StudyFox on Ko-fi</a>
         <a class="foot-ig" id="iosLink" href="#" target="_blank" rel="noopener" hidden>${icon('down')}Download on iOS</a></div>
-      <nav class="foot-links" aria-label="Footer"><a href="#/learn">Courses</a><a href="#/practice">SAT &amp; ACT</a><a href="#/flashcards">Flashcards</a><a href="#/news">News</a><a href="#/about">About</a><a href="#/contact">Contact</a><a href="#/donate">Donate</a><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a></nav>
+      <nav class="foot-links" aria-label="Footer"><a href="#/news">News</a><a href="#/about">About</a><a href="#/contributors">Contributors</a><a href="#/contact">Contact</a><a href="#/donate">Donate</a><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a></nav>
       <p class="foot-legal">SAT®, AP®, and ACT® are trademarks of their respective owners, which are not affiliated with and do not endorse this site. Questions are original and generated for practice; scores are estimates.</p>
     </div></footer>`;
   // index.html may already show the nav and home hero (data-shell); keep them and add the footer.
@@ -209,6 +229,9 @@ function boot() {
     else if (e.target.closest('#navLinks a')) document.body.classList.remove('nav-open');
   });
   store.onChange(() => { applyTheme(); applyA11y(); const p = (location.hash.slice(1) || '/').split('?')[0]; if (!['/privacy', '/terms', '/login', '/signup', '/welcome'].includes(p)) requireAgreement(); if (needsOnboarding() && !['/welcome', '/privacy', '/terms'].includes(p)) location.replace('#/welcome'); $('#nav').innerHTML = navHTML((location.hash.slice(1) || '/').split('?')[0]); });
+  store.onChange(syncMember);
+  syncMember();
+  onContent(() => { const f = $('#footCredit a'); const t = creditLine(); if (f && t) f.textContent = t; });
   addEventListener('hashchange', router);
   // Courses, lessons, decks, and custom questions come from Supabase (editable in the admin console).
   // The saved copy shows immediately; if the server has newer content, redraw pages that show it.

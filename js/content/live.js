@@ -1,4 +1,4 @@
-// Live, editable content from Supabase (tables: courses, lessons, decks, questions, hidden_questions).
+// Live, editable content from Supabase (tables: courses, lessons, decks, questions, hidden_questions, content_settings, contributors, site_pages).
 // Admins edit it in the admin console (js/views/content-admin.js); the website and the iOS app both load it
 // here, so new or changed lessons and questions appear without redeploying either one.
 // The files in js/content/ are the built-in copy: used on a first visit with no connection, and the
@@ -6,6 +6,8 @@
 // server's content_version() changes.
 import { COURSES } from './courses.js';
 import { BUILTIN_DECKS } from './decks.js';
+import { applySettings } from './settings.js';
+import { applyPeople } from './people.js';
 
 const CACHE = 'sf_content_v1';
 const BUILT_IN = { courses: COURSES.slice(), decks: BUILTIN_DECKS.slice() };
@@ -19,6 +21,7 @@ const lessonFrom = (r) => ({
   id: r.id, title: r.title, mins: r.mins, body: r.body,
   ...(r.check ? { check: r.check } : {}), ...(r.practice ? { practice: r.practice } : {}),
   ...(r.desmos ? { desmos: r.desmos } : {}), ...(r.desmos_bounds ? { desmosBounds: r.desmos_bounds } : {}),
+  ...(Array.isArray(r.blocks) && r.blocks.length ? { blocks: r.blocks } : {}),
 });
 
 /** Replace the in-memory content with a downloaded copy. Arrays are updated in place so every importer sees it. */
@@ -36,6 +39,8 @@ export function applyContent(c) {
       .map((d) => ({ id: 'builtin-' + d.id, builtin: true, title: d.title, desc: d.desc, tag: d.tag, cards: d.cards }));
     BUILTIN_DECKS.splice(0, BUILTIN_DECKS.length, ...decks);
   }
+  applySettings(c.settings);
+  applyPeople(c.contributors, c.pages);
   live.questions = (c.questions || []).filter((q) => !q.hidden);
   live.hidden = new Set((c.hidden || []).map((h) => h.id));
   live.version = c.version || '';
@@ -78,11 +83,13 @@ export async function initContent(client) {
     const { data: version, error } = await sb.rpc('content_version');
     if (error) throw error;
     if (cached && cached.version === version) return false;
-    const [courses, lessons, decks, questions, hidden] = await Promise.all([
+    const [courses, lessons, decks, questions, hidden, settings, contributors, pages] = await Promise.all([
       all(sb, 'courses', ['sort', 'id']), all(sb, 'lessons', ['course_id', 'sort']), all(sb, 'decks', ['sort']),
       all(sb, 'questions', ['id']), all(sb, 'hidden_questions', ['id']),
+      all(sb, 'content_settings', ['key']).catch(() => []),
+      all(sb, 'contributors', ['sort']).catch(() => []), all(sb, 'site_pages', ['slug']).catch(() => []),
     ]);
-    const c = { version, courses, lessons, decks, questions, hidden };
+    const c = { version, courses, lessons, decks, questions, hidden, settings, contributors, pages };
     if (applyContent(c)) { writeCache(c); return true; }
   } catch (e) {
     console.warn('Could not load the latest content; using the saved copy.', e);
