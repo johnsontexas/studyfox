@@ -12,8 +12,9 @@ import { newsView, adminView, contactView, maintenanceHTML, fetchStatus } from '
 import { isAdmin, db } from './cloud.js';
 import { initContent, onContent } from './content/live.js';
 import { creditLine } from './content/people.js';
-import { captureRef, loadMember } from './members.js';
+import { captureRef, loadMember, myNumber } from './members.js';
 import { applyA11y } from './a11y.js';
+import { applyAppearance } from './appearance.js';
 import { openShare } from './share.js';
 
 // Pages other than the home page load on first visit, so the home page downloads and runs less code.
@@ -100,6 +101,7 @@ function applyTheme() {
   const t = store.data().settings.theme;
   if (t === 'system') document.documentElement.removeAttribute('data-theme');
   else document.documentElement.setAttribute('data-theme', t);
+  applyAppearance();
 }
 
 function navHTML(path) {
@@ -114,6 +116,7 @@ function navHTML(path) {
     </nav>
     <div class="nav-right">
       <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">${icon('contrast')}</button>
+      ${u && myNumber() ? `<a class="nav-no" href="#/settings" title="Your StudyFox student number">#${myNumber()}</a>` : ''}
       <button class="btn sm ghost share-btn" id="shareBtn" title="Share" aria-label="Share">${icon('upload')}<span>Share</span></button>
       ${u ? '' : `<a class="btn sm ghost" href="#/login">Log in</a><a class="btn sm primary" href="#/signup">Sign up free</a>`}
     </div>
@@ -190,7 +193,8 @@ function syncMember() {
   if (!u?.cloud) { memberFor = null; return; }
   if (memberFor === u.id) return;
   memberFor = u.id;
-  loadMember(db());
+  // If the server isn't ready yet (session still restoring), try again shortly.
+  loadMember(db()).then((m) => { if (!m && store.user()?.id === u.id) { memberFor = null; setTimeout(syncMember, 15000); } });
 }
 
 function boot() {
@@ -204,7 +208,7 @@ function boot() {
         <a class="foot-ig" href="mailto:support@studyfox.org">${icon('mail')}Support: support@studyfox.org</a>
         <a class="foot-ig" href="${KOFI}" target="_blank" rel="noopener">${icon('heart')}Support StudyFox on Ko-fi</a>
         <a class="foot-ig" id="iosLink" href="#" target="_blank" rel="noopener" hidden>${icon('down')}Download on iOS</a></div>
-      <nav class="foot-links" aria-label="Footer"><a href="#/learn">Courses</a><a href="#/practice">SAT &amp; ACT</a><a href="#/flashcards">Flashcards</a><a href="#/news">News</a><a href="#/about">About</a><a href="#/contributors">Contributors</a><a href="#/contact">Contact</a><a href="#/donate">Donate</a><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a></nav>
+      <nav class="foot-links" aria-label="Footer"><a href="#/news">News</a><a href="#/about">About</a><a href="#/contributors">Contributors</a><a href="#/contact">Contact</a><a href="#/donate">Donate</a><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a></nav>
       <p class="foot-legal">SAT®, AP®, and ACT® are trademarks of their respective owners, which are not affiliated with and do not endorse this site. Questions are original and generated for practice; scores are estimates.</p>
     </div></footer>`;
   // index.html may already show the nav and home hero (data-shell); keep them and add the footer.

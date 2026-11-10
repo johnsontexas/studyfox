@@ -35,7 +35,7 @@ export function contributorsView(root) {
       const el = $('#sharers', root);
       if (!el) return;
       el.innerHTML = list.length
-        ? `<ol class="sharers">${list.map((r, i) => `<li class="${r.no === myNumber() ? 'me' : ''}"><span class="lnum">${i + 1}</span><span class="grow"><b>${esc(r.name)}</b> <span class="muted small">user #${r.no}</span></span><span>${r.referrals} ${r.referrals === 1 ? 'friend' : 'friends'}</span></li>`).join('')}</ol>`
+        ? `<ol class="sharers">${list.map((r, i) => `<li class="${r.no === myNumber() ? 'me' : ''}"><span class="lnum">${i + 1}</span><span class="grow"><b>${esc(r.no === myNumber() || !store.data().settings.hideNames ? r.name : 'Student')}</b> <span class="muted small">user #${r.no}</span></span><span>${r.referrals} ${r.referrals === 1 ? 'friend' : 'friends'}</span></li>`).join('')}</ol>`
         : `<p class="muted small">No one yet. ${store.user() ? 'Share your link with a friend who could use free study help.' : ''}</p>`;
     });
   };

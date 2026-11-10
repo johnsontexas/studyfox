@@ -59,6 +59,7 @@ function finalize(base, out, { key, test, d, seed }) {
     q.type = 'spr'; q.accept = out.spr.accept; q.answerDisplay = out.spr.display;
   } else {
     q.type = 'mc'; q.choices = out.mc.choices; q.answer = out.mc.answer;
+    if (out.mc.why?.some(Boolean)) q.choiceExpl = out.mc.why;
   }
   return q;
 }

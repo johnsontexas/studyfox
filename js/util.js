@@ -87,14 +87,22 @@ export const money = (n, dec) => '&#36;' + Number(n).toLocaleString('en-US', dec
 export const T = (s) => `$${s}$`;
 
 // Multiple choice from display strings. Dedupes, fills from extra(), shuffles.
+// A wrong answer with the mistake that produces it: W(value, 'why'). buildMC and numMC accept these anywhere
+// a plain wrong value goes, and return `why` (one note per choice, '' for the right one) for js/explain.js.
+// Wrapping a value never changes the random draws, so every numbered bank question stays the same.
+export const W = (v, why) => ({ v, why });
+const unwrap = (x) => (x && typeof x === 'object' && 'v' in x ? [x.v, x.why || ''] : [x, '']);
+
 export function buildMC(r, correct, wrongs, extra, { keepOrder = false } = {}) {
   const c = String(correct);
   const seen = new Set([c]);
   const w = [];
-  for (const x of wrongs) {
+  const why = new Map();
+  for (const x0 of wrongs) {
+    const [x, reason] = unwrap(x0);
     if (x == null) continue;
     const s = String(x);
-    if (!seen.has(s)) { seen.add(s); w.push(s); }
+    if (!seen.has(s)) { seen.add(s); w.push(s); if (reason) why.set(s, reason); }
   }
   let pool = keepOrder ? w.slice(0, 3) : r.shuffle(w).slice(0, 3);
   let guard = 0;
@@ -103,19 +111,22 @@ export function buildMC(r, correct, wrongs, extra, { keepOrder = false } = {}) {
     if (!seen.has(s)) { seen.add(s); pool.push(s); }
   }
   const all = keepOrder ? [c, ...pool] : r.shuffle([c, ...pool]);
-  return { choices: all, answer: all.indexOf(c) };
+  return { choices: all, answer: all.indexOf(c), why: all.map((s) => why.get(s) || '') };
 }
 
 // Numeric multiple choice, sorted ascending like the real tests.
 export function numMC(r, correct, wrongs = [], { fmt = (v) => T(tnum(v)), spread = 6, step = 1 } = {}) {
   const isInt = Number.isInteger(correct);
   const pool = [];
-  for (const w of r.shuffle(wrongs)) {
+  const why = new Map();
+  for (const w0 of r.shuffle(wrongs)) {
+    const [w, reason] = unwrap(w0);
     if (w == null || !isFinite(w)) continue;
     const v = round(w);
     if (v === round(correct) || pool.includes(v)) continue;
     if (isInt && !Number.isInteger(v)) continue;
     pool.push(v);
+    if (reason) why.set(v, reason);
     if (pool.length === 3) break;
   }
   let guard = 0;
@@ -124,7 +135,7 @@ export function numMC(r, correct, wrongs = [], { fmt = (v) => T(tnum(v)), spread
     if (v !== round(correct) && !pool.includes(v)) pool.push(v);
   }
   const all = [round(correct), ...pool].sort((a, b) => a - b);
-  return { choices: all.map(fmt), answer: all.indexOf(round(correct)) };
+  return { choices: all.map(fmt), answer: all.indexOf(round(correct)), why: all.map((v) => why.get(v) || '') };
 }
 
 // Parse a student-produced response ("3/4", ".75", "-2") to a number.

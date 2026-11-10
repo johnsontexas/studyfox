@@ -8,20 +8,30 @@ import { store } from './store.js';
 
 export const L = (i) => 'ABCDE'[i];
 
+// Shown for a wrong choice that has no written note (yet): points back to the worked solution.
+const NO_NOTE = "This isn't the answer. Work through the explanation step by step and compare it with how you got this choice; the step where they differ is the mistake.";
+
+/** Why one choice is right or wrong, as HTML. */
+export function choiceNoteHTML(q, i, fmt = tex) {
+  const n = choiceNotes(q)[i];
+  if (i === q.answer) return `<b>${icon('check')} ${L(i)} is correct.</b> ${fmt(n?.why || q.expl || '')}`;
+  return `<b>${icon('x')} Why not ${L(i)}?</b> ${n?.why ? fmt(n.why) : NO_NOTE}${n?.auto ? ' <span class="muted small">(detected from the numbers)</span>' : ''}`;
+}
+
 /**
- * Explanations for a multiple-choice question after it's answered: why the student's pick is wrong
- * (hand-written, or a detected slip), then every choice explained. `fmt` renders text (tex or rich).
+ * Explanations for a multiple-choice question after it's answered: why the student's pick is wrong,
+ * then every choice explained. `fmt` renders text (tex or rich).
  */
-export function choiceFeedbackHTML(q, chosen, fmt = tex, { open = false } = {}) {
+export function choiceFeedbackHTML(q, chosen, fmt = tex, { open = true } = {}) {
   if (q.type === 'spr' || !Array.isArray(q.choices)) return '';
   const notes = choiceNotes(q);
   const wrong = chosen != null && chosen !== '' && chosen !== q.answer;
   const mine = wrong ? notes[chosen] : null;
   const yours = mine?.why ? `<div class="why-yours"><b>${icon('x')} Why ${L(chosen)} doesn't work</b><div>${fmt(mine.why)}</div>${mine.auto ? '<span class="muted small">Detected from the numbers. Compare it with your work.</span>' : ''}</div>` : '';
-  if (!setting('question_feedback').explain_every_choice || !notes.some((n, i) => n.why && i !== chosen)) return yours;
+  if (!setting('question_feedback').explain_every_choice) return yours;
   return `${yours}<details class="choice-why"${open ? ' open' : ''}><summary>${icon('clipboard')} Every choice explained</summary><ol>${q.choices.map((c, i) => `<li class="${i === q.answer ? 'right' : i === chosen ? 'picked' : ''}">
       <span class="letter">${L(i)}</span><div><div class="cw-choice">${fmt(c)} ${i === q.answer ? '<span class="tag good">Correct</span>' : i === chosen ? '<span class="tag bad">Your pick</span>' : ''}</div>
-      <div class="cw-why">${notes[i].why ? fmt(notes[i].why) : i === q.answer ? fmt(q.expl || '') : '<span class="muted">Not the best fit. See the explanation above.</span>'}</div></div></li>`).join('')}</ol></details>`;
+      <div class="cw-why">${i === q.answer ? fmt(notes[i].why || 'This is the answer. See the explanation above.') : notes[i].why ? fmt(notes[i].why) : `<span class="muted">${NO_NOTE}</span>`}</div></div></li>`).join('')}</ol></details>`;
 }
 
 /** "What went wrong?" chips after a miss. Answers are saved per question id in store.data().mistakeTags. */

@@ -5,7 +5,7 @@ import { $, esc, tex, toast, DIFF_LABEL } from '../util.js';
 import { store } from '../store.js';
 import { db, cloudEnabled } from '../cloud.js';
 import { COURSES, SUBJECTS } from '../content/courses.js';
-import { L, choiceFeedbackHTML, whatWentWrongHTML } from '../qview.js';
+import { L, choiceFeedbackHTML, choiceNoteHTML, whatWentWrongHTML } from '../qview.js';
 import { choiceNotes } from '../explain.js';
 import { setting } from '../content/settings.js';
 import { classesBar, myStudying } from '../studying.js';
@@ -123,10 +123,11 @@ export function apCourseView(main, { course: cid }) {
       <div class="card ap-q">
         <div class="row gap wrap small muted"><span class="tag subtle">${esc(q.unit)}</span>${q.concept ? `<span class="tag subtle">${esc(q.concept)}</span>` : ''}<span>${DIFF_LABEL[q.difficulty] || ''}</span></div>
         <div class="stem">${rich(q.stem)}</div>
-        <ol class="choices">${q.choices.map((c, i) => `<li class="${shown ? (i === q.answer ? 'correct' : i === s.picked || i === s.firstWrong ? 'wrong' : '') : i === s.firstWrong ? 'wrong' : ''}"><button class="choice" data-pick="${i}" ${shown || i === s.firstWrong ? 'disabled' : ''}><span class="letter">${L(i)}</span><span class="ctext">${rich(c)}</span></button></li>`).join('')}</ol>
+        <ol class="choices">${q.choices.map((c, i) => `<li class="${shown ? (i === q.answer ? 'correct' : i === s.picked || i === s.firstWrong ? 'wrong' : '') : i === s.firstWrong ? 'wrong' : ''}${shown && s.peek === i ? ' peeking' : ''}"><button class="choice" ${shown ? `data-apeek="${i}" aria-expanded="${s.peek === i}"` : `data-pick="${i}"`} ${!shown && i === s.firstWrong ? 'disabled' : ''}><span class="letter">${L(i)}</span><span class="ctext">${rich(c)}</span></button>${shown && s.peek === i ? `<div class="choice-note ${i === q.answer ? 'right' : 'wrong'}">${choiceNoteHTML(q, i, rich)}</div>` : ''}</li>`).join('')}</ol>
         ${retry ? `<div class="lb-try">${icon('x')} <b>Not quite.</b> ${choiceNotes(q)[s.firstWrong].why ? rich(choiceNotes(q)[s.firstWrong].why) : 'Rule that one out and try once more.'}</div>` : ''}
         ${shown ? `<div class="banner ${s.picked === q.answer ? 'good' : 'bad'}">${s.picked === q.answer ? `${icon('check')} Correct${s.firstWrong != null ? ' on the second try' : ''}` : `${icon('x')} The answer is ${L(q.answer)}`}</div>
-          ${choiceFeedbackHTML(q, s.picked === q.answer ? s.firstWrong : s.picked, rich).replace('<details class="choice-why">', '<details class="choice-why" open>')}
+          <p class="small muted tap-hint">Tap any choice above to see why it's right or wrong.</p>
+          ${choiceFeedbackHTML(q, s.picked === q.answer ? s.firstWrong : s.picked, rich)}
           ${q.expl ? `<div class="expl"><b>Explanation.</b> ${rich(q.expl)}</div>` : ''}
           ${stepsHTML(q)}
           ${s.picked !== q.answer || s.firstWrong != null ? whatWentWrongHTML('ap:' + q.id) : ''}
@@ -158,7 +159,7 @@ export function apCourseView(main, { course: cid }) {
 
   function next() {
     const s = st.session;
-    s.i++; s.picked = null; s.firstWrong = null; s.hint = false;
+    s.i++; s.picked = null; s.firstWrong = null; s.hint = false; s.peek = null;
     if (s.i < s.qs.length) return drawQ();
     const missed = s.log.filter((x) => !x.ok);
     const pctRight = Math.round((100 * s.right) / s.qs.length);
@@ -177,6 +178,8 @@ export function apCourseView(main, { course: cid }) {
 
   root.addEventListener('click', (e) => {
     if (e.target.closest('#apHint')) { st.session.hint = true; return drawQ(); }
+    const pk = e.target.closest('[data-apeek]');
+    if (pk) { const i = +pk.dataset.apeek; st.session.peek = st.session.peek === i ? null : i; return drawQ(); }
     const t = e.target.closest('[data-count],[data-mode],[data-start],[data-open],[data-concept],[data-pick],#apNext,#apQuit,#apAgain,#apBack');
     if (!t) return;
     const units = host()?._units || [];

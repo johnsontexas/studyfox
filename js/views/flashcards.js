@@ -453,7 +453,8 @@ export function matchView(root, { id }) {
 
   const fmt = (x) => `${Number(x).toFixed(1)}s`;
   const boardHTML = () => `<div class="card match-board"><div class="row between wrap gap"><h2 class="h3">${icon('chart')} Leaderboard</h2>
-      <div class="seg sm" id="boardTab"><button data-tab="all" class="${tab === 'all' ? 'on' : ''}">Everyone</button><button data-tab="me" class="${tab === 'me' ? 'on' : ''}">My times</button></div></div>
+      <div class="row gap wrap"><label class="consent small"><input type="checkbox" id="hideNames" ${store.data().settings.hideNames ? 'checked' : ''}> <span>Hide names</span></label>
+      <div class="seg sm" id="boardTab"><button data-tab="all" class="${tab === 'all' ? 'on' : ''}">Everyone</button><button data-tab="me" class="${tab === 'me' ? 'on' : ''}">My times</button></div></div></div>
       <div id="boardBody"><p class="muted small">Loading...</p></div></div>`;
   async function drawBoard() {
     const el = $('#boardBody', root); if (!el) return;
@@ -465,7 +466,9 @@ export function matchView(root, { id }) {
     try {
       const rows = await fetchBoard(key);
       if (tab !== 'all' || !$('#boardBody', root)) return;
-      el.innerHTML = rows.length ? `<ol class="board">${rows.map((r) => `<li class="${me?.cloud && r.user_id === me.id ? 'you' : ''}"><span>${esc(r.name)}${me?.cloud && r.user_id === me.id ? ' (you)' : ''}</span><b>${fmt(r.seconds)}${me?.cloud && r.user_id !== me.id ? ` <button class="btn ghost sm" data-report="${esc(r.user_id)}" data-name="${esc(r.name)}">Report</button> <button class="btn ghost sm" data-block="${esc(r.user_id)}" data-name="${esc(r.name)}">Block</button>` : ''}</b></li>`).join('')}</ol>`
+      // "Hide names" (Settings, or the box above the board) shows other players as Player 1, 2, 3...
+      const hide = !!store.data().settings.hideNames;
+      el.innerHTML = rows.length ? `<ol class="board">${rows.map((r, i) => { const mine = me?.cloud && r.user_id === me.id; const nm = mine || !hide ? r.name : `Player ${i + 1}`; return `<li class="${mine ? 'you' : ''}"><span>${esc(nm)}${mine ? ' (you)' : ''}</span><b>${fmt(r.seconds)}${me?.cloud && !mine ? ` <button class="btn ghost sm" data-report="${esc(r.user_id)}" data-name="${esc(r.name)}">Report</button> <button class="btn ghost sm" data-block="${esc(r.user_id)}" data-name="${esc(nm)}">Block</button>` : ''}</b></li>`; }).join('')}</ol>`
         : '<p class="muted small">No times yet. Be the first on the board.</p>';
       if (!me?.cloud) el.insertAdjacentHTML('beforeend', '<p class="muted small">Sign in with an account that syncs to post your times here.</p>');
     } catch { el.innerHTML = '<p class="muted small">The leaderboard could not load.</p>'; }
@@ -499,6 +502,7 @@ export function matchView(root, { id }) {
   }
   root.addEventListener('click', (e) => {
     if (e.target.id === 'startMatch') return play();
+    if (e.target.id === 'hideNames') { store.data().settings.hideNames = e.target.checked; store.save(); return drawBoard(); }
     const bt = e.target.closest('[data-tab]'); if (bt) { tab = bt.dataset.tab; root.querySelectorAll('[data-tab]').forEach((x) => x.classList.toggle('on', x === bt)); return drawBoard(); }
     const rep = e.target.closest('[data-report]');
     if (rep) return db().then((c) => c.from('match_reports').insert({ set_key: key, reported_user: rep.dataset.report, name: rep.dataset.name })).then(({ error }) => toast(error ? error.message : 'Report sent. We review reports within 24 hours.', error ? 'bad' : 'good'));

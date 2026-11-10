@@ -7,6 +7,7 @@ import { langOptions, profOptions } from '../i18n.js';
 import { TERMS_VERSION } from './legal.js';
 import { cloudEnabled, signInWith, cloudSignOut, deleteAccount, linkedProviders, linkProvider, emailSignUp, emailSignIn, resetPassword, updatePassword } from '../cloud.js';
 import { a11yCardHTML, wireA11y } from '../a11y.js';
+import { appearanceCardHTML, wireAppearance } from '../appearance.js';
 import { fetchStatus } from './news.js';
 import { db } from '../cloud.js';
 import { loadMember, referralUrl, updateMemberProfile, ordinal } from '../members.js';
@@ -129,6 +130,10 @@ export function settingsView(root) {
       <div class="row gap"><button class="btn primary" id="saveBtn">Save changes</button>${u ? '<button class="btn ghost" id="logout">Sign out</button>' : ''}</div>
     </div>
     ${u?.cloud ? `<div class="card stack" id="memberCard"><h2 class="h3">${icon('users')} Your StudyFox number</h2><p class="muted small">Loading...</p></div>` : ''}
+    ${appearanceCardHTML()}
+    <div class="card stack"><h2 class="h3">Leaderboards</h2>
+      <label class="a11y-toggle"><span><b>Hide other students' names</b><span class="muted small">Shows other players as "Player 1", "Player 2", and so on, on the Match leaderboard and Top sharers. Your own name still shows to you.</span></span><input type="checkbox" class="switch" id="hideNamesSet" ${s.hideNames ? 'checked' : ''}></label>
+    </div>
     ${a11yCardHTML()}
     ${u?.cloud && u.provider === 'email' ? `<form class="card stack" id="pwForm">
       <h2 class="h3">Password</h2>
@@ -162,6 +167,8 @@ export function settingsView(root) {
   if (u?.cloud) memberCard($('#memberCard', root), u);
   wireLang(root);
   wireA11y(root);
+  wireAppearance(root);
+  $('#hideNamesSet', root).onchange = (e) => { store.data().settings.hideNames = e.target.checked; store.save(); toast('Saved.', 'good'); };
   if (u?.cloud) linkedProviders().then((have) => {
     const box = $('#links', root); if (!box) return;
     box.innerHTML = PROVIDERS.map(([id, name, logo]) => `<div class="row between gap"><span class="row gap">${logo}<b>${name}</b></span>${have.includes(id)

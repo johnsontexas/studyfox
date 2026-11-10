@@ -1,3 +1,4 @@
+import { myNumber, ordinal } from '../members.js';
 import { icon } from '../icons.js';
 import { esc, timeAgo, toast } from '../util.js';
 import { store, today } from '../store.js';
@@ -91,6 +92,7 @@ export function dashboardView(root) {
       <div>
         <p class="kicker">${greeting()}</p>
         <h1>${u ? esc(u.name.split(' ')[0]) : 'Welcome back'}</h1>
+        ${myNumber() ? `<a class="student-no" href="#/settings" title="You're the ${ordinal(myNumber())} student to join StudyFox">${icon('users')} Student #${myNumber()}</a>` : ''}
         <p>${streak ? `You're on a ${streak}-day streak. Keep it going.` : 'Answer a few questions today to start a streak.'}</p>
       </div>
       <div class="dash-ring" style="--p:${Math.min(100, Math.round((100 * todayN) / goal))}">
