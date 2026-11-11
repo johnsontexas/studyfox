@@ -110,7 +110,13 @@ async function pull(user) {
   if (error) { console.warn(error); setTimeout(() => { if (store.user()?.id === user.id) pull(user); }, 30000); return; }
   store.mergeIn(data?.data || null);
   pulledFor = user.id;
+  logActivity(user.id);
   await push();
+}
+
+// One row per student per day (duplicates ignored) so retention can be measured in Supabase.
+function logActivity(id) {
+  sb.from('user_activity').upsert({ user_id: id, platform: 'web' }, { onConflict: 'user_id,day', ignoreDuplicates: true }).then(({ error }) => error && console.warn(error));
 }
 
 async function push() {
