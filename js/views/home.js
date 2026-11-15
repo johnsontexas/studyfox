@@ -6,6 +6,7 @@ import { L, tagLine } from '../qview.js';
 import { COURSES, SUBJECTS, lessonCount } from '../content/courses.js';
 import { CREATOR, INSTAGRAM } from '../config.js';
 import { newsWidget } from './news.js';
+import { db, cloudEnabled } from '../cloud.js';
 
 export function qotdWidget(root, test) {
   const q = questionOfTheDay(test);
@@ -63,6 +64,7 @@ export function homeView(root) {
   // the last time another page built it (js/gen/bank.js), or the current totals on a first visit.
   let saved = null; try { saved = JSON.parse(localStorage.getItem('sf_bank_counts')); } catch {}
   const nSat = saved?.sat || 1754, nAct = saved?.act || 2312;
+  let nStu = 0; try { nStu = +localStorage.getItem('sf_student_count') || 0; } catch {}
   const ap = COURSES.filter((c) => /^AP /.test(c.title));
   const cta = u ? '<a class="btn primary lg" href="#/dashboard">Go to your dashboard</a>' : '<a class="btn primary lg" href="#/signup">Start studying, it\'s free</a>';
   const html = `
@@ -72,6 +74,7 @@ export function homeView(root) {
         <h1>Study for every class.<br><em class="scribble">Pay for none of it.</em></h1>
         <p class="lead">Courses for ${COURSES.length} classes including every AP subject, flashcards, practice tests, and a <span class="bank-n">${(nSat + nAct).toLocaleString()}</span>-question SAT and ACT bank. All in one place.</p>
         <div class="row gap wrap">${cta}<a class="btn lg ghost" href="#/learn">Browse courses</a></div>
+        <p class="join-n"${nStu ? '' : ' hidden'}>${icon('users')}<span>Join <b class="stu-n">${nStu.toLocaleString()}</b> other students</span></p>
         <a class="free-pill" href="#/about">${icon('heart')}<span><b>100% free, for everyone.</b> No ads, no paywall, no catch.</span><span class="free-why">Why? ${icon('arrow')}</span></a>
         <dl class="facts">
           <div><dt>${COURSES.length}</dt><dd>courses</dd></div>
@@ -161,10 +164,27 @@ export function homeView(root) {
     </div>
   </section>`;
   fill(root, html);
+  liveStudentCount(root);
   // The whole creator note opens the About page, except its own links.
   const note = root.querySelector('.note-from');
   const goAbout = (e) => { if (!e.target.closest('a')) location.hash = '#/about'; };
   note.addEventListener('click', goAbout);
   note.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target === note) goAbout(e); });
   newsWidget(root.querySelector('#newsSlot'));
+}
+
+// "Join X other students": the total account count from Supabase (student_count RPC, anon-callable).
+// Shows the last count saved on this device right away, then updates; stays hidden if it can't load.
+async function liveStudentCount(root) {
+  if (!cloudEnabled) return;
+  try {
+    const sb = await db();
+    const { data, error } = await sb.rpc('student_count');
+    if (error || !(data > 0)) return;
+    try { localStorage.setItem('sf_student_count', String(data)); } catch {}
+    const el = root.querySelector('.join-n');
+    if (!el) return;
+    el.querySelector('.stu-n').textContent = data.toLocaleString();
+    el.hidden = false;
+  } catch {}
 }

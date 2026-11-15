@@ -11,72 +11,94 @@ import { store } from './store.js';
 const W = 1080, H = 1920;
 const FOX = 'M8 6l16 14h16l16-14-2 30-22 24-22-24z';
 
-// Card designs. Each paints its own background and decoration, then shares the same layout.
+// Card designs. Flat, printed-looking colors with a little paper grain, so they read like a
+// poster or a notebook page rather than a glowing gradient. Each paints its own background.
+// Seeded random so a card looks the same every time it's drawn.
+function rng(seed) { return () => ((seed = (seed * 16807) % 2147483647) / 2147483647); }
+function grain(g, alpha, seed = 7, light = false) {
+  const r = rng(seed); g.fillStyle = light ? '#fff' : '#000';
+  for (let i = 0; i < 9000; i++) { g.globalAlpha = r() * alpha; g.fillRect(r() * W, r() * H, 2, 2); }
+  g.globalAlpha = 1;
+}
+// A wobbly marker stroke, like someone underlined it by hand.
+function scribble(g, x, y, w, color, thick = 22) {
+  const r = rng(Math.round(w) + 3);
+  g.strokeStyle = color; g.lineWidth = thick; g.lineCap = 'round'; g.lineJoin = 'round';
+  g.beginPath(); g.moveTo(x, y + 6);
+  for (let i = 1; i <= 8; i++) g.lineTo(x + (w * i) / 8, y + 6 - i * 1.4 + (r() - .5) * 9);
+  g.stroke();
+  g.lineWidth = thick * .45; g.globalAlpha = .7; g.beginPath(); g.moveTo(x + w * .08, y + 30);
+  g.quadraticCurveTo(x + w * .5, y + 18 + (r() - .5) * 10, x + w * .82, y + 26); g.stroke(); g.globalAlpha = 1;
+}
+const SERIF = 'Georgia, "Times New Roman", serif';
+const SANS = 'system-ui, -apple-system, sans-serif';
+
 const THEMES = [
-  { id: 'forest', name: 'Forest', ink: '#fff8ec', accent: '#f2b33d', sub: 'rgba(255,248,236,.75)', paint(g) {
-    const bg = g.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#1f6b47'); bg.addColorStop(1, '#0d3322');
-    g.fillStyle = bg; g.fillRect(0, 0, W, H);
-    g.fillStyle = 'rgba(242,179,61,.16)'; g.beginPath(); g.arc(940, 260, 300, 0, 7); g.fill();
-    g.fillStyle = 'rgba(255,255,255,.06)'; g.beginPath(); g.arc(120, 1650, 360, 0, 7); g.fill();
+  { id: 'paper', name: 'Paper', ink: '#23201b', accent: '#23201b', sub: 'rgba(35,32,27,.62)', mark: 'rgba(242,170,40,.75)', paint(g) {
+    g.fillStyle = '#f4ede0'; g.fillRect(0, 0, W, H); grain(g, .07, 11);
+    // a faint coffee ring, the kind every desk notebook has
+    g.strokeStyle = 'rgba(140,100,60,.10)'; g.lineWidth = 14; g.beginPath(); g.arc(880, 1500, 150, .4, 5.9); g.stroke();
   } },
-  { id: 'sunset', name: 'Sunset', ink: '#ffffff', accent: '#fff1a8', sub: 'rgba(255,255,255,.8)', paint(g) {
-    const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#ff7a59'); bg.addColorStop(.55, '#e8457c'); bg.addColorStop(1, '#5b2a86');
-    g.fillStyle = bg; g.fillRect(0, 0, W, H);
-    // a sun rising behind the fox, with horizon stripes along the bottom edge
-    g.fillStyle = 'rgba(255,214,120,.45)'; g.beginPath(); g.arc(W / 2, 470, 300, 0, 7); g.fill();
-    g.fillStyle = 'rgba(255,255,255,.12)'; for (let i = 0; i < 5; i++) g.fillRect(0, 1810 + i * 24, W, 4 + i * 3);
+  { id: 'chalk', name: 'Chalk', ink: '#f3f1ea', accent: '#f6d77a', sub: 'rgba(243,241,234,.66)', mark: 'rgba(243,241,234,.55)', paint(g) {
+    g.fillStyle = '#2f4a3c'; g.fillRect(0, 0, W, H); grain(g, .10, 5, true);
+    // half-erased smudges
+    const r = rng(19); g.fillStyle = 'rgba(255,255,255,.022)';
+    for (let i = 0; i < 6; i++) { g.save(); g.translate(r() * W, r() * H); g.rotate(r() - .5); g.fillRect(-260, -50, 520, 100); g.restore(); }
+    g.fillStyle = '#7a5a3a'; g.fillRect(0, H - 46, W, 46); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(0, H - 46, W, 6);
   } },
-  { id: 'midnight', name: 'Midnight', ink: '#e8f0ff', accent: '#5ff2c1', sub: 'rgba(232,240,255,.7)', paint(g) {
-    g.fillStyle = '#0b1020'; g.fillRect(0, 0, W, H);
-    const glow = g.createRadialGradient(W / 2, 760, 50, W / 2, 760, 900); glow.addColorStop(0, 'rgba(95,242,193,.22)'); glow.addColorStop(1, 'rgba(95,242,193,0)');
-    g.fillStyle = glow; g.fillRect(0, 0, W, H);
-    g.strokeStyle = 'rgba(120,150,255,.13)'; g.lineWidth = 2;
-    for (let x = 0; x <= W; x += 90) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
-    for (let y = 0; y <= H; y += 90) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
-    g.fillStyle = '#fff'; for (let i = 0; i < 60; i++) { const x = (i * 337) % W, y = (i * 571) % 700; g.globalAlpha = .2 + (i % 5) / 8; g.fillRect(x, y, 4, 4); } g.globalAlpha = 1;
-  } },
-  { id: 'notebook', name: 'Notebook', ink: '#1d2a44', accent: '#e8453c', sub: 'rgba(29,42,68,.7)', paint(g) {
-    g.fillStyle = '#fbf7ec'; g.fillRect(0, 0, W, H);
-    g.strokeStyle = 'rgba(80,130,200,.28)'; g.lineWidth = 3;
-    for (let y = 140; y < H; y += 72) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
-    g.strokeStyle = 'rgba(232,69,60,.5)'; g.beginPath(); g.moveTo(130, 0); g.lineTo(130, H); g.stroke();
-    g.fillStyle = '#e6dfcc'; for (const y of [380, 960, 1540]) { g.beginPath(); g.arc(60, y, 26, 0, 7); g.fill(); }
-    // highlighter swipe behind the big number
-    g.fillStyle = 'rgba(255,222,89,.6)'; g.save(); g.translate(W / 2, 1215); g.rotate(-.04); g.fillRect(-300, -80, 600, 120); g.restore();
-  } },
-  { id: 'bold', name: 'Bold', ink: '#111111', accent: '#111111', sub: 'rgba(17,17,17,.75)', paint(g) {
-    g.fillStyle = '#f9c80e'; g.fillRect(0, 0, W, H);
-    g.save(); g.rotate(-.35); g.fillStyle = 'rgba(17,17,17,.08)';
-    for (let x = -1400; x < 2400; x += 160) g.fillRect(x, -400, 70, 3200);
+  { id: 'sticky', name: 'Sticky', ink: '#2a2418', accent: '#2a2418', sub: 'rgba(42,36,24,.62)', mark: 'rgba(230,80,60,.6)', tilt: -.025, paint(g) {
+    g.fillStyle = '#c9a77c'; g.fillRect(0, 0, W, H); grain(g, .12, 3);
+    g.save(); g.translate(W / 2, H / 2 + 20); g.rotate(-.025);
+    g.fillStyle = 'rgba(60,40,10,.28)'; g.fillRect(-440, -770, 900, 1620);
+    g.fillStyle = '#fbe58a'; g.fillRect(-460, -790, 900, 1620);
+    g.fillStyle = 'rgba(0,0,0,.05)'; g.fillRect(-460, -790, 900, 90);
+    g.fillStyle = 'rgba(255,255,255,.55)'; g.save(); g.translate(0, -795); g.rotate(.06); g.fillRect(-130, -32, 260, 64); g.restore();
     g.restore();
-    g.fillStyle = '#fff'; g.strokeStyle = '#111'; g.lineWidth = 10;
-    g.beginPath(); g.roundRect(90, 740, W - 180, 760, 48); g.fill(); g.stroke();
+  } },
+  { id: 'ink', name: 'Ink', ink: '#ece6d8', accent: '#ece6d8', sub: 'rgba(236,230,216,.6)', mark: 'rgba(232,110,70,.85)', paint(g) {
+    g.fillStyle = '#1c2230'; g.fillRect(0, 0, W, H); grain(g, .08, 23, true);
+    g.strokeStyle = 'rgba(236,230,216,.25)'; g.lineWidth = 3; g.strokeRect(54, 54, W - 108, H - 108);
+  } },
+  { id: 'bold', name: 'Bold', ink: '#141414', accent: '#141414', sub: 'rgba(20,20,20,.7)', mark: '#ffffff', sans: true, paint(g) {
+    g.fillStyle = '#f5c518'; g.fillRect(0, 0, W, H); grain(g, .06, 31);
+    g.fillStyle = '#141414'; g.fillRect(0, H - 360, W, 360);
   } },
 ];
 
-function drawCard(kind, themeId = 'forest') {
+function drawCard(kind, themeId = 'paper') {
   const m = shareMessage(kind);
   const t = THEMES.find((x) => x.id === themeId) || THEMES[0];
   const cv = Object.assign(document.createElement('canvas'), { width: W, height: H });
   const g = cv.getContext('2d');
   t.paint(g);
-  // fox mark
-  g.save(); g.translate(W / 2 - 160, 300); g.scale(5, 5);
-  const p = new Path2D(FOX); g.fillStyle = '#f9a825'; g.fill(p);
-  if (t.id === 'bold' || t.id === 'notebook') { g.lineWidth = 2; g.strokeStyle = t.ink; g.stroke(p); }
+  g.save();
+  if (t.tilt) { g.translate(W / 2, H / 2); g.rotate(t.tilt); g.translate(-W / 2, -H / 2); }
+  const X = 130, head = t.sans ? SANS : SERIF;
+  g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+  // small fox + wordmark, top left, like a letterhead
+  g.save(); g.translate(X, 230); g.scale(1.6, 1.6);
+  const p = new Path2D(FOX); g.fillStyle = '#e8892a'; g.fill(p);
   g.fillStyle = '#fff8ec'; g.fill(new Path2D('M10 36l22 24 22-24-12-4-10 9-10-9z'));
   g.fillStyle = '#1a1a1a'; g.beginPath(); g.arc(23, 28, 3, 0, 7); g.arc(41, 28, 3, 0, 7); g.fill(); g.fill(new Path2D('M26.5 54h11L32 60z'));
   g.restore();
-  g.textAlign = 'center'; g.fillStyle = t.ink;
-  g.font = '700 76px system-ui, sans-serif'; g.fillText(m.title.toUpperCase(), W / 2, 820);
-  const bigSize = m.big.length > 6 ? 220 : 400;
-  g.font = `800 ${bigSize}px system-ui, sans-serif`; g.fillStyle = t.accent; g.fillText(m.big, W / 2, 820 + 60 + bigSize);
-  g.fillStyle = t.ink; g.font = '500 66px system-ui, sans-serif';
-  wrap(g, m.small, W / 2, 1360, 820, 84);
+  g.fillStyle = t.ink; g.font = `700 54px ${head}`; g.fillText('StudyFox', X + 120, 300);
+  // label, then the big number
+  g.fillStyle = t.sub; g.font = `600 48px ${SANS}`; g.fillText(m.title, X, 820);
+  const long = m.big.length > 6;
+  const bigSize = long ? 210 : 440;
+  g.font = `${t.sans ? 900 : 700} ${bigSize}px ${head}`;
+  const bw = Math.min(g.measureText(m.big).width, W - X - 90);
+  const by = 820 + 40 + bigSize * .82;
+  scribble(g, X - 10, by + 24, bw + 20, t.mark, t.id === 'bold' ? 26 : 22);
+  g.fillStyle = t.accent; g.fillText(m.big, X, by, W - X - 90);
+  g.fillStyle = t.ink; g.font = `${t.sans ? 600 : 'italic 400'} 64px ${head}`;
+  wrap(g, m.small, X, by + 170, W - X - 130, 82);
   // Signed-in students' cards carry their referral link, so a friend can type it in.
   const link = referralUrl(store.user() ? myNumber() : null).replace(/^https?:\/\//, '');
-  g.font = `800 ${link.length > 14 ? 64 : 88}px system-ui, sans-serif`; g.fillText(link, W / 2, 1700);
-  g.font = '500 48px system-ui, sans-serif'; g.fillStyle = t.sub; g.fillText('Free. No ads. No paywalls.', W / 2, 1770);
+  const footInk = t.id === 'bold' ? '#f5c518' : t.ink;
+  g.fillStyle = footInk; g.font = `700 ${link.length > 18 ? 54 : 70}px ${SANS}`; g.fillText(link, X, 1700, W - X - 90);
+  g.globalAlpha = .7; g.font = `400 44px ${SANS}`; g.fillText('Free. No ads. No paywalls.', X, 1770); g.globalAlpha = 1;
+  g.restore();
   return cv;
 }
 function wrap(g, text, x, y, max, lh) {
@@ -90,8 +112,8 @@ function wrap(g, text, x, y, max, lh) {
 const toBlob = (cv) => new Promise((r) => cv.toBlob(r, 'image/png'));
 
 export function openShare(start = 'streak') {
-  let kind = start, theme = 'forest';
-  try { theme = localStorage.getItem('sf_share_theme') || theme; } catch {}
+  let kind = start, theme = 'paper';
+  try { const saved = localStorage.getItem('sf_share_theme'); if (THEMES.some((t) => t.id === saved)) theme = saved; } catch {}
   const m = modal(`<div class="share-sheet">
       <div class="seg full" id="shKind">${SHARE_KINDS.map(([k, t]) => `<button data-k="${k}">${t}</button>`).join('')}</div>
       <div class="share-preview"><img id="shImg" alt="Preview of the image you'll share"></div>

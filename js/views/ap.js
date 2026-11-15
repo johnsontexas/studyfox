@@ -9,7 +9,7 @@ import { L, choiceFeedbackHTML, choiceNoteHTML, tappableChoicesHTML, whatWentWro
 import { choiceNotes } from '../explain.js';
 import { setting } from '../content/settings.js';
 import { classesBar, myStudying } from '../studying.js';
-import { apCounts as bankCounts, apQuestions as bankQuestions, apUnits, apDone, pickAP, recordAP, apStats } from '../content/ap-bank.js';
+import { HARDEST, HARDEST_ID, apCounts as bankCounts, apQuestions as bankQuestions, apUnits, apDone, pickAP, recordAP, apStats } from '../content/ap-bank.js';
 
 const client = () => (cloudEnabled ? db() : null);
 export const apCounts = () => bankCounts(client());
@@ -29,7 +29,7 @@ const tone = (s) => `tone-${Math.max(0, SUBJECTS.indexOf(s)) % 6}`;
 export function apHubView(root) {
   root.innerHTML = `<div class="page">${classesBar('ap')}<div class="page-head"><span class="eyebrow">${icon('target')} AP practice</span><h1>AP question bank</h1>
     <p class="muted">Exam-style multiple choice for every AP class, sorted by unit and concept. Every question has an explanation.</p>
-    <a class="btn sm" href="#/formulas?s=calc">${icon('integral')} AP formula sheets</a></div>
+    <div class="row gap wrap"><a class="btn sm" href="#/formulas?s=calc">${icon('integral')} AP formula sheets</a><a class="btn sm primary" href="#/hardest">${icon('flame')} Hardest questions</a></div></div>
     <div id="apGrid" class="ap-grid"><p class="muted">Loading the question bank...</p></div></div>`;
   apCounts().then((cnt) => {
     const el = $('#apGrid', root);
@@ -61,7 +61,7 @@ export function apHubView(root) {
 export function apCourseView(main, { course: cid }) {
   // Own container: #main is reused across routes, so listeners on it would pile up.
   const root = main.appendChild(document.createElement('div'));
-  const course = apCourses().find((c) => c.id === cid);
+  const course = cid === HARDEST_ID ? HARDEST : apCourses().find((c) => c.id === cid);
   if (!course) { root.innerHTML = `<div class="page narrow"><h1>Course not found</h1><a class="btn" href="#/ap">All AP classes</a></div>`; return; }
   const st = { count: 10, mode: 'smart', open: null, qs: [], session: null };
   root.innerHTML = `<div class="page narrow-wide" id="apRoot"><p class="muted">Loading questions...</p></div>`;
@@ -74,8 +74,9 @@ export function apCourseView(main, { course: cid }) {
     const all = stats(st.qs);
     host().innerHTML = `
       <a class="small" href="#/ap">${icon('left')} All AP classes</a>
-      <div class="row between wrap gap"><div><h1>${esc(course.title)}</h1><p class="muted">${all.n} questions in ${units.length} units. Pick a unit, or narrow it to one concept.</p></div>
-        <a class="btn ghost sm" href="#/learn/${course.id}">${icon('book')} Lessons</a></div>
+      ${course.id === HARDEST_ID ? `<div class="row between wrap gap"><div><span class="eyebrow">${icon('flame')} Challenge</span><h1>${esc(course.title)}</h1><p class="muted">${all.n} max-difficulty SAT and AP questions, harder than the hardest real exam items. Every one is fair, with a full explanation of each choice. Expect to miss some.</p></div></div>`
+      : `<div class="row between wrap gap"><div><h1>${esc(course.title)}</h1><p class="muted">${all.n} questions in ${units.length} units. Pick a unit, or narrow it to one concept.</p></div>
+        <a class="btn ghost sm" href="#/learn/${course.id}">${icon('book')} Lessons</a></div>`}
       <div class="bank-progress">
         <div><span class="bp-num">${all.did}</span><span class="bp-of"> / ${all.n}</span><span class="bp-label">questions done</span></div>
         <div><span class="bp-num">${all.right}</span><span class="bp-label">correct</span></div>

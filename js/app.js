@@ -83,7 +83,7 @@ const routes = [
   ['/flashcards/:id/learn', learnView], ['/flashcards/:id/test', testView], ['/flashcards/:id/match', matchView], ['/share/:data', importView],
   ['/learn', learnHubView], ['/learn/:course', courseView], ['/learn/:course/:lesson', lessonView],
   ['/formulas', formulasView], ['/calculator', calculatorView], ['/speed', speedView],
-  ['/ap', apHubView], ['/ap/:course', apCourseView], ['/about', aboutView], ['/contributors', contributorsView], ['/news', newsView], ['/admin', adminView], ['/admin/content', contentAdminView], ['/contact', contactView],
+  ['/ap', apHubView], ['/ap/:course', apCourseView], ['/hardest', (m) => apCourseView(m, { course: 'hardest' })], ['/about', aboutView], ['/contributors', contributorsView], ['/news', newsView], ['/admin', adminView], ['/admin/content', contentAdminView], ['/contact', contactView],
   ['/donate', donateView], ['/privacy', privacyView], ['/terms', termsView], ['/welcome', welcomeView], ['/too-young', ageBlockedView],
 ];
 
@@ -128,7 +128,7 @@ function navHTML(path) {
 // and every SAT/ACT tool under SAT & ACT.
 const TAB_GROUPS = {
   DASH: [['/dashboard', 'Overview'], ['/settings', 'Settings'], ['/contact', 'Support']],
-  SAT: [['/practice', 'Practice'], ['/speed', 'Speed practice'], ['/exams', 'Practice tests'], ['/formulas', 'Formula sheets'], ['/calculator', 'Calculator']],
+  SAT: [['/practice', 'Practice'], ['/hardest', 'Hardest questions'], ['/speed', 'Speed practice'], ['/exams', 'Practice tests'], ['/formulas', 'Formula sheets'], ['/calculator', 'Calculator']],
 };
 const tabGroup = (pat) => Object.entries(TAB_GROUPS).find(([g, tabs]) => (g !== 'DASH' || store.user()) && tabs.some(([p]) => p === pat));
 function tabShell(main, m, tabs) {

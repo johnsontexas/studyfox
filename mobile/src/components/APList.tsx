@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { loadAPCounts } from '../lib/ap';
-import { apDone, COURSES } from '../lib/shared';
+import { apDone, COURSES, HARDEST_ID } from '../lib/shared';
 import { type, useColors } from '../lib/theme';
 import Icon from './Icon';
 import { myStudying } from './StudyPicker';
@@ -46,6 +46,9 @@ export default function APList({ counts }: { counts: Record<string, Record<strin
   return (
     <>
       <Text style={[type.subhead, { color: c.label2, marginHorizontal: 20, marginTop: 8 }]}>{total.toLocaleString()} exam-style questions across {list.length} AP classes, sorted by unit and concept.</Text>
+      <Section header="Challenge">
+        <Row icon="flame" iconColor={c.orange} title="Hardest questions" subtitle="Max-difficulty SAT and AP questions" onPress={() => router.push(`/practice/ap/${HARDEST_ID}`)} />
+      </Section>
       {has ? <Section header="Your AP classes">{list.filter((l) => mine.includes(l.x.id)).map(row)}</Section> : null}
       <Section header={has ? 'All AP classes' : undefined}>{list.filter((l) => !mine.includes(l.x.id)).map(row)}</Section>
     </>

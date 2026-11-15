@@ -5,3 +5,7 @@ node_modules/
 .expo/
 .netlify/
 build/
+
+# Database backups (contain user emails + auth rows)
+backups/*
+!backups/README.md

@@ -41,7 +41,8 @@ export function applyContent(c) {
   }
   applySettings(c.settings);
   applyPeople(c.contributors, c.pages);
-  live.questions = (c.questions || []).filter((q) => !q.hidden);
+  // Challenge questions live in the Hardest set (js/content/ap-bank.js), not the numbered SAT/ACT bank.
+  live.questions = (c.questions || []).filter((q) => !q.hidden && !q.challenge);
   live.hidden = new Set((c.hidden || []).map((h) => h.id));
   live.version = c.version || '';
   live.loaded = true;

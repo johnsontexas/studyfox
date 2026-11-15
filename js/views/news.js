@@ -148,6 +148,10 @@ export function adminView(root) {
         <div class="row between wrap gap"><div><h2 class="h3">${icon('mail')} Email sign-up</h2><p class="muted small">${st.email_signup === false ? 'Off. New accounts can only use Google, Apple, or Microsoft, on the site and the app. Existing email accounts can still sign in.' : 'On. People can create accounts with an email and password.'}</p></div>
           <button class="btn ${st.email_signup === false ? 'primary' : 'danger'}" id="emailToggle">${st.email_signup === false ? 'Turn email sign-up on' : 'Turn email sign-up off'}</button></div>
       </section>
+      <section class="card">
+        <div class="row between wrap gap"><div><h2 class="h3">${icon('mail')} Email list</h2><p class="muted small" id="subLabel">Loading people who opted in to emails...</p></div>
+          <button class="btn primary" id="copyEmails" disabled>Copy emails</button></div>
+      </section>
       <a class="card hover row between gap" href="#/admin/content"><span><b>${icon('book')} Lessons, decks, and questions</b><br><span class="muted small">Edit courses and lessons, add or remove questions, and change flashcard decks. Updates the website and the app right away.</span></span>${icon('right')}</a>
       <h2 class="dash-title">Leaderboard reports</h2>
       <div id="reports"></div>
@@ -172,6 +176,17 @@ export function adminView(root) {
     });
     const draw = async () => { $('#feed', root).innerHTML = (await fetchNews(100)).map((n) => postHTML(n, true)).join('') || '<p class="muted">No posts yet.</p>'; };
     draw(); wireComposer(root, draw);
+    (async () => {
+      const { data, error } = await (await db()).from('email_subscribers').select('email').order('opted_in_at', { ascending: true });
+      if (error) { $('#subLabel', root).textContent = error.message; return; }
+      const emails = [...new Set((data || []).map((r) => r.email))];
+      $('#subLabel', root).textContent = `${emails.length} ${emails.length === 1 ? 'person has' : 'people have'} opted in. Copies as a comma-separated list. Put it in BCC so nobody sees the other addresses.`;
+      const btn = $('#copyEmails', root); btn.disabled = !emails.length;
+      btn.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(emails.join(', ')); toast(`Copied ${emails.length} emails.`, 'good'); }
+        catch { toast('Could not copy. Try again.', 'bad'); }
+      });
+    })();
     $('#emailToggle', root).addEventListener('click', async () => {
       const next = st.email_signup === false;
       if (!next && !(await confirmBox('Turn off email sign-up on the website and the app? People can still sign up with Google, Apple, or Microsoft.', { ok: 'Turn off', danger: true }))) return;

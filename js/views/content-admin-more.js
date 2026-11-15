@@ -83,6 +83,7 @@ function apForm(box, course, q, done) {
         <label>Concept<input id="aconcept" value="${esc(x.concept)}"></label>
         <label>Difficulty<select id="adiff">${[1, 2, 3].map((d) => `<option value="${d}" ${d === x.difficulty ? 'selected' : ''}>${['Easy', 'Medium', 'Hard'][d - 1]}</option>`).join('')}</select></label>
         <label class="consent" style="align-self:end"><input type="checkbox" id="ahidden" ${x.hidden ? 'checked' : ''}> <span>Hidden</span></label>
+        <label class="consent" style="align-self:end"><input type="checkbox" id="achal" ${x.challenge ? 'checked' : ''}> <span>Hardest questions only</span></label>
       </div>
       <label>Question <span class="muted small">Math between dollar signs; \\$ for a dollar sign.</span><textarea id="astem" rows="3">${esc(x.stem)}</textarea></label>
       ${x.choices.map((c, i) => `<div class="be-choice"><label class="row gap"><input type="radio" name="aans" value="${i}" ${x.answer === i ? 'checked' : ''} aria-label="Correct answer"> <span class="grow">Choice ${L(i)}<input data-ac="${i}" value="${esc(c)}"></span></label>
@@ -97,7 +98,7 @@ function apForm(box, course, q, done) {
     prev();
   };
   const read = () => {
-    x.unit = val(box, '#aunit').trim(); x.concept = val(box, '#aconcept').trim(); x.difficulty = +val(box, '#adiff'); x.hidden = $('#ahidden', box).checked;
+    x.unit = val(box, '#aunit').trim(); x.concept = val(box, '#aconcept').trim(); x.difficulty = +val(box, '#adiff'); x.hidden = $('#ahidden', box).checked; x.challenge = $('#achal', box).checked;
     x.stem = val(box, '#astem').trim(); x.expl = val(box, '#aexpl').trim(); x.hint = val(box, '#ahint').trim();
     x.choices = x.choices.map((_, i) => $(`[data-ac="${i}"]`, box).value.trim());
     const why = x.choices.map((_, i) => $(`[data-aw="${i}"]`, box).value.trim());
@@ -128,7 +129,7 @@ function apForm(box, course, q, done) {
     if (a === 'save') {
       read();
       if (!x.stem || x.choices.some((ch) => !ch) || !x.unit) return toast('Fill in the unit, the question, and every choice.', 'bad');
-      const row = { course_id: course.id, unit: x.unit, concept: x.concept, difficulty: x.difficulty, stem: x.stem, choices: x.choices, answer: x.answer, expl: x.expl, choice_expl: x.choice_expl, hint: x.hint, steps: x.steps, hidden: x.hidden };
+      const row = { course_id: course.id, unit: x.unit, concept: x.concept, difficulty: x.difficulty, stem: x.stem, choices: x.choices, answer: x.answer, expl: x.expl, choice_expl: x.choice_expl, hint: x.hint, steps: x.steps, hidden: x.hidden, challenge: !!x.challenge };
       const saved = await run(q ? c.from('ap_questions').update(row).eq('id', q.id).select().single() : c.from('ap_questions').insert(row).select().single(), q ? 'Saved.' : 'Question added.');
       try { localStorage.removeItem('sf_ap_' + course.id); localStorage.removeItem('sf_ap_counts'); } catch {}
       box.innerHTML = ''; done(saved);
@@ -250,6 +251,45 @@ export async function peoplePane(host) {
       if (!r.name) return toast('Add a name.', 'bad');
       await run(id ? c.from('contributors').update(r).eq('id', id) : c.from('contributors').insert(r), id ? 'Saved.' : 'Added.');
       after(); if (!id) peoplePane(host);
+    }
+  };
+}
+
+// Users: every account with its number, sign-up, last login, days active, and friend referrals.
+// Data comes from public.admin_users() (supabase/admin_users.sql), which only admins can call.
+export async function usersPane(host) {
+  const c = await db();
+  const { data, error } = await c.rpc('admin_users');
+  if (error) { host.innerHTML = `<p class="muted">${esc(error.message)}</p>`; return; }
+  const rows = data || [];
+  const d = (v) => (v ? new Date(v).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '-');
+  const cols = [['no', '#'], ['name', 'Name'], ['email', 'Email'], ['signed_up', 'Signed up'], ['last_login', 'Last login'], ['last_active', 'Last active'], ['days_active', 'Days active'], ['platforms', 'Platforms'], ['referred_by', 'Shared by'], ['referrals', 'Friends shared with']];
+  let sort = 'no', dir = 1, q = '';
+  const draw = () => {
+    const f = q.toLowerCase();
+    const list = rows.filter((r) => !f || `${r.no} ${r.name} ${r.email}`.toLowerCase().includes(f))
+      .sort((a, b) => { const x = a[sort] ?? '', y = b[sort] ?? ''; return (x > y ? 1 : x < y ? -1 : 0) * dir; });
+    const total = rows.length, refd = rows.filter((r) => r.referred_by).length;
+    const active7 = rows.filter((r) => r.last_active && Date.now() - new Date(r.last_active) < 7 * 864e5).length;
+    $('#uSum', host).textContent = `${total} users, ${active7} active in the last 7 days, ${refd} joined through a friend. Showing ${list.length}.`;
+    $('#uTable', host).innerHTML = `<thead><tr>${cols.map(([k, l]) => `<th><button class="btn sm ghost" data-sort="${k}">${l}${k === sort ? (dir > 0 ? ' ▲' : ' ▼') : ''}</button></th>`).join('')}</tr></thead>
+      <tbody>${list.map((r) => `<tr><td><b>${r.no}</b></td><td>${esc(r.name || '-')}</td><td class="small">${esc(r.email || '-')}</td><td>${d(r.signed_up)}</td><td>${d(r.last_login)}</td><td>${d(r.last_active)}</td><td>${r.days_active}</td><td class="small">${esc(r.platforms || '-')}</td>
+        <td>${r.referred_by ? `#${r.referred_by}${r.referred_by_name ? ` ${esc(r.referred_by_name)}` : ''}` : '-'}</td>
+        <td>${r.referrals ? `<b>${r.referrals}</b> <span class="muted small">(${(r.referral_nos || []).map((n) => '#' + n).join(', ')})</span>` : '0'}</td></tr>`).join('')}</tbody>`;
+  };
+  host.innerHTML = `<p class="muted">Every account. "Days active" counts the days a student opened StudyFox signed in (Supabase keeps people signed in, so this is the best login count). Click a column to sort.</p>
+    <div class="row gap wrap"><input id="uFind" placeholder="Search number, name, or email" style="max-width:320px"><button class="btn sm ghost" id="uCsv">${icon('down')} Download CSV</button></div>
+    <p class="small muted" id="uSum"></p>
+    <div class="card flush" style="overflow-x:auto"><table class="list" id="uTable"></table></div>`;
+  draw();
+  $('#uFind', host).oninput = (e) => { q = e.target.value; draw(); };
+  host.onclick = (e) => {
+    const b = e.target.closest('[data-sort]');
+    if (b) { const k = b.dataset.sort; dir = k === sort ? -dir : (k === 'no' || k === 'name' || k === 'email' ? 1 : -1); sort = k; draw(); return; }
+    if (e.target.closest('#uCsv')) {
+      const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      const csv = [cols.map(([, l]) => l).concat('Friend numbers'), ...rows.map((r) => cols.map(([k]) => r[k]).concat((r.referral_nos || []).join(' ')))].map((l) => l.map(cell).join(',')).join('\n');
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'studyfox-users.csv'; a.click();
     }
   };
 }

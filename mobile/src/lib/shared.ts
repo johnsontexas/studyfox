@@ -18,7 +18,7 @@ export { KOFI, CREATOR, INSTAGRAM, SITE_URL, CONTACT_EMAIL, SUPPORT_EMAIL, SUPPO
 export { SHARE_KINDS, shareMessage } from '../../../js/share-text.js';
 export { formulasView } from '../../../js/views/formulas.js';
 export { DESMOS_KEY } from '../../../js/tools.js';
-export { apCounts, apQuestions, apUnits, apDone, pickAP, recordAP, apStats } from '../../../js/content/ap-bank.js';
+export { apCounts, apQuestions, apUnits, apDone, pickAP, recordAP, apStats, HARDEST, HARDEST_ID } from '../../../js/content/ap-bank.js';
 
 export const COURSES = content.COURSES as unknown as Course[];
 export const SUBJECTS = content.SUBJECTS as string[];

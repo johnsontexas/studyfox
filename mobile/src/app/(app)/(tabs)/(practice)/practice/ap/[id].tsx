@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Text, View } from 'react-native';
 import { Bar, Button, Card, Empty, Pill, Screen, Section, Segmented, Stat } from '../../../../../../components/ui';
 import { loadAP, setAPSession, type APRow } from '../../../../../../lib/ap';
-import { apStats, apUnits, getCourse, pickAP } from '../../../../../../lib/shared';
+import { apStats, apUnits, getCourse, HARDEST, HARDEST_ID, pickAP } from '../../../../../../lib/shared';
 import { useStore } from '../../../../../../lib/store-hooks';
 import { type, useColors } from '../../../../../../lib/theme';
 
@@ -15,7 +15,8 @@ export default function APCourse() {
   useStore();
   const c = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const course = getCourse(id);
+  const hardest = id === HARDEST_ID;
+  const course = hardest ? (HARDEST as unknown as NonNullable<ReturnType<typeof getCourse>>) : getCourse(id);
   const [qs, setQs] = useState<APRow[] | null>(null);
   const [count, setCount] = useState(10);
   const [mode, setMode] = useState<Mode>('smart');
@@ -56,7 +57,8 @@ export default function APCourse() {
             </Section>
             <View style={{ marginHorizontal: 16, marginTop: 14, gap: 10 }}>
               <Button title="Mixed from All Units" icon="shuffle" onPress={() => start(qs, 'Mixed review')} />
-              <Button title={`${title.replace(/^AP /, '')} Rush`} icon="bolt" kind="tinted" onPress={() => router.push({ pathname: '/speed', params: { test: 'AP', ap: id, go: '1' } })} />
+              {hardest ? <Text style={[type.subhead, { color: c.label2 }]}>Max-difficulty SAT and AP questions, harder than the hardest real exam items. Every choice is explained. Expect to miss some.</Text>
+                : <Button title={`${title.replace(/^AP /, '')} Rush`} icon="bolt" kind="tinted" onPress={() => router.push({ pathname: '/speed', params: { test: 'AP', ap: id, go: '1' } })} />}
             </View>
 
             <Section header="Units" footer="Tap a unit to see its concepts.">
