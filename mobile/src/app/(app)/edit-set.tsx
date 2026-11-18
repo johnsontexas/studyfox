@@ -33,17 +33,20 @@ export default function EditSet() {
   };
   const txt = (style?: object) => [type.body, { color: c.label }, style];
 
+  // The bar is drawn in the screen, not with Stack.Screen header options: updating native header
+  // options on every keystroke made iOS drop the keyboard, so you couldn't type a set's name.
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: c.bg }}>
-      <Stack.Screen options={{
-        headerShown: true, title: existing ? 'Edit Set' : 'New Set',
-        headerLeft: () => <Pressable hitSlop={10} onPress={() => router.back()}><Text style={[type.body, { color: c.tint }]}>Cancel</Text></Pressable>,
-        headerRight: () => <Pressable hitSlop={10} onPress={save}><Text style={[type.headline, { color: c.tint }]}>{existing ? 'Save' : 'Create'}</Text></Pressable>,
-        headerStyle: { backgroundColor: c.bg }, headerShadowVisible: false,
-      }} />
-      <ScrollView ref={scroll} contentContainerStyle={{ paddingBottom: ins.bottom + 40 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
+    <View style={{ flex: 1, backgroundColor: c.bg }}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <View style={[styles.bar, { borderBottomColor: c.sep, paddingTop: Platform.OS === 'ios' ? 14 : ins.top + 10 }]}>
+        <Pressable hitSlop={10} onPress={() => router.back()} style={{ width: 80 }}><Text style={[type.body, { color: c.tint }]}>Cancel</Text></Pressable>
+        <Text style={[type.headline, { color: c.label, flex: 1, textAlign: 'center' }]}>{existing ? 'Edit Set' : 'New Set'}</Text>
+        <Pressable hitSlop={10} onPress={save} style={{ width: 80, alignItems: 'flex-end' }}><Text style={[type.headline, { color: c.tint }]}>{existing ? 'Save' : 'Create'}</Text></Pressable>
+      </View>
+      <KeyboardAvoidingView behavior={Platform.OS === 'android' ? 'height' : undefined} style={{ flex: 1 }}>
+      <ScrollView ref={scroll} contentContainerStyle={{ paddingBottom: ins.bottom + 40 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
         <Section>
-          <Field value={title} onChangeText={setTitle} placeholder="Title" style={{ fontWeight: '600' }} />
+          <Field value={title} onChangeText={setTitle} placeholder="Title, like Unit 3 vocab" autoFocus={!existing} returnKeyType="next" style={{ fontWeight: '600' }} />
           <Field value={desc} onChangeText={setDesc} placeholder="Description (optional)" multiline />
         </Section>
 
@@ -87,10 +90,12 @@ export default function EditSet() {
           <Row icon="plus" iconColor={c.tint} title="Add Card" accessory="none" onPress={addCard} />
         </Section>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  bar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 12, borderBottomWidth: StyleSheet.hairlineWidth },
   custom: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
 });

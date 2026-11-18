@@ -61,6 +61,7 @@ function merge(a, b) {
   out.speed = { best: { ...sb.best }, runs: byId(sa.runs, sb.runs).sort((p, q) => q.date - p.date).slice(0, 100) };
   for (const k in sa.best) out.speed.best[k] = Math.max(sa.best[k], out.speed.best[k] || 0);
   out.settings = Object.assign(blank().settings, b.settings, a.settings);
+  delete out.settings.dob; // no longer collected (age is a yes/no question now)
   out.learned = { ...b.learned, ...a.learned };
   out.bank = { ...b.bank };
   for (const k in a.bank) if (!out.bank[k] || a.bank[k].ts > out.bank[k].ts) out.bank[k] = a.bank[k];
@@ -158,7 +159,7 @@ export const store = {
 
   data() {
     const k = dataKey();
-    if (!cache || cacheKey !== k) { cache = Object.assign(blank(), read(k, {})); cache.settings = Object.assign(blank().settings, cache.settings); cacheKey = k; snapSets(cache); }
+    if (!cache || cacheKey !== k) { cache = Object.assign(blank(), read(k, {})); cache.settings = Object.assign(blank().settings, cache.settings); delete cache.settings.dob; cacheKey = k; snapSets(cache); }
     return cache;
   },
   save() { stampSets(this.data()); if (!write(dataKey(), this.data())) console.warn('Storage full'); saveListeners.forEach((f) => f()); },

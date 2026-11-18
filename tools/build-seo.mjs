@@ -63,9 +63,14 @@ function page({ path, title, desc, h1, crumbs = [], body, jsonld = [], priority 
 <meta property="og:title" content="${esc(fullTitle)}">
 <meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${url}">
-<meta property="og:image" content="${SITE}/assets/studyfox-icon.png">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="${SITE}/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="/assets/studyfox-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -152,7 +157,7 @@ for (const c of COURSES) {
 <h2>Lessons</h2><ol class="lessons">${c.lessons.map((l) => `<li><a href="${lessonUrl(c, l)}">${esc(l.title)}</a><span class="meta">${l.mins ? l.mins + ' min' : ''}</span><p>${esc(clip(strip(l.body), 160))}</p></li>`).join('')}</ol>
 ${deck ? `<h2>Flashcards</h2><p><a href="${deckUrl(deck)}">${esc(deck.title)}</a>: ${deck.cards.length} cards.</p>` : ''}`,
     jsonld: [{ '@type': 'Course', name: c.title, description: c.blurb, url: SITE + courseUrl(c), inLanguage: 'en', isAccessibleForFree: true, educationalLevel: c.level || 'High school',
-      provider: { '@type': 'Organization', name: 'StudyFox', sameAs: SITE },
+      provider: { '@type': 'Organization', name: 'StudyFox', sameAs: SITE, logo: SITE + '/assets/logo-512.png' }, image: SITE + '/assets/og-image.png', offers: { '@type': 'Offer', category: 'Free', price: 0, priceCurrency: 'USD' },
       offers: { '@type': 'Offer', price: 0, priceCurrency: 'USD', category: 'Free' },
       hasCourseInstance: { '@type': 'CourseInstance', courseMode: 'Online', courseWorkload: `PT${mins || 30}M` },
       syllabusSections: c.lessons.map((l) => ({ '@type': 'Syllabus', name: l.title })) }],
@@ -172,7 +177,7 @@ ${deck ? `<h2>Flashcards</h2><p><a href="${deckUrl(deck)}">${esc(deck.title)}</a
 <article class="lesson">${l.body}</article>${checkHtml}
 <nav class="pager">${prev ? `<a href="${lessonUrl(c, prev)}">Previous: ${esc(prev.title)}</a>` : '<span></span>'}${next ? `<a href="${lessonUrl(c, next)}">Next: ${esc(next.title)}</a>` : `<a href="${courseUrl(c)}">Back to ${esc(c.title)}</a>`}</nav>`,
       jsonld: [
-        { '@type': 'LearningResource', name: l.title, description: clip(text, 300), url: SITE + lessonUrl(c, l), learningResourceType: 'Lesson', isAccessibleForFree: true, inLanguage: 'en', educationalLevel: c.level || 'High school', timeRequired: l.mins ? `PT${l.mins}M` : undefined, isPartOf: { '@type': 'Course', name: c.title, url: SITE + courseUrl(c) }, author: { '@type': 'Person', name: CREATOR } },
+        { '@type': 'LearningResource', name: l.title, description: clip(text, 300), url: SITE + lessonUrl(c, l), learningResourceType: 'Lesson', isAccessibleForFree: true, image: SITE + '/assets/og-image.png', inLanguage: 'en', educationalLevel: c.level || 'High school', timeRequired: l.mins ? `PT${l.mins}M` : undefined, isPartOf: { '@type': 'Course', name: c.title, url: SITE + courseUrl(c) }, author: { '@type': 'Person', name: CREATOR } },
         ...(ch ? [{ '@type': 'Quiz', name: `${l.title} check`, about: l.title, hasPart: [{ '@type': 'Question', eduQuestionType: 'Multiple choice', text: strip(ch.q), acceptedAnswer: { '@type': 'Answer', text: strip(ch.choices[ch.answer]) }, suggestedAnswer: ch.choices.filter((_, j) => j !== ch.answer).map((x) => ({ '@type': 'Answer', text: strip(x) })) }] }] : []),
       ],
     });

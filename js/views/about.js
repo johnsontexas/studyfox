@@ -6,19 +6,18 @@ import { esc } from '../util.js';
 import { PEOPLE } from '../content/people.js';
 import { onContent } from '../content/live.js';
 import { teamHTML } from './contributors.js';
-import { BETTERU_URL, CREATOR, CREATOR_SITE, CREATOR_EMAIL, INSTAGRAM, STUDYFOX_INSTAGRAM, STUDYFOX_TIKTOK, SUPPORT_EMAIL } from '../config.js';
+import { socials } from '../content/socials.js';
+import { BETTERU_URL, CREATOR, CREATOR_SITE, CREATOR_EMAIL, INSTAGRAM, SUPPORT_EMAIL } from '../config.js';
 
 const withIcons = (html) => String(html || '').replace(/\{\{icon:([a-z-]+)\}\}/g, (_, n) => icon(n));
 
 function followHTML() {
   return `<section class="card row between wrap gap">
       <div><h2 class="h3">Follow StudyFox</h2><p class="muted">New courses, features, and study tips.</p></div>
-      <div class="row gap wrap">
-        <a class="btn primary" href="https://www.tiktok.com/@${STUDYFOX_TIKTOK}" target="_blank" rel="noopener">${icon('tiktok')} @${STUDYFOX_TIKTOK}</a>
-        <a class="btn" href="https://instagram.com/${STUDYFOX_INSTAGRAM}" target="_blank" rel="noopener">${icon('instagram')} @${STUDYFOX_INSTAGRAM}</a>
-      </div>
+      <div class="row gap wrap">${socialButtons()}</div>
     </section>`;
 }
+const socialButtons = () => socials().map((l, i) => `<a class="btn${i ? '' : ' primary'}" href="${esc(l.href)}" target="_blank" rel="noopener">${icon(l.icon)} ${esc(l.label)}</a>`).join('');
 
 /** The About page from site_pages: a title, an intro, then sections (card, plain, or the team list). */
 function livePage(root, p) {
@@ -92,10 +91,7 @@ function builtIn(root) {
 
     <section class="card row between wrap gap">
       <div><h2 class="h3">Follow StudyFox</h2><p class="muted">New courses, features, and study tips.</p></div>
-      <div class="row gap wrap">
-        <a class="btn primary" href="https://www.tiktok.com/@${STUDYFOX_TIKTOK}" target="_blank" rel="noopener">${icon('tiktok')} @${STUDYFOX_TIKTOK}</a>
-        <a class="btn" href="https://instagram.com/${STUDYFOX_INSTAGRAM}" target="_blank" rel="noopener">${icon('instagram')} @${STUDYFOX_INSTAGRAM}</a>
-      </div>
+      <div class="row gap wrap">${socialButtons()}</div>
     </section>
   </div>`;
 }

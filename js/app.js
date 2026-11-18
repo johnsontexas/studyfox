@@ -7,11 +7,13 @@ import { homeView } from './views/home.js';
 import { loginView, signupView, settingsView, requireAgreement } from './views/account.js';
 import { initCloud } from './cloud.js';
 import { welcomeView, ageBlockedView, ageBlockedUntil, needsOnboarding } from './views/welcome.js';
-import { CREATOR, STUDYFOX_INSTAGRAM, STUDYFOX_TIKTOK, CREATOR_EMAIL, KOFI } from './config.js';
+import { CREATOR, CREATOR_EMAIL, KOFI } from './config.js';
 import { newsView, adminView, contactView, maintenanceHTML, fetchStatus } from './views/news.js';
 import { isAdmin, db } from './cloud.js';
 import { initContent, onContent } from './content/live.js';
 import { creditLine } from './content/people.js';
+import { socials } from './content/socials.js';
+import { checkAnnouncements } from './announce.js';
 import { captureRef, loadMember, myNumber } from './members.js';
 import { applyA11y } from './a11y.js';
 import { applyAppearance } from './appearance.js';
@@ -197,17 +199,20 @@ function syncMember() {
   loadMember(db()).then((m) => { if (!m && store.user()?.id === u.id) { memberFor = null; setTimeout(syncMember, 15000); } });
 }
 
+// Social accounts from Admin console > Socials (content_settings.socials).
+const footSocials = () => socials().map((l) => `<a class="foot-ig" href="${esc(l.href)}" target="_blank" rel="noopener">${icon(l.icon)}${esc(l.label)}${l.label.startsWith('@') ? ` on ${esc(l.name)}` : ''}</a>`).join('');
+
 function boot() {
   captureRef();
   const footer = `<footer class="site-foot"><div class="foot-inner">
       <div class="foot-brand"><b>${BRAND}</b><p>Free study material for school and the SAT and ACT. No ads, no paywalls, no limits.</p>
         <p class="foot-credit" id="footCredit"><a href="#/contributors">${esc(creditLine() || `Made by ${CREATOR}.`)}</a></p>
-        <a class="foot-ig" href="https://instagram.com/${STUDYFOX_INSTAGRAM}" target="_blank" rel="noopener">${icon('instagram')}@${STUDYFOX_INSTAGRAM}</a>
-        <a class="foot-ig" href="https://www.tiktok.com/@${STUDYFOX_TIKTOK}" target="_blank" rel="noopener">${icon('tiktok')}@${STUDYFOX_TIKTOK} on TikTok</a>
+        <span id="footSocials">${footSocials()}</span>
         <a class="foot-ig" href="mailto:${CREATOR_EMAIL}">${icon('mail')}Contact ${CREATOR}: ${CREATOR_EMAIL}</a>
         <a class="foot-ig" href="mailto:support@studyfox.org">${icon('mail')}Support: support@studyfox.org</a>
         <a class="foot-ig" href="${KOFI}" target="_blank" rel="noopener">${icon('heart')}Support StudyFox on Ko-fi</a>
         <a class="foot-ig" id="iosLink" href="#" target="_blank" rel="noopener" hidden>${icon('down')}Download on iOS</a></div>
+      <nav class="foot-links" aria-label="Study guides"><a href="/courses/">All study guides</a><a href="/ap/">AP study guides</a><a href="/sat-act/">SAT &amp; ACT guides</a><a href="/flashcards/">Flashcard decks</a><a href="/sitemap/">Site map</a></nav>
       <nav class="foot-links" aria-label="Footer"><a href="#/news">News</a><a href="#/about">About</a><a href="#/contributors">Contributors</a><a href="#/contact">Contact</a><a href="#/donate">Donate</a><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a></nav>
       <p class="foot-legal">SAT®, AP®, and ACT® are trademarks of their respective owners, which are not affiliated with and do not endorse this site. Questions are original and generated for practice; scores are estimates.</p>
     </div></footer>`;
@@ -231,7 +236,7 @@ function boot() {
   store.onChange(() => { applyTheme(); applyA11y(); const p = (location.hash.slice(1) || '/').split('?')[0]; if (!['/privacy', '/terms', '/login', '/signup', '/welcome'].includes(p)) requireAgreement(); if (needsOnboarding() && !['/welcome', '/privacy', '/terms'].includes(p)) location.replace('#/welcome'); $('#nav').innerHTML = navHTML((location.hash.slice(1) || '/').split('?')[0]); });
   store.onChange(syncMember);
   syncMember();
-  onContent(() => { const f = $('#footCredit a'); const t = creditLine(); if (f && t) f.textContent = t; });
+  onContent(() => { const f = $('#footCredit a'); const t = creditLine(); if (f && t) f.textContent = t; const so = $('#footSocials'); if (so) so.innerHTML = footSocials(); });
   addEventListener('hashchange', router);
   // Courses, lessons, decks, and custom questions come from Supabase (editable in the admin console).
   // The saved copy shows immediately; if the server has newer content, redraw pages that show it.
@@ -251,6 +256,10 @@ function boot() {
   });
   refresh();
   setInterval(refresh, 60000);
+  // Pop-up announcements from the admin console: shortly after load, and again every few minutes.
+  setTimeout(() => checkAnnouncements().catch(() => {}), 1500);
+  setInterval(() => checkAnnouncements().catch(() => {}), 5 * 60000);
+  addEventListener('hashchange', () => setTimeout(() => checkAnnouncements().catch(() => {}), 800), { once: true });
   store.onChange(() => isAdmin().then((a) => { if (a !== admin) { admin = a; router(); } }));
 }
 

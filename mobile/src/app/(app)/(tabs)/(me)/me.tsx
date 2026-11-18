@@ -14,10 +14,12 @@ import { Card, confirm, Icon, menu, Row, Screen, Section, Stat, SwitchRow } from
 import { masteredCount } from '../../../../lib/cards';
 import { cloudSignOut, deleteAccount, linkedProviders, linkProvider, syncNow, syncStatus } from '../../../../lib/cloud';
 import { openWeb } from '../../../../lib/links';
+import { pushPrefs, setAnnouncementPush, syncPushToken } from '../../../../lib/announcements';
 import { getPrefs, KINDS, openSystemSettings, reschedule, setKind, setReminders, timeLabel, type Kind } from '../../../../lib/reminders';
-import { BUILTIN_DECKS, CREATOR, SHARE_KINDS, shareMessage, STUDYFOX_INSTAGRAM, KOFI, LANGS, PROFICIENCY, SITE_URL, store, SUPPORT_EMAIL, SUPPORT_FORM_URL, timeAgo } from '../../../../lib/shared';
+import { BUILTIN_DECKS, CREATOR, SHARE_KINDS, shareMessage, socials, loadMember, ordinal, referralUrl, updateMemberProfile, LANGS, PROFICIENCY, SITE_URL, store, SUPPORT_EMAIL, SUPPORT_FORM_URL, timeAgo } from '../../../../lib/shared';
 import { useStore } from '../../../../lib/store-hooks';
-import { type, useColors } from '../../../../lib/theme';
+import { THEME_PRESETS, type, useColors } from '../../../../lib/theme';
+import { contentClient } from '../../../../lib/cloud';
 
 const THEME_NAME: Record<string, string> = { system: 'Automatic', light: 'Light', dark: 'Dark' };
 const langName = (l: string[]) => (l[2] === l[1] ? l[1] : `${l[2]} (${l[1]})`);
@@ -47,6 +49,9 @@ export default function Me() {
   const d = store.data();
   const s = d.settings;
   const [rem, setRem] = useState(getPrefs());
+  const [push, setPush] = useState(pushPrefs().on);
+  const [member, setMember] = useState<{ no: number; referrals: number; show_on_leaderboard: boolean; display_name?: string } | null>(null);
+  useEffect(() => { if (u?.cloud) loadMember(contentClient()).then(setMember).catch(() => {}); }, [u?.cloud]);
   const [links, setLinks] = useState<string[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const sync = syncStatus();
@@ -82,6 +87,13 @@ export default function Me() {
     const r = await setReminders(on);
     setRem(getPrefs());
     if (r.denied) Alert.alert('Notifications are off for StudyFox', 'Turn them on in iPhone Settings to get study reminders.', [{ text: 'Not Now', style: 'cancel' }, { text: 'Open Settings', onPress: openSystemSettings }]);
+    else if (on) syncPushToken().catch(() => {});
+  };
+  const togglePush = async (on: boolean) => {
+    setPush(on);
+    if (!(await setAnnouncementPush(on))) {
+      Alert.alert('Notifications are off for StudyFox', 'Turn them on in iPhone Settings to get announcements.', [{ text: 'Not Now', style: 'cancel' }, { text: 'Open Settings', onPress: openSystemSettings }]);
+    }
   };
   const exportBackup = async () => {
     try {
@@ -128,6 +140,17 @@ export default function Me() {
           <Stat value={lessons} label="lessons done" />
         </Card>
 
+        {member ? (
+          <Section header="Your StudyFox number" footer={`Numbers go in the order people sign up, and they never change. When a friend signs up with your link, your number is filled in for them${member.referrals ? `. ${member.referrals} ${member.referrals === 1 ? 'friend has' : 'friends have'} joined with it so far` : ''}.`}>
+            <Row icon="users" iconColor={c.tint} title={`Student #${member.no}`} subtitle={`You're the ${ordinal(member.no)} student to join StudyFox`} accessory="none" />
+            <Row icon="share" iconColor={c.orange} title="Share Your Link" subtitle={referralUrl(member.no).replace(/^https?:\/\//, '')}
+              onPress={() => Share.share({ message: `I use StudyFox for free AP, SAT, and ACT prep. Join me: ${referralUrl(member.no)}` })} />
+            <Row icon="link" iconColor={c.blue} title="Copy Link" onPress={() => { Clipboard.setStringAsync(referralUrl(member.no)); Alert.alert('Link copied'); }} />
+            <SwitchRow title="Show My Name on Top Sharers" subtitle="Your first name, if friends join with your link" value={!!member.show_on_leaderboard}
+              onChange={(v) => { setMember({ ...member, show_on_leaderboard: v }); updateMemberProfile(contentClient(), u.name || member.display_name || '', v); }} />
+          </Section>
+        ) : null}
+
         <Section header="Study reminders" footer={rem.on ? "One a day at this time, picked from the kinds below. Skipped on days you've already studied." : 'A short daily nudge about what to practice next. Turn it off anytime.'}>
           <SwitchRow icon="bell" iconColor={c.red} title="Daily Reminder" value={rem.on} onChange={toggleReminders} />
           {rem.on ? (
@@ -145,6 +168,10 @@ export default function Me() {
             ))}
           </Section>
         ) : null}
+
+        <Section footer="New courses, features, and big news from the StudyFox team. A few a month at most.">
+          <SwitchRow icon="megaphone" iconColor={c.tint} title="Announcements" value={push} onChange={togglePush} />
+        </Section>
 
         <Section header="What you're studying for" footer="These show at the top of Courses, Practice, and AP Practice.">
           <StudyPicker value={myStudying()} onChange={setStudying} />
@@ -169,6 +196,9 @@ export default function Me() {
               onPress={() => menu('How well do you read English?', PROFICIENCY.map(([v, n, dsc]: string[]) => ({ title: `${n}: ${dsc}`, onPress: () => set({ english: v }) })))} />
           ) : null}
           <Row icon="moon" iconColor={c.indigo} title="Appearance" value={THEME_NAME[s.theme] || 'Automatic'} onPress={() => menu('Appearance', Object.entries(THEME_NAME).map(([k, v]) => ({ title: v, onPress: () => set({ theme: k }) })))} />
+          <Row icon="sparkle" iconColor={c.tint} title="Color Theme" value={(THEME_PRESETS.find((p: { id: string }) => p.id === (s.appearance?.preset || 'forest')) || THEME_PRESETS[0]).name}
+            onPress={() => menu('Color theme', THEME_PRESETS.map((p: { id: string; name: string }) => ({ title: p.name, onPress: () => set({ appearance: { ...(s.appearance || {}), preset: p.id } }) })))} />
+          <SwitchRow icon="eyeSlash" iconColor={c.gray} title="Hide Other Students' Names" subtitle="Leaderboards show Player 1, Player 2, and so on" value={!!s.hideNames} onChange={(v) => set({ hideNames: v })} />
           <SwitchRow icon="mail" iconColor={c.teal} title="Email Updates" subtitle="New courses, features, and study opportunities" value={!!s.emails} onChange={(v) => set({ emails: v, emailsAt: new Date().toISOString() })} />
         </Section>
 
@@ -197,8 +227,9 @@ export default function Me() {
             onPress={() => menu(SUPPORT_EMAIL, [{ title: 'Copy Email Address', onPress: () => { Clipboard.setStringAsync(SUPPORT_EMAIL); Alert.alert('Copied', SUPPORT_EMAIL); } }, { title: 'Write an Email', onPress: () => openWeb(`mailto:${SUPPORT_EMAIL}`) }])} />
           {SUPPORT_FORM_URL ? <Row icon="support" iconColor={c.teal} title="Suggestion Box" subtitle="Send an idea or report a problem" onPress={() => openWeb(SUPPORT_FORM_URL)} /> : null}
           <Row icon="globe" iconColor={c.tint} title="studyfox.org" onPress={() => openWeb(SITE_URL)} />
-          <Row icon="instagram" iconColor={c.pink} title={`@${STUDYFOX_INSTAGRAM}`} onPress={() => openWeb(`https://instagram.com/${STUDYFOX_INSTAGRAM}`)} />
-          <Row icon="heart" iconColor={c.pink} title="Donate on Ko-fi" subtitle="Helps keep StudyFox free and running" onPress={() => openWeb(KOFI)} />
+          {socials().map((l: { platform: string; icon: string; name: string; label: string; href: string }) => (
+            <Row key={l.platform + l.href} icon={l.icon} iconColor={l.platform === 'instagram' ? c.pink : l.platform === 'youtube' ? c.red : c.indigo} title={l.label} subtitle={l.name} onPress={() => openWeb(l.href)} />
+          ))}
           <Row icon="hand" iconColor={c.gray} title="Privacy Policy" onPress={() => router.push('/doc/privacy')} />
           <Row icon="doc" iconColor={c.gray} title="Terms of Use" onPress={() => router.push('/doc/terms')} />
         </Section>

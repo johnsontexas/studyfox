@@ -94,7 +94,7 @@ export default function Match() {
     <View style={{ marginTop: 18, gap: 8 }}>
       <Segmented options={[['all', 'Everyone'], ['me', 'My times']]} value={tab} onChange={setTab} />
       {(tab === 'me' ? mine.map((r, n) => ({ k: String(r.at), left: `${n + 1}. ${new Date(r.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`, right: r.s, you: false, other: null as null | { id: string; name: string } }))
-        : Array.isArray(board) ? board.map((r, n) => ({ k: r.user_id, left: `${n + 1}. ${r.name}${me?.cloud && r.user_id === me.id ? ' (you)' : ''}`, right: r.seconds, you: me?.cloud && r.user_id === me.id, other: me?.cloud && r.user_id !== me.id ? { id: r.user_id, name: r.name } : null }))
+        : Array.isArray(board) ? board.map((r, n) => ({ k: r.user_id, left: `${n + 1}. ${(me?.cloud && r.user_id === me.id) || !store.data().settings.hideNames ? r.name : `Player ${n + 1}`}${me?.cloud && r.user_id === me.id ? ' (you)' : ''}`, right: r.seconds, you: me?.cloud && r.user_id === me.id, other: me?.cloud && r.user_id !== me.id ? { id: r.user_id, name: r.name } : null }))
         : []).map((r) => (
         <View key={r.k} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 6 }}>
           <Text style={[type.subhead, { color: r.you ? c.tint : c.label, fontWeight: r.you ? '700' : '400' }]}>{r.left}</Text>

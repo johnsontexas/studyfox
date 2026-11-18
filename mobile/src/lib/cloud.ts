@@ -211,12 +211,34 @@ export async function deleteAccount() {
 }
 
 // News posts and the maintenance switch, written from the website's admin console (js/views/news.js).
-export type NewsPost = { id: number; title: string; body: string; pinned: boolean; image_url?: string; created_at: string };
+export type NewsPost = {
+  id: number; title: string; body: string; pinned: boolean; image_url?: string; created_at: string;
+  popup?: boolean; popup_until?: string | null; notify?: boolean; cta_label?: string; cta_url?: string;
+};
+// select('*') so the feed keeps working before or after supabase/announcements.sql adds its columns.
 export async function fetchNews(limit = 50): Promise<NewsPost[]> {
   const c = client(); if (!c) return [];
-  const { data, error } = await c.from('news').select('id,title,body,pinned,image_url,created_at').order('pinned', { ascending: false }).order('created_at', { ascending: false }).limit(limit);
+  const { data, error } = await c.from('news').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false }).limit(limit);
   if (error) throw error;
   return data as NewsPost[];
+}
+/** Announcements marked "pop up when people open StudyFox" that haven't expired, newest first. */
+export async function fetchPopups(): Promise<NewsPost[]> {
+  const c = client(); if (!c) return [];
+  const { data, error } = await c.from('news').select('*').eq('popup', true).order('created_at', { ascending: false }).limit(5);
+  if (error) return [];
+  const now = Date.now();
+  return (data as NewsPost[]).filter((n) => !n.popup_until || new Date(n.popup_until).getTime() > now);
+}
+/** Save this phone's Expo push token so announcements can reach it (supabase/announcements.sql). */
+export async function savePushToken(token: string, platform: string) {
+  const c = client(); if (!c) return;
+  const { error } = await c.rpc('register_push_token', { p_token: token, p_platform: platform });
+  if (error) console.warn('Could not save push token', error.message);
+}
+export async function removePushToken(token: string) {
+  const c = client(); if (!c) return;
+  await c.rpc('unregister_push_token', { p_token: token });
 }
 /** Admin kill switch for email sign-up (site_status.email_signup). Assumes on if it can't be read. */
 /** Top 10 Match times for a set (one per person), like the website's leaderboard. */

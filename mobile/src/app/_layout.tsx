@@ -8,6 +8,8 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, AppState, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AgreeGate from '../components/AgreeGate';
+import AnnouncementPopup from '../components/AnnouncementPopup';
+import { syncPushToken } from '../lib/announcements';
 import { DialogHost } from '../components/AndroidDialogs';
 import { contentClient, fetchStatus, initCloud, isPulling } from '../lib/cloud';
 import { Icon } from '../components/ui';
@@ -71,6 +73,8 @@ function App() {
   useEffect(() => {
     const check = () => fetchStatus().then((st) => setDown(st?.maintenance && !st.admin ? st.message || '' : null)).catch(() => {});
     check();
+    // Keep this phone's push token saved so announcements reach it (only if notifications are allowed).
+    if (signedIn) syncPushToken().catch(() => {});
     const sub = AppState.addEventListener('change', (a) => { if (a === 'active') check(); });
     return () => sub.remove();
   }, [signedIn]);
@@ -111,6 +115,7 @@ function App() {
           <Stack.Screen name="auth-callback" />
         </Stack>
         {needsAgree ? <AgreeGate /> : null}
+        {signedIn && !onboarding && !needsAgree && !blocked ? <AnnouncementPopup /> : null}
         <DialogHost />
       </ThemeProvider>
     </GestureHandlerRootView>
