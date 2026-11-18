@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 import Backdrop from '../components/Backdrop';
 import { Button, Field, Logo, Scribble, Section, tap } from '../components/ui';
-import { appleAvailable, cloudEnabled, emailSignIn, emailSignupOn, emailSignUp, signInWithApple, signInWithGoogle } from '../lib/cloud';
+import { appleAvailable, cloudEnabled, contentClient, emailSignIn, emailSignupOn, emailSignUp, signInWithApple, signInWithGoogle } from '../lib/cloud';
 import { COURSES, lessonCount, SITE_URL, store, passwordProblem, PASSWORD_HINT } from '../lib/shared';
 import { openWeb } from '../lib/links';
 import { fonts, type, useColors, useScheme } from '../lib/theme';
@@ -27,6 +27,9 @@ export default function Login() {
   const [note, setNote] = useState('');
   const [apple, setApple] = useState(false);
   const [accentW, setAccentW] = useState(0);
+  // "Join X other students", from the student_count RPC like the website's home page.
+  const [students, setStudents] = useState(0);
+  useEffect(() => { Promise.resolve(contentClient()?.rpc('student_count')).then((r: any) => { if (typeof r?.data === 'number') setStudents(r.data); }).catch(() => {}); }, []);
   const [signupOn, setSignupOn] = useState(true);
   useEffect(() => { appleAvailable().then(setApple); }, []);
   // Admin kill switch: with email sign-up off, the email form only signs in.
@@ -69,6 +72,7 @@ export default function Login() {
             </View>
           </View>
           <Text style={[type.body, { color: c.label2 }]}>Flashcards, courses for every AP class, and SAT and ACT practice. Free for every student: no ads, no paywall.</Text>
+          {students > 0 ? <Text style={[type.subhead, { color: c.tint, fontWeight: '600' }]}>Join {students.toLocaleString()} other students</Text> : null}
           <View style={{ flexDirection: 'row', gap: 22, marginTop: 6 }}>
             {[[`${COURSES.length}`, 'courses'], [`${lessonCount()}`, 'lessons'], ['25+', 'languages']].map(([n, l]) => (
               <View key={l}><Text style={[type.number, { color: c.label }]}>{n}</Text><Text style={[type.footnote, { color: c.label2 }]}>{l}</Text></View>

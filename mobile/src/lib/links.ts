@@ -17,6 +17,10 @@ export function appRouteFor(hash: string): string | null {
   if (p[0] === 'speed') return '/speed';
   if (p[0] === 'review') return '/practice/mistakes';
   if (p[0] === 'practice') return '/practice';
+  if (p[0] === 'news') return '/news';
+  if (p[0] === 'donate') return '/about'; // the app has no donation links (App Store guideline 3.1.1)
+  if (p[0] === 'about' || p[0] === 'contributors') return '/about';
+  if (p[0] === 'ap') return '/practice/ap';
   if (p[0] === 'dashboard' || !p[0]) return '/';
   return null;
 }

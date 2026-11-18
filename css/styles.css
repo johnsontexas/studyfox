@@ -647,7 +647,7 @@ h3 { font-weight: 650; }
 
 /* ---------- footer ---------- */
 .site-foot { border-top: 1.5px solid var(--ink); color: var(--muted); font-size: 1rem; padding: 2.4rem 1rem 1.6rem; margin-top: 2rem; }
-.foot-inner { max-width: 1160px; margin: 0 auto; display: grid; grid-template-columns: 1.4fr 1fr; gap: 1rem 2rem; }
+.foot-inner { max-width: 1160px; margin: 0 auto; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 1rem 2rem; }
 .foot-brand b { font-family: var(--display); font-size: 1.6rem; color: var(--ink); } .foot-brand p { margin: .3rem 0 .7rem; max-width: 34rem; font-size: 1.05rem; }
 .foot-brand { display: flex; flex-direction: column; align-items: flex-start; gap: .45rem; }
 .foot-ig { display: inline-flex; align-items: center; gap: .5rem; font-weight: 600; font-size: 1.02rem; color: var(--ink); } .foot-ig .ico { width: 1.15rem; height: 1.15rem; }

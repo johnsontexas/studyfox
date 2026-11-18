@@ -29,6 +29,9 @@ const MAP = {
   pen: ['pencil.line', 'edit'], bell: ['bell.fill', 'timer'], clock: ['clock.fill', 'timer'], sync: ['arrow.triangle.2.circlepath', 'shuffle'], download: ['square.and.arrow.down', 'upload'],
   rush: ['bolt.circle.fill', 'bolt'], bookmark: ['bookmark', 'bookmark'], bookmarkFill: ['bookmark.fill', 'bookmark'], pause: ['pause.fill', 'pause'],
   eye: ['eye', 'timer'], eyeSlash: ['eye.slash', 'timer'], strike: ['strikethrough', 'x'], chartBar: ['chart.bar.fill', 'chart'], puzzle: ['puzzlepiece', 'puzzle'],
+  // Social accounts (js/content/socials.js) and announcements
+  tiktok: ['music.note', 'tiktok'], youtube: ['play.rectangle.fill', 'youtube'], 'x-social': ['xmark', 'x-social'], threads: ['at', 'threads'],
+  discord: ['bubble.left.and.bubble.right.fill', 'discord'], megaphone: ['megaphone.fill', 'megaphone'],
 } as const;
 export type IconName = keyof typeof MAP;
 

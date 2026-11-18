@@ -34,6 +34,14 @@ export const SETTING_DEFAULTS = {
       { id: 'other', label: 'Somewhere else' },
     ],
   },
+  // StudyFox's social accounts (Admin console > Socials). platform: instagram, tiktok, youtube, x,
+  // threads, discord, or website. handle is the @name (or invite code / address); show: false hides one.
+  socials: {
+    links: [
+      { platform: 'tiktok', handle: 'studyfoxapp', show: true },
+      { platform: 'instagram', handle: 'studyfoxapp', show: true },
+    ],
+  },
 };
 
 const overrides = {};

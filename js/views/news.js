@@ -5,6 +5,9 @@ import { store } from '../store.js';
 import { db, isAdmin, cloudEnabled } from '../cloud.js';
 import { confirmBox } from '../tools.js';
 import { CONTACT_EMAIL, SUPPORT_EMAIL, SUPPORT_FORM_URL } from '../config.js';
+import { setting } from '../content/settings.js';
+import { SOCIAL_PLATFORMS } from '../content/socials.js';
+import { initContent, invalidateContent } from '../content/live.js';
 
 // Post bodies are plain text: escaped, then blank lines become paragraphs. Links can be written as
 // [link text](https://...) or pasted bare.
@@ -16,7 +19,8 @@ const date = (s) => new Date(s).toLocaleDateString(undefined, { month: 'short', 
 export async function fetchNews(limit = 50) {
   if (!cloudEnabled) return [];
   const c = await db();
-  const { data, error } = await c.from('news').select('id,title,body,pinned,image_url,created_at').order('pinned', { ascending: false }).order('created_at', { ascending: false }).limit(limit);
+  // select('*') so the feed works before and after supabase/announcements.sql adds the pop-up and push columns.
+  const { data, error } = await c.from('news').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false }).limit(limit);
   if (error) throw error;
   return data;
 }
@@ -33,9 +37,13 @@ const COVERS = [['#1f6b47', '#5fcf94', 'news'], ['#9a6200', '#f2b33d', 'star'], 
 const cover = (n) => { const [c1, c2, ic] = COVERS[Number(n.id) % COVERS.length]; return `<div class="news-cover" style="--c1:${c1};--c2:${c2}" aria-hidden="true">${icon(ic)}</div>`; };
 const postHTML = (n, admin) => `<article class="news-post card${n.pinned ? ' pinned' : ''}">
   ${n.image_url ? `<img class="news-img" src="${esc(n.image_url)}" alt="" loading="lazy">` : cover(n)}
-  <div class="news-meta">${n.pinned ? `<span class="tag">Pinned</span>` : ''}<time class="muted small" datetime="${esc(n.created_at)}">${date(n.created_at)}</time>
-    ${admin ? `<span class="grow"></span><button class="btn sm ghost" data-pin="${n.id}" data-on="${n.pinned ? 1 : 0}">${n.pinned ? 'Unpin' : 'Pin'}</button><button class="btn sm ghost danger-text" data-del="${n.id}">${icon('trash')} Delete</button>` : ''}</div>
-  <h2 class="h3">${esc(n.title)}</h2><div class="news-body">${body(n.body)}</div></article>`;
+  <div class="news-meta">${n.pinned ? `<span class="tag">Pinned</span>` : ''}${admin && n.popup ? `<span class="tag">${icon('megaphone')} Pop-up${n.popup_until ? ` until ${date(n.popup_until)}` : ''}</span>` : ''}${admin && n.notified_at ? `<span class="tag subtle">${icon('bell')} Pushed ${date(n.notified_at)}</span>` : ''}<time class="muted small" datetime="${esc(n.created_at)}">${date(n.created_at)}</time>
+    ${admin ? `<span class="grow"></span><button class="btn sm ghost" data-pin="${n.id}" data-on="${n.pinned ? 1 : 0}">${n.pinned ? 'Unpin' : 'Pin'}</button><button class="btn sm ghost" data-popup="${n.id}" data-on="${n.popup ? 1 : 0}">${n.popup ? 'Stop pop-up' : 'Pop up'}</button><button class="btn sm ghost" data-push="${n.id}">${icon('bell')} ${n.notified_at ? 'Push again' : 'Send push'}</button><button class="btn sm ghost danger-text" data-del="${n.id}">${icon('trash')} Delete</button>` : ''}</div>
+  <h2 class="h3">${esc(n.title)}</h2><div class="news-body">${body(n.body)}</div>${ctaHTML(n)}</article>`;
+
+// Optional button under an announcement. Site routes (#/learn/...) stay on the site; https links open a new tab.
+const ctaHref = (u) => (u.startsWith('/') ? `#${u}` : u);
+const ctaHTML = (n) => (n.cta_url ? `<p><a class="btn sm primary" href="${esc(ctaHref(n.cta_url))}"${/^https:/.test(n.cta_url) ? ' target="_blank" rel="noopener"' : ''}>${esc(n.cta_label || 'Open')}</a></p>` : '');
 
 // Form for writing a post; used on the news page and admin console.
 const composerHTML = (compact) => `<form class="card news-compose${compact ? ' compact' : ''}" data-compose>
@@ -43,10 +51,23 @@ const composerHTML = (compact) => `<form class="card news-compose${compact ? ' c
   <input name="title" maxlength="160" placeholder="Title" required>
   <textarea name="body" rows="${compact ? 3 : 6}" maxlength="8000" placeholder="What's new? Blank lines start a new paragraph. Links: [link text](https://...)" required></textarea>
   <div class="img-row"><button type="button" class="btn sm ghost" data-addlink>${icon('link')} Add link</button><label class="btn sm ghost">${icon('upload')} Add image<input type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif" hidden></label><span class="muted small" data-imgname>Optional. PNG, JPG, WebP, or GIF up to 5 MB.</span></div>
+  <details class="small"${compact ? '' : ' open'}><summary><b>${icon('megaphone')} Announcement options</b> <span class="muted">pop-up, push notification, button</span></summary>
+    <div class="stack" style="margin-top:8px">
+      <label class="row gap"><input type="checkbox" name="popup"> Pop up on people's screens when they open StudyFox (website and app). Each person sees it once.</label>
+      <label>Stop popping up after <span class="muted">(optional)</span><input type="date" name="popup_until"></label>
+      <label class="row gap"><input type="checkbox" name="notify"> Send a push notification to everyone with the iPhone app <span class="muted" data-devices></span></label>
+      <div class="row gap wrap"><label class="grow">Button text <span class="muted">(optional)</span><input name="cta_label" maxlength="40" placeholder="Try it"></label>
+        <label class="grow">Button link<input name="cta_url" maxlength="400" placeholder="#/learn/ap-biology or https://..."></label></div>
+    </div>
+  </details>
   <div class="row between wrap gap"><label class="row gap small"><input type="checkbox" name="pinned"> Pin to top</label><button class="btn primary sm">Post</button></div>
 </form>`;
 
 async function wireComposer(root, onDone) {
+  // How many phones a push would reach (admins only; blank until announcements.sql is run).
+  db().then((c) => c.rpc('push_device_count')).then(({ data }) => {
+    if (typeof data === 'number') root.querySelectorAll('[data-devices]').forEach((el) => { el.textContent = `(${data} ${data === 1 ? 'device' : 'devices'})`; });
+  }).catch(() => {});
   root.addEventListener('click', (e) => {
     const b = e.target.closest('[data-addlink]'); if (!b) return;
     const ta = b.closest('[data-compose]').body;
@@ -82,16 +103,37 @@ async function wireComposer(root, onDone) {
       if (up.error) { btn.disabled = false; return toast(up.error.message, 'bad'); }
       image_url = c.storage.from('news-images').getPublicUrl(path).data.publicUrl;
     }
-    const { error } = await c.from('news').insert({ title: f.title.value.trim(), body: f.body.value.trim(), pinned: f.pinned.checked, image_url });
+    const row = { title: f.title.value.trim(), body: f.body.value.trim(), pinned: f.pinned.checked, image_url };
+    // Announcement options are only sent when used, so plain posts still work before announcements.sql is run.
+    if (f.popup.checked) { row.popup = true; if (f.popup_until.value) row.popup_until = new Date(f.popup_until.value + 'T23:59:59').toISOString(); }
+    if (f.cta_url.value.trim()) {
+      let u = f.cta_url.value.trim();
+      if (u.startsWith('#/')) u = u.slice(1); else if (!/^(https:\/\/|\/)/.test(u)) u = `https://${u.replace(/^http:\/\//, '')}`;
+      row.cta_url = u; row.cta_label = f.cta_label.value.trim();
+    }
+    if (f.notify.checked) {
+      if (!(await confirmBox('Send this as a push notification to everyone with the StudyFox app? This can\'t be taken back.', { ok: 'Post and send' }))) { btn.disabled = false; return; }
+      row.notify = true;
+    }
+    const { error } = await c.from('news').insert(row);
     btn.disabled = false;
     if (error) return toast(error.message, 'bad');
     f.reset(); f.querySelector('.img-prev')?.remove(); toast('Posted.', 'good'); onDone?.();
   });
   root.addEventListener('click', async (e) => {
-    const del = e.target.closest('[data-del]'), pin = e.target.closest('[data-pin]');
-    if (!del && !pin) return;
+    const del = e.target.closest('[data-del]'), pin = e.target.closest('[data-pin]'), pop = e.target.closest('[data-popup]'), push = e.target.closest('[data-push]');
+    if (!del && !pin && !pop && !push) return;
     const c = await db();
-    if (del) {
+    if (pop) {
+      const { error } = await c.from('news').update({ popup: pop.dataset.on !== '1' }).eq('id', pop.dataset.popup);
+      if (error) return toast(error.message, 'bad');
+    } else if (push) {
+      if (!(await confirmBox('Send this post as a push notification to everyone with the StudyFox app?', { ok: 'Send' }))) return;
+      // notified_at = null with notify on makes the database send it (see supabase/announcements.sql).
+      const { error } = await c.from('news').update({ notify: true, notified_at: null }).eq('id', push.dataset.push);
+      if (error) return toast(error.message, 'bad');
+      toast('Push notification sent.', 'good');
+    } else if (del) {
       if (!(await confirmBox('Delete this post for everyone?', { ok: 'Delete', danger: true }))) return;
       const { error } = await c.from('news').delete().eq('id', del.dataset.del);
       if (error) return toast(error.message, 'bad');
@@ -153,9 +195,16 @@ export function adminView(root) {
           <button class="btn primary" id="copyEmails" disabled>Copy emails</button></div>
       </section>
       <a class="card hover row between gap" href="#/admin/content"><span><b>${icon('book')} Lessons, decks, and questions</b><br><span class="muted small">Edit courses and lessons, add or remove questions, and change flashcard decks. Updates the website and the app right away.</span></span>${icon('right')}</a>
+      <section class="card stack" id="socials">
+        <div><h2 class="h3">${icon('instagram')} Socials</h2><p class="muted small">StudyFox's accounts in the website footer, the About page, and the app's Me and About screens. Changes show up right away, with no app update.</p></div>
+        <div class="stack" id="socialRows"></div>
+        <div class="row gap wrap"><button class="btn ghost sm" id="socialAdd">${icon('edit')} Add account</button><button class="btn primary sm" id="socialSave">Save socials</button></div>
+      </section>
+      <h2 class="dash-title">Announcements and news posts</h2>
+      <p class="muted small">Every post shows on the News page. Turn on <b>pop up</b> to put it on people's screens the next time they open StudyFox, and <b>push notification</b> to send it to every phone with the app.</p>
       <h2 class="dash-title">Leaderboard reports</h2>
       <div id="reports"></div>
-      <h2 class="dash-title">News posts</h2>
+      <h2 class="dash-title">Post an announcement</h2>
       ${composerHTML(false)}
       <div id="feed"></div></div>`;
     const drawReports = async () => {
@@ -174,6 +223,31 @@ export function adminView(root) {
       if (error) toast(error.message, 'bad');
       drawReports();
     });
+    // Socials editor (content_settings.socials).
+    const socialRow = (l = { platform: 'instagram', handle: '', show: true }) => `<div class="row gap wrap" data-social>
+      <select name="platform">${Object.entries(SOCIAL_PLATFORMS).map(([k, p]) => `<option value="${k}" ${l.platform === k ? 'selected' : ''}>${p.name}</option>`).join('')}</select>
+      <input class="grow" name="handle" value="${esc(l.handle || l.url || '')}" placeholder="@handle, invite code, or link">
+      <input name="label" value="${esc(l.label || '')}" placeholder="Label (optional)" style="max-width:180px">
+      <label class="row gap small"><input type="checkbox" name="show" ${l.show !== false ? 'checked' : ''}> Show</label>
+      <button class="btn sm ghost" data-up title="Move up">${icon('up')}</button><button class="btn sm ghost danger-text" data-rm title="Remove">${icon('trash')}</button></div>`;
+    $('#socialRows', root).innerHTML = (setting('socials').links || []).map(socialRow).join('');
+    $('#socialAdd', root).onclick = () => $('#socialRows', root).insertAdjacentHTML('beforeend', socialRow());
+    $('#socialRows', root).onclick = (e) => {
+      const r = e.target.closest('[data-social]'); if (!r) return;
+      if (e.target.closest('[data-rm]')) r.remove();
+      else if (e.target.closest('[data-up]') && r.previousElementSibling) r.parentNode.insertBefore(r, r.previousElementSibling);
+    };
+    $('#socialSave', root).onclick = async () => {
+      const links = [...root.querySelectorAll('[data-social]')].map((r) => {
+        const platform = r.querySelector('[name=platform]').value, v = r.querySelector('[name=handle]').value.trim();
+        const isUrl = /^https?:\/\//i.test(v) && platform !== 'website';
+        return { platform, ...(isUrl ? { url: v.replace(/^http:/i, 'https:') } : { handle: v.replace(/^@/, '') }), label: r.querySelector('[name=label]').value.trim() || undefined, show: r.querySelector('[name=show]').checked };
+      }).filter((l) => l.handle || l.url);
+      const { error } = await (await db()).from('content_settings').upsert({ key: 'socials', value: { links }, note: 'StudyFox social accounts. Edit in Admin console > Socials.' });
+      if (error) return toast(error.message, 'bad');
+      toast('Socials saved. They show on the site and in the app right away.', 'good');
+      invalidateContent(); initContent(db());
+    };
     const draw = async () => { $('#feed', root).innerHTML = (await fetchNews(100)).map((n) => postHTML(n, true)).join('') || '<p class="muted">No posts yet.</p>'; };
     draw(); wireComposer(root, draw);
     (async () => {

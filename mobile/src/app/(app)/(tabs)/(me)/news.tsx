@@ -1,8 +1,10 @@
 // News posts from the StudyFox team. Posts are written in the website's admin console.
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Image, RefreshControl, Text, View } from 'react-native';
-import { Card, Empty, Screen } from '../../../../components/ui';
+import { Image, RefreshControl, Text } from 'react-native';
+import { PostBody } from '../../../../components/AnnouncementPopup';
+import { Button, Card, Empty, Screen } from '../../../../components/ui';
+import { openLink } from '../../../../lib/links';
 import { fetchNews, type NewsPost } from '../../../../lib/cloud';
 import { type, useColors } from '../../../../lib/theme';
 
@@ -21,7 +23,8 @@ export default function News() {
           {n.image_url ? <Image source={{ uri: n.image_url }} accessibilityIgnoresInvertColors style={{ marginTop: -16, marginHorizontal: -16, marginBottom: 6, aspectRatio: 16 / 7 }} resizeMode="cover" /> : null}
           <Text style={[type.footnote, { color: n.pinned ? c.tint : c.label2 }]}>{n.pinned ? 'Pinned · ' : ''}{new Date(n.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</Text>
           <Text style={[type.headline, { color: c.label }]}>{n.title}</Text>
-          <View style={{ gap: 8 }}>{n.body.split(/\n{2,}/).map((p, i) => <Text key={i} selectable style={[type.body, { color: c.label }]}>{p}</Text>)}</View>
+          <PostBody body={n.body} color={c.label} link={c.tint} />
+          {n.cta_url ? <Button title={n.cta_label || 'Open'} size="small" kind="tinted" style={{ alignSelf: 'flex-start', marginTop: 4 }} onPress={() => openLink(n.cta_url!.startsWith('/') ? `#${n.cta_url}` : n.cta_url!)} /> : null}
         </Card>
       ))}
     </Screen>

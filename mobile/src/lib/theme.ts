@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { Appearance, Platform, useColorScheme, type TextStyle } from 'react-native';
 import { TOKENS } from '../generated/site';
 import { store } from './shared';
+import { palette } from '../../../js/appearance.js';
 import { useStore } from './store-hooks';
 
 // Warm, slightly muted accents that sit well next to forest green (used for icon tiles and stats).
@@ -38,12 +39,50 @@ function build(scheme: 'light' | 'dark') {
 const THEMES = { light: build('light'), dark: build('dark') };
 export type Colors = typeof THEMES.light;
 
+// Color themes from Settings > Appearance (js/appearance.js, settings.appearance, synced with the website).
+const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const toHex = (rgb: number[]) => '#' + rgb.map((v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('');
+/** pct% of a mixed into b, like CSS color-mix(in srgb, a pct%, b). */
+const mix = (a: string, pct: number, b: string) => { const x = hex(a), y = hex(b); return toHex(x.map((v, i) => (v * pct + y[i] * (100 - pct)) / 100)); };
+const lum = (h: string) => { const [r, g, b] = hex(h).map((v) => v / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const isHex = (h: unknown): h is string => typeof h === 'string' && /^#[0-9a-f]{6}$/i.test(h);
+const themed = new Map<string, Colors>();
+
+function withAppearance(scheme: 'light' | 'dark'): Colors {
+  const base = THEMES[scheme];
+  const a = store.user() ? store.data().settings.appearance : null;
+  if (!a || !a.preset || a.preset === 'forest') return base;
+  const p = palette(a) as { light: string; dark: string; accent: string; tint: number };
+  const light = isHex(p.light) ? p.light : base.tint;
+  const darkBrand = isHex(p.dark) ? p.dark : mix(light, 55, '#ffffff');
+  const accent = isHex(p.accent) ? p.accent : base.amber;
+  const key = `${scheme}|${light}|${darkBrand}|${accent}|${p.tint}`;
+  const hit = themed.get(key); if (hit) return hit;
+  const dark = scheme === 'dark';
+  const brand = dark ? darkBrand : light;
+  const t = dark ? Math.round(p.tint * 0.6) : p.tint;
+  const out = {
+    ...base,
+    tint: brand, tint2: mix(brand, 80, dark ? '#ffffff' : '#000000'), tintSoft: mix(brand, dark ? 16 : 13, dark ? '#101312' : '#ffffff'),
+    onTint: lum(brand) > 0.4 ? '#111111' : '#ffffff',
+    amber: accent, onAmber: lum(accent) > 0.4 ? '#2b1d05' : '#ffffff', amberSoft: mix(accent, dark ? 16 : 18, dark ? '#101312' : '#ffffff'),
+    bg: mix(brand, t, dark ? '#0b0d0c' : '#f8f8f6'), card: dark ? mix(brand, t + 3, '#121514') : base.card, card2: mix(brand, t + (dark ? 6 : 4), dark ? '#181c1a' : '#f3f3f1'),
+    line: mix(brand, dark ? 10 : Math.max(6, p.tint + 6), dark ? '#222826' : '#e4e4e1'), sep: mix(brand, dark ? 10 : Math.max(6, p.tint + 6), dark ? '#222826' : '#e4e4e1'),
+    ledge: mix(brand, dark ? 16 : Math.max(10, p.tint + 10), dark ? '#2e3532' : '#cfcfcb'),
+    glow: [mix(brand, dark ? 18 : 12, dark ? '#0b0d0c' : '#f8f8f6'), mix(brand, t, dark ? '#0b0d0c' : '#f8f8f6')] as unknown as Colors['glow'],
+    hero: [dark ? mix(light, 70, '#000000') : light, dark ? mix(light, 45, '#000000') : mix(light, 78, '#000000')] as unknown as Colors['hero'],
+  } as unknown as Colors;
+  themed.set(key, out);
+  return out;
+}
+export { PRESETS as THEME_PRESETS } from '../../../js/appearance.js';
+
 export function useScheme(): 'light' | 'dark' {
   useStore();
   const system = useColorScheme();
   return system === 'dark' ? 'dark' : 'light';
 }
-export const useColors = (): Colors => THEMES[useScheme()];
+export const useColors = (): Colors => withAppearance(useScheme());
 
 /** Applies the Appearance setting (System / Light / Dark) to the whole app. */
 export function useAppearanceSetting() {

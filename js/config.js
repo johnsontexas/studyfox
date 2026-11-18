@@ -7,7 +7,7 @@ export const CONTACT_EMAIL = 'danieljohnsonhtx@gmail.com';
 export const CREATOR = 'Daniel Johnson';
 export const INSTAGRAM = 'txdanieljohnson';
 // StudyFox's own Instagram, shown in the footer.
-export const STUDYFOX_INSTAGRAM = 'studyfox';
+export const STUDYFOX_INSTAGRAM = 'studyfoxapp';
 export const STUDYFOX_TIKTOK = 'studyfoxapp';
 // Daniel's personal address, shown on the About page; support@ stays the contact everywhere else.
 export const CREATOR_EMAIL = 'daniel@johnsontexas.com';

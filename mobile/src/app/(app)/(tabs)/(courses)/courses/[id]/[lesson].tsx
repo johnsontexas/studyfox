@@ -2,6 +2,7 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
+import LessonPlayer from '../../../../../../components/LessonPlayer';
 import { Rich, RichText } from '../../../../../../components/Rich';
 import { Button, buzz, Empty, Icon, Row, Screen, Section, tap } from '../../../../../../components/ui';
 import { setSession, skillSet } from '../../../../../../lib/questions';
@@ -24,6 +25,8 @@ export default function Lesson() {
   const key = `${co.id}/${l.id}`;
   const learned = store.data().learned as Record<string, number>;
   const k = l.check;
+  // Interactive lessons (blocks edited in the admin console) play in the lesson player, like on the website.
+  const interactive = Array.isArray((l as any).blocks) && (l as any).blocks.length > 0;
 
   const complete = () => {
     learned[key] = Date.now();
@@ -38,11 +41,14 @@ export default function Lesson() {
       <ScrollView ref={scroll} contentInsetAdjustmentBehavior="automatic" style={{ backgroundColor: c.card }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 30, maxWidth: 720, width: '100%', alignSelf: 'center' }}>
         <Text style={[type.footnote, { color: c.tint, fontWeight: '600', textTransform: 'uppercase', marginTop: 8 }]}>{co.title}</Text>
         <Text style={[type.title1, { color: c.label, marginTop: 4, marginBottom: 4 }]}>{l.title}</Text>
-        <Text style={[type.subhead, { color: c.label2, marginBottom: 18 }]}>{l.mins} min read</Text>
+        <Text style={[type.subhead, { color: c.label2, marginBottom: 18 }]}>{l.mins} min{interactive ? ' · Interactive' : ' read'}</Text>
 
-        <Rich html={l.body} variant="lesson" inset={40} box={c.bg} />
+        {interactive ? (
+          <LessonPlayer key={key} lesson={l} lessonKey={key} onScreen={() => scroll.current?.scrollTo({ y: 0, animated: true })}
+            onFinish={() => { learned[key] = learned[key] || Date.now(); store.save(); buzz(true); }} />
+        ) : <Rich html={l.body} variant="lesson" inset={40} box={c.bg} />}
 
-        {l.desmos ? (
+        {!interactive && l.desmos ? (
           <Pressable onPress={() => { tap(); router.push({ pathname: '/calculator', params: { e: JSON.stringify(l.desmos), title: l.title } }); }}
             style={({ pressed }) => ({ marginTop: 22, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 16, backgroundColor: c.bg, opacity: pressed ? 0.7 : 1 })}>
             <Icon name="calculator" size={22} color={c.tint} />
@@ -51,7 +57,7 @@ export default function Lesson() {
           </Pressable>
         ) : null}
 
-        {k ? (
+        {!interactive && k ? (
           <View style={{ marginTop: 26, gap: 12 }}>
             <Text style={[type.title3, { color: c.label }]}>Quick check</Text>
             <Rich html={k.q} variant="question" inset={40} box={c.bg} />
