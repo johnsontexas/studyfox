@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>StudyFox · Growth</title>
+<style>
+  :root { color-scheme: light dark; --bg: #f5f7f2; --fg: #14231a; --mut: #5b6b60; --card: #fff; --line: #e1e7df; --acc: #1f6b47; --acc2: #d9862b; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0a0f0c; --fg: #e8efe9; --mut: #93a398; --card: #121a15; --line: #223029; --acc: #4fbf86; --acc2: #f0a24a; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px -apple-system, system-ui, sans-serif; padding: 24px 16px; }
+  main { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  .sub { color: var(--mut); margin: 0 0 20px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .tile b { display: block; font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+  .tile span { color: var(--mut); font-size: .85rem; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+  h2 { font-size: 1rem; margin: 0 0 10px; }
+  svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .ax { fill: var(--mut); font-size: 11px; }
+  .grid { stroke: var(--line); }
+  .tip { fill: var(--fg); font-size: 12px; font-weight: 600; }
+  #err { color: #c0392b; }
+</style>
+</head>
+<body>
+<main>
+  <h1>User growth</h1>
+  <p class="sub" id="sub">Loading…</p>
+  <div class="tiles" id="tiles"></div>
+  <section><h2>Total users since launch</h2><div id="total"></div></section>
+  <section><h2>New users per day</h2><div id="daily"></div></section>
+  <p id="err"></p>
+</main>
+<script type="module">
+  import { SUPABASE_URL, SUPABASE_ANON_KEY } from './js/config.js';
+  const $ = (id) => document.getElementById(id);
+  const fmtD = (s) => new Date(s + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const W = 860, H = 280, P = { l: 44, r: 12, t: 16, b: 28 };
+
+  function chart(el, rows, key, type) {
+    const n = rows.length, max = Math.max(1, ...rows.map((r) => r[key]));
+    const iw = W - P.l - P.r, ih = H - P.t - P.b;
+    const x = (i) => P.l + (n === 1 ? iw / 2 : (i / (n - 1)) * iw);
+    const y = (v) => P.t + ih - (v / max) * ih;
+    let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+    for (let k = 0; k <= 4; k++) {
+      const v = Math.round((max * k) / 4), yy = y(v);
+      s += `<line class="grid" x1="${P.l}" x2="${W - P.r}" y1="${yy}" y2="${yy}"/><text class="ax" x="${P.l - 6}" y="${yy + 4}" text-anchor="end">${v.toLocaleString()}</text>`;
+    }
+    const step = Math.max(1, Math.ceil(n / 8));
+    rows.forEach((r, i) => { if (i % step === 0 || i === n - 1) s += `<text class="ax" x="${x(i)}" y="${H - 8}" text-anchor="middle">${fmtD(r.day)}</text>`; });
+    if (type === 'line') {
+      const pts = rows.map((r, i) => `${x(i)},${y(r[key])}`).join(' ');
+      s += `<polygon points="${P.l},${y(0)} ${pts} ${x(n - 1)},${y(0)}" fill="var(--acc)" opacity=".12"/>`;
+      s += `<polyline points="${pts}" fill="none" stroke="var(--acc)" stroke-width="2.5" stroke-linejoin="round"/>`;
+    } else {
+      const bw = Math.max(2, Math.min(28, (iw / n) * 0.7));
+      rows.forEach((r, i) => { s += `<rect x="${x(i) - bw / 2}" y="${y(r[key])}" width="${bw}" height="${y(0) - y(r[key])}" rx="2" fill="var(--acc2)"><title>${fmtD(r.day)}: ${r[key]}</title></rect>`; });
+    }
+    rows.forEach((r, i) => { s += `<circle cx="${x(i)}" cy="${y(r[key])}" r="10" fill="transparent"><title>${fmtD(r.day)}: ${r[key].toLocaleString()}</title></circle>`; });
+    el.innerHTML = s + '</svg>';
+  }
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/user_growth`, { method: 'POST', headers: { apikey: SUPABASE_ANON_KEY, 'Content-Type': 'application/json' }, body: '{}' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const rows = await res.json();
+    if (!rows.length) throw new Error('No data yet');
+    const last = rows[rows.length - 1], today = last.new_users;
+    const wk = rows.slice(-7).reduce((a, r) => a + r.new_users, 0);
+    const best = rows.reduce((a, r) => (r.new_users > a.new_users ? r : a));
+    $('sub').textContent = `Since ${fmtD(rows[0].day)} · ${rows.length} days`;
+    $('tiles').innerHTML = [[last.total_users, 'Total users'], [today, 'New today'], [wk, 'Last 7 days'], [best.new_users, `Best day (${fmtD(best.day)})`]]
+      .map(([v, l]) => `<div class="tile"><b>${v.toLocaleString()}</b><span>${l}</span></div>`).join('');
+    chart($('total'), rows, 'total_users', 'line');
+    chart($('daily'), rows, 'new_users', 'bar');
+  } catch (e) { $('sub').textContent = ''; $('err').textContent = 'Could not load: ' + e.message; }
+</script>
+</body>
+</html>
