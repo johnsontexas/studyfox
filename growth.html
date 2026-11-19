@@ -24,15 +24,17 @@
   .grid { stroke: var(--line); }
   .tip { fill: var(--fg); font-size: 12px; font-weight: 600; }
   #err { color: #c0392b; }
+  .note { color: var(--mut); font-size: .9rem; margin: -8px 0 20px; }
 </style>
 </head>
 <body>
 <main>
   <h1>User growth</h1>
   <p class="sub" id="sub">Loading…</p>
+  <p class="note">A user is added each time someone makes a new account (email, Google, or Apple, on the website or the app).</p>
   <div class="tiles" id="tiles"></div>
   <section><h2>Total users since launch</h2><div id="total"></div></section>
-  <section><h2>New users per day</h2><div id="daily"></div></section>
+  <section><h2>New accounts per day</h2><div id="daily"></div></section>
   <p id="err"></p>
 </main>
 <script type="module">
