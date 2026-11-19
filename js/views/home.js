@@ -4,7 +4,7 @@ import { store } from '../store.js';
 import { questionOfTheDay } from '../gen/index.js';
 import { L, tagLine } from '../qview.js';
 import { COURSES, SUBJECTS, lessonCount } from '../content/courses.js';
-import { CREATOR, INSTAGRAM } from '../config.js';
+import { CREATOR } from '../config.js';
 import { newsWidget } from './news.js';
 import { db, cloudEnabled } from '../cloud.js';
 
@@ -36,12 +36,8 @@ const SUBJECT_ICON = { Math: 'integral', Science: 'flask', English: 'book', Hist
 // Subject rows list a few course names, then a count, so busy subjects stay readable.
 const tileList = (cs) => cs.slice(0, 3).map((c) => esc(c.title)).join(', ') + (cs.length > 3 ? `, and ${cs.length - 3} more` : '');
 
-// Small decorative previews of real features, drawn with markup instead of screenshots.
-const bankArt = () => {
-  const pat = 'rrnrmrrnnrrmrnrrnrnmrrrnrrnmrnrr';
-  return `<div class="art-grid" aria-hidden="true">${[...pat].map((c, i) => `<span class="${c === 'r' ? 'q-right' : c === 'm' ? 'q-miss' : ''}">${i + 201}</span>`).join('')}</div>`;
-};
-const barsArt = (vals) => `<div class="art-bars" aria-hidden="true">${vals.map((v, i) => `<i style="height:${v}%"${i === vals.length - 1 ? ' class="on"' : ''}></i>`).join('')}</div>`;
+// Courses shown in the hero list for visitors. Ids from js/content/courses.js; missing ids are skipped.
+const POPULAR = [['apush', 'AP', 'Periods 1 to 9, with practice by unit'], ['sat-math-algebra', 'SAT', 'Algebra and advanced math'], ['ap-bio', 'AP', 'All 8 units, cell biology to ecology'], ['act-english', 'ACT', 'Punctuation, grammar and style'], ['ap-psych', 'AP', 'Every unit of the new course']];
 
 // On the first load index.html already shows the hero (data-shell). Build the rest of the page around it
 // instead of replacing it, so the browser doesn't count the headline as painted twice.
@@ -53,7 +49,7 @@ function fill(root, html) {
   const fresh = t.querySelector('.hero2-copy'), norm = (e) => e.textContent.replace(/\s+/g, ' ').trim();
   if (!keep || !fresh || norm(keep) !== norm(fresh)) { root.innerHTML = html; return; }
   const hero = root.querySelector('section.hero2');
-  root.querySelector('.collage')?.replaceWith(t.querySelector('.collage'));
+  root.querySelector('.hx-pop')?.replaceWith(t.querySelector('.hx-pop'));
   t.querySelector('section.hero2').remove();
   hero.after(...t.childNodes);
 }
@@ -67,83 +63,61 @@ export function homeView(root) {
   let nStu = 0; try { nStu = +localStorage.getItem('sf_student_count') || 0; } catch {}
   const ap = COURSES.filter((c) => /^AP /.test(c.title));
   const cta = u ? '<a class="btn primary lg" href="#/dashboard">Go to your dashboard</a>' : '<a class="btn primary lg" href="#/signup">Start studying, it\'s free</a>';
+  const byId = Object.fromEntries(COURSES.map((c) => [c.id, c]));
+  const popular = POPULAR.filter(([id]) => byId[id]);
   const html = `
-  <section class="hero2">
+  <section class="hero2 hx">
     <div class="hero2-inner">
       <div class="hero2-copy">
-        <h1>Study for every class.<br><em class="scribble">Pay for none of it.</em></h1>
-        <p class="lead">Courses for ${COURSES.length} classes including every AP subject, flashcards, practice tests, and a <span class="bank-n">${(nSat + nAct).toLocaleString()}</span>-question SAT and ACT bank. All in one place.</p>
+        <h1 class="hx-h1">Study every<br>class. <span>Free.</span></h1>
+        <p class="lead">Courses for ${COURSES.length} classes including every AP subject, flashcards, and a <span class="bank-n">${(nSat + nAct).toLocaleString()}</span>-question SAT and ACT bank. Built by a student, for students. No ads, ever.</p>
         <div class="row gap wrap">${cta}<a class="btn lg ghost" href="#/learn">Browse courses</a></div>
         <p class="join-n"${nStu ? '' : ' hidden'}>${icon('users')}<span>Join <b class="stu-n">${nStu.toLocaleString()}</b> other students</span></p>
-        <a class="free-pill" href="#/about">${icon('heart')}<span><b>100% free, for everyone.</b> No ads, no paywall, no catch.</span><span class="free-why">Why? ${icon('arrow')}</span></a>
-        <dl class="facts">
-          <div><dt>${COURSES.length}</dt><dd>courses</dd></div>
-          <div><dt>${lessonCount()}</dt><dd>lessons</dd></div>
-          <div><dt class="bank-n">${(nSat + nAct).toLocaleString()}</dt><dd>practice questions</dd></div>
-          <div><dt>25+</dt><dd>languages</dd></div>
-        </dl>
       </div>
-      <div class="collage" aria-hidden="true">
-        <div class="mock mock-card">
-          <span class="tag">AP Biology</span>
-          <b>What does the mitochondria do?</b>
-          <span class="muted small">Tap to flip ${icon('swap')}</span>
-          <div class="mock-foot"><span>12 / 40</span><span class="mock-dots"><i class="on"></i><i class="on"></i><i></i><i></i></span></div>
-        </div>
-        <div class="mock mock-streak">
-          <div class="row gap">${icon('flame')}<span><b>7-day streak</b><span class="muted small">Keep it going</span></span></div>
-          ${barsArt([35, 60, 45, 80, 55, 70, 95])}
-        </div>
-        <div class="mock mock-bank">
-          <div class="mock-head"><b>SAT bank</b><span class="muted small">#201 to #232</span></div>
-          ${bankArt()}
-        </div>
-        <div class="mock mock-score"><span class="muted small">Practice test</span><b>1450</b><span class="good-txt">+80 since last</span></div>
+      <div class="hx-pop">
+        <p class="hx-k">Popular right now</p>
+        ${popular.map(([id, tag, sub]) => `<a class="hx-row" href="#/learn/${id}"><span class="hx-tag">${tag}</span><span><b>${esc(byId[id].title.replace(/^AP /, ''))}</b><small>${sub}</small></span>${icon('arrow')}</a>`).join('')}
+        <a class="hx-all" href="#/learn">All ${COURSES.length} courses ${icon('arrow')}</a>
       </div>
     </div>
   </section>
 
-  <div class="marquee" aria-hidden="true"><div>${[0, 1].map(() => COURSES.map((c) => `<span>${esc(c.title)}</span>`).join('')).join('')}</div></div>
+  <section class="page home2 hx">
+    <p class="hx-facts">${COURSES.length} courses <i></i> ${lessonCount()} lessons <i></i> <span class="bank-n">${(nSat + nAct).toLocaleString()}</span> practice questions <i></i> 25+ languages <i></i> free for everyone</p>
 
-  <section class="page home2">
-    <nav class="doors" aria-label="Study tools">
-      <a class="door tone-0" href="#/learn"><span class="q-ic">${icon('book')}</span><b>Courses</b><span class="door-n">${COURSES.length} classes · ${lessonCount()} lessons</span><span class="door-d">Short lessons with worked examples and a quick check at the end.</span><span class="door-eg">${COURSES.slice(0, 3).map((c) => esc(c.title)).join(', ')}</span></a>
-      <a class="door tone-1" href="#/ap"><span class="q-ic">${icon('target')}</span><b>AP Practice</b><span class="door-n">${ap.length} AP classes</span><span class="door-d">Exam-style multiple choice by unit, each with an explanation.</span><span class="door-eg">${ap.slice(0, 3).map((c) => esc(c.title.replace(/^AP /, ''))).join(', ')}</span></a>
-      <a class="door tone-2" href="#/practice"><span class="q-ic">${icon('clipboard')}</span><b>SAT &amp; ACT</b><span class="door-n"><span class="bank-sat">${nSat.toLocaleString()}</span> SAT · <span class="bank-act">${nAct.toLocaleString()}</span> ACT</span><span class="door-d">A numbered question bank, full timed tests, and a mistake log.</span><span class="door-eg">Practice tests, speed drills, formula sheets</span></a>
-      <a class="door tone-3" href="#/flashcards"><span class="q-ic">${icon('cards')}</span><b>Flashcards</b><span class="door-n">Make, import, or share</span><span class="door-d">Paste your notes and they become cards. Study with flip, learn, test, or match.</span><span class="door-eg">Share a set with one link</span></a>
-    </nav>
-    <div id="newsSlot"></div>
-    <h2 class="sec-title">Also on StudyFox</h2>
-    <ul class="feat-list">
-      <li><a href="#/exams"><b>Full practice tests</b><span>Adaptive SAT modules and full ACT sections, timed and scored.</span></a></li>
-      <li><a href="#/speed"><b>Speed practice</b><span>Timed sprints with personal bests to beat.</span></a></li>
-      <li><a href="#/dashboard"><b>Progress and mistake log</b><span>Streaks, accuracy by skill, and every miss saved to retry.</span></a></li>
-      <li><a href="#/calculator"><b>Graphing calculator</b><span>The full Desmos calculator, right in your browser.</span></a></li>
-      <li><a href="#/formulas"><b>Formula sheets</b><span>Algebra through trig, ready to print.</span></a></li>
-      <li><a href="#/settings"><b>Your language</b><span>Explanations in 25+ languages for English learners.</span></a></li>
-    </ul>
+    <div class="hx-head"><h2>Try today's question.</h2><a href="#/practice">Open the SAT &amp; ACT bank ${icon('arrow')}</a></div>
+    <div class="hx-bento">
+      <div class="hx-t hx-q"><p class="hx-k">SAT question of the day</p><div id="hxQotd" class="qotd"></div></div>
+      <div class="hx-side"><a class="hx-t hx-acc" href="#/practice"><p class="hx-k">SAT &amp; ACT</p><div><h3>A numbered question bank</h3><p><span class="bank-sat">${nSat.toLocaleString()}</span> SAT and <span class="bank-act">${nAct.toLocaleString()}</span> ACT questions, full timed tests, and a mistake log.</p></div></a>
+      <a class="hx-t" href="#/learn"><p class="hx-k">Courses</p><div><h3>Short lessons</h3><p>Worked examples and a quick check at the end of each one.</p></div></a>
+      <a class="hx-t hx-cards" href="#/flashcards"><p class="hx-k">Flashcards</p><div class="hx-stack"><i></i><i></i><div><small>AP Biology · Unit 3</small>Where does the Krebs cycle happen?</div></div><p>Paste your notes and they become cards.</p></a>
+      <a class="hx-t hx-ap" href="#/ap"><p class="hx-k">AP Practice</p><div><h3>Every AP class, by unit</h3><div class="hx-chips">${ap.slice(0, 12).map((c) => `<span>${esc(c.title.replace(/^AP /, '').replace(/:.*$/, ''))}</span>`).join('')}<span>+${Math.max(0, ap.length - 12)} more</span></div></div></a></div>
+    </div>
 
-    <h2 class="sec-title">How it works</h2>
-    <ol class="steps">
-      <li><b>Pick a class.</b> Choose a course or your test. Lessons are short enough to finish between classes.</li>
-      <li><b>Practice.</b> Answer questions, drill flashcards, and take timed tests. Every answer is explained.</li>
-      <li><b>Fix your mistakes.</b> StudyFox saves what you miss and turns it into a review set.</li>
-    </ol>
-
-    <h2 class="sec-title">Subjects</h2>
-    <ul class="subj-tiles">
+    <div class="hx-head"><h2>Pick your subject.</h2><a href="#/learn">See every course ${icon('arrow')}</a></div>
+    <ul class="hx-subj">
       ${SUBJECTS.map((sub) => {
         const cs = COURSES.filter((c) => c.subject === sub);
-        return `<li><a href="#/learn?s=${encodeURIComponent(sub)}"><span class="subj-ic tone-${Math.max(0, SUBJECTS.indexOf(sub)) % 6}">${icon(SUBJECT_ICON[sub] || 'book')}</span><span><b>${esc(sub)}</b> <span class="sub-n">${cs.length}</span><span class="muted small">${tileList(cs)}</span></span></a></li>`;
+        return `<li><a href="#/learn?s=${encodeURIComponent(sub)}"><span class="subj-ic tone-${Math.max(0, SUBJECTS.indexOf(sub)) % 6}">${icon(SUBJECT_ICON[sub] || 'book')}</span><span><b>${esc(sub)}</b><small>${tileList(cs)}</small></span><em>${cs.length}</em></a></li>`;
       }).join('')}
     </ul>
 
-    <div class="cta-band">
-      <div><h2>Ready to start?</h2><p>It's free, forever. Make an account in under a minute.</p></div>
-      ${u ? '<a class="btn lg" href="#/dashboard">Go to your dashboard</a>' : '<a class="btn lg" href="#/signup">Create your free account</a>'}
-    </div>
+    <div id="newsSlot"></div>
 
-    <div class="home2-bottom">
+    <div class="hx-head"><h2>How it works.</h2></div>
+    <ol class="hx-steps">
+      <li><b>Pick a class.</b><span>Choose a course or your test. Lessons are short enough to finish between classes.</span></li>
+      <li><b>Practice.</b><span>Answer questions, drill flashcards, and take timed tests. Every answer is explained.</span></li>
+      <li><b>Fix your mistakes.</b><span>StudyFox saves what you miss and turns it into a review set.</span></li>
+    </ol>
+
+    <a class="hx-note note-from" href="#/about">
+      <img class="hx-face creator-pic" src="assets/creator-thumb.jpg" alt="${esc(CREATOR)}" width="96" height="96" loading="lazy">
+      <div><p>I built StudyFox because good study material shouldn't depend on what you can pay. There are no ads and no premium tier, and there won't be.</p>
+      <p class="hx-k">${esc(CREATOR)} · Founder</p><span class="hx-more">Read my story ${icon('arrow')}</span></div>
+    </a>
+
+    <div class="home2-bottom hx-faqwrap">
       <div class="faq">
         <h2>Questions</h2>
         <details><summary>Is it really free?</summary><p>Yes. Every course, flashcard set, practice question, and practice test is free. There are no ads, no premium tier, and no limits.</p></details>
@@ -152,24 +126,16 @@ export function homeView(root) {
         <details><summary>Where do the SAT and ACT questions come from?</summary><p>Math and science questions are generated from templates that follow each official skill. Reading and writing questions come from an original, hand-written bank. Nothing is copied from official tests, and scores are estimates.</p></details>
         <details><summary>Where is my data stored?</summary><p>Every account, email, Google, or Apple, saves your progress to the cloud, so it syncs across your devices and the StudyFox app. You can also export a backup any time from Settings.</p></details>
       </div>
-      <div class="note-from" role="link" tabindex="0" aria-label="About ${esc(CREATOR)}">
-        <img class="avatar creator-pic" src="assets/creator-thumb.jpg" alt="" width="52" height="52" loading="lazy">
-        <div>
-          <p class="kicker">A note from the creator</p>
-          <p>I built StudyFox because good study material shouldn't depend on what you can pay. If it helps you, or you want a course added, tell me.</p>
-          <p class="sig">${esc(CREATOR)}</p>
-          <div class="row gap wrap"><a class="btn" href="https://johnsontexas.com" target="_blank" rel="noopener">johnsontexas.com</a><a class="btn" href="https://instagram.com/${INSTAGRAM}" target="_blank" rel="noopener">${icon('instagram')}@${INSTAGRAM}</a></div>
-        </div>
-      </div>
+    </div>
+
+    <div class="hx-final">
+      <h2>Start<br>studying.</h2>
+      ${u ? '<a class="btn lg" href="#/dashboard">Go to your dashboard</a>' : '<a class="btn lg" href="#/signup">Sign up free</a>'}
     </div>
   </section>`;
   fill(root, html);
   liveStudentCount(root);
-  // The whole creator note opens the About page, except its own links.
-  const note = root.querySelector('.note-from');
-  const goAbout = (e) => { if (!e.target.closest('a')) location.hash = '#/about'; };
-  note.addEventListener('click', goAbout);
-  note.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target === note) goAbout(e); });
+  qotdWidget(root.querySelector('#hxQotd'), 'SAT');
   newsWidget(root.querySelector('#newsSlot'));
 }
 

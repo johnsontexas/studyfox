@@ -7,7 +7,7 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } fro
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 import Backdrop from '../components/Backdrop';
-import { Button, Field, Logo, Scribble, Section, tap } from '../components/ui';
+import { Button, Field, Logo, Section, tap } from '../components/ui';
 import { appleAvailable, cloudEnabled, contentClient, emailSignIn, emailSignupOn, emailSignUp, signInWithApple, signInWithGoogle } from '../lib/cloud';
 import { COURSES, lessonCount, SITE_URL, store, passwordProblem, PASSWORD_HINT } from '../lib/shared';
 import { openWeb } from '../lib/links';
@@ -26,8 +26,7 @@ export default function Login() {
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState('');
   const [apple, setApple] = useState(false);
-  const [accentW, setAccentW] = useState(0);
-  // "Join X other students", from the student_count RPC like the website's home page.
+    // "Join X other students", from the student_count RPC like the website's home page.
   const [students, setStudents] = useState(0);
   useEffect(() => { Promise.resolve(contentClient()?.rpc('student_count')).then((r: any) => { if (typeof r?.data === 'number') setStudents(r.data); }).catch(() => {}); }, []);
   const [signupOn, setSignupOn] = useState(true);
@@ -64,20 +63,15 @@ export default function Login() {
             <Logo size={34} />
             <Text style={{ fontFamily: fonts.displayBold, fontSize: 24, color: c.label }}>Study<Text style={{ color: c.tint }}>Fox</Text></Text>
           </View>
-          <View style={{ marginTop: 18 }}>
-            <Text style={[type.largeTitle, { fontSize: 42, lineHeight: 46, color: c.label }]}>Study for every class.</Text>
-            <View style={{ alignSelf: 'flex-start' }}>
-              <Text onLayout={(e) => setAccentW(e.nativeEvent.layout.width)} style={[type.largeTitle, { fontSize: 42, lineHeight: 50, fontFamily: fonts.displayItalic, color: c.tint }]}>Pay for none of it.</Text>
-              {accentW ? <Scribble width={accentW} /> : null}
-            </View>
-          </View>
-          <Text style={[type.body, { color: c.label2 }]}>Flashcards, courses for every AP class, and SAT and ACT practice. Free for every student: no ads, no paywall.</Text>
+          {/* Same bold lowercase headline as the website's home page (js/views/home.js). */}
+          <Text style={{ marginTop: 22, fontSize: 56, lineHeight: 52, fontWeight: '800', letterSpacing: -2.6, color: c.label }}>
+            study every{'\n'}class. <Text style={{ color: c.tint }}>free.</Text>
+          </Text>
+          <Text style={[type.body, { color: c.label2, marginTop: 6 }]}>Courses for every AP class, flashcards, and SAT and ACT practice. Built by a student, for students. No ads, ever.</Text>
           {students > 0 ? <Text style={[type.subhead, { color: c.tint, fontWeight: '600' }]}>Join {students.toLocaleString()} other students</Text> : null}
-          <View style={{ flexDirection: 'row', gap: 22, marginTop: 6 }}>
-            {[[`${COURSES.length}`, 'courses'], [`${lessonCount()}`, 'lessons'], ['25+', 'languages']].map(([n, l]) => (
-              <View key={l}><Text style={[type.number, { color: c.label }]}>{n}</Text><Text style={[type.footnote, { color: c.label2 }]}>{l}</Text></View>
-            ))}
-          </View>
+          <Text style={[type.subhead, { color: c.label2, fontWeight: '600', paddingVertical: 12, marginTop: 4, borderTopWidth: 1, borderBottomWidth: 1, borderColor: c.line }]}>
+            {COURSES.length} courses  ·  {lessonCount()} lessons  ·  25+ languages  ·  free for everyone
+          </Text>
         </View>
 
         <View style={{ flex: 1, minHeight: 30 }} />
