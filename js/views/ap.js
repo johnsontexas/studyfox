@@ -1,6 +1,6 @@
 // AP question bank: multiple-choice practice for every AP class, organized by unit and concept.
 // Questions live in Supabase (table ap_questions) and are cached per course in localStorage.
-import { icon, sticker } from '../icons.js';
+import { icon, sticker, courseIcon } from '../icons.js';
 import { $, esc, tex, toast, DIFF_LABEL } from '../util.js';
 import { store } from '../store.js';
 import { db, cloudEnabled } from '../cloud.js';
@@ -24,7 +24,7 @@ const apData = apDone;
 const unitOrder = apUnits;
 
 const apCourses = () => COURSES.filter((c) => c.ap);
-const tone = (s) => `tone-${Math.max(0, SUBJECTS.indexOf(s)) % 6}`;
+const tone = (s) => `tone-${Math.max(0, SUBJECTS.indexOf(s)) % 10}`;
 
 export function apHubView(root) {
   root.innerHTML = `<div class="page">${classesBar('ap')}<div class="page-head"><span class="eyebrow">${icon('target')} AP practice</span><h1>AP question bank</h1>
@@ -43,7 +43,7 @@ export function apHubView(root) {
     const card = ({ c, n, units }) => {
         const d = doneBy[c.id] || 0, unitNames = Object.keys(cnt[c.id] || {}).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
         return `<a class="course-card ${tone(c.subject)}${d ? ' started' : ''}" href="#/ap/${c.id}">
-        <div class="cc-art" aria-hidden="true"><span class="cc-art-big">${icon(c.icon || 'book')}</span><span class="cc-icon">${icon(c.icon || 'book')}</span><span class="cc-level">AP exam</span></div>
+        <div class="cc-art" aria-hidden="true"><span class="cc-art-big">${icon(courseIcon(c))}</span><span class="cc-icon">${icon(courseIcon(c))}</span><span class="cc-level">AP exam</span></div>
         <h3>${esc(c.title)}</h3>
         <ol class="cc-peek">${unitNames.slice(0, 3).map((u) => `<li>${esc(u)}</li>`).join('')}${unitNames.length > 3 ? `<li class="more">+${unitNames.length - 3} more</li>` : ''}</ol>
         <div class="cc-foot"><span>${n} questions</span><span>${units} units</span>

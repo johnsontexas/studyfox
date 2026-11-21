@@ -8,6 +8,7 @@ import { Text } from '../components/AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 import Backdrop from '../components/Backdrop';
+import Icon from '../components/Icon';
 import { Button, Field, Logo, Section, tap } from '../components/ui';
 import { appleAvailable, cloudEnabled, contentClient, emailSignIn, emailSignupOn, emailSignUp, signInWithApple, signInWithGoogle } from '../lib/cloud';
 import { COURSES, lessonCount, SITE_URL, store, passwordProblem, PASSWORD_HINT } from '../lib/shared';
@@ -69,7 +70,14 @@ export default function Login() {
             study every{'\n'}class. <Text style={{ color: c.tint }}>free.</Text>
           </Text>
           <Text style={[type.body, { color: c.label2, marginTop: 6 }]}>Courses for every AP class, flashcards, and SAT and ACT practice. Built by a student, for students. No ads, ever.</Text>
-          {students > 0 ? <Text style={[type.subhead, { color: c.label2 }]}><Text style={[type.title2, { color: c.tint, fontWeight: '800' }]}>{students.toLocaleString()}</Text>  students already study here</Text> : null}
+          {students > 0 ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: c.tintSoft, alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name={students === 1 ? 'student' : 'students'} size={21} color={c.tint} />
+              </View>
+              <Text style={[type.subhead, { color: c.label2, flex: 1 }]}><Text style={[type.title2, { color: c.tint, fontWeight: '800' }]}>{students.toLocaleString()}</Text>  {students === 1 ? 'student already studies here' : 'students already study here'}</Text>
+            </View>
+          ) : null}
           <Text style={[type.subhead, { color: c.label2, fontWeight: '600', paddingVertical: 12, marginTop: 4, borderTopWidth: 1, borderBottomWidth: 1, borderColor: c.line }]}>
             {COURSES.length} courses  ·  {lessonCount()} lessons  ·  25+ languages  ·  free for everyone
           </Text>

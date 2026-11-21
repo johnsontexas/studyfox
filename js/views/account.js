@@ -10,8 +10,9 @@ import { a11yCardHTML, wireA11y } from '../a11y.js';
 import { appearanceCardHTML, wireAppearance } from '../appearance.js';
 import { fetchStatus } from './news.js';
 import { db } from '../cloud.js';
-import { loadMember, referralUrl, updateMemberProfile, ordinal } from '../members.js';
+import { loadMember, referralUrl, updateMemberProfile, ordinal, myAvatar } from '../members.js';
 import { openShare } from '../share.js';
+import { foxSVG } from '../avatar.js';
 
 // Where to go after signing in: the page a guest was bounced from, else the dashboard.
 export function takeAfterLogin() {
@@ -114,6 +115,7 @@ export function settingsView(root) {
   root.innerHTML = `
   <div class="page narrow">
     <h1>Settings</h1>
+    <a class="card hover row gap fox-link" href="#/fox">${foxSVG(myAvatar(), { size: 64 })}<span class="grow"><b>Your fox</b><span class="muted small block">Change its fur, face, shirt, hat, and glasses.</span></span>${icon('right')}</a>
     <div class="card stack">
       <h2 class="h3">Profile</h2>
       ${u ? `<label>Name<input id="name" value="${esc(u.name)}"></label><p class="muted small">Signed in as ${esc(u.email || u.name)}${u.cloud ? `${u.provider === 'email' ? '' : ` with ${providerName(u.provider)}`}. Progress syncs across your devices.` : ' (this device only). Sign out and sign back in to move this account to the cloud.'}</p>` : ''}

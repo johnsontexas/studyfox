@@ -17,7 +17,7 @@ import { contentClient, fetchStatus, initCloud, isPulling } from '../lib/cloud';
 import { Icon } from '../components/ui';
 import { SUPPORT_EMAIL } from '../lib/shared';
 import { type } from '../lib/theme';
-import { bank, initContent, store, TERMS_VERSION } from '../lib/shared';
+import { bank, initContent, loadAvatarItems, store, TERMS_VERSION } from '../lib/shared';
 import { reschedule, wireNotificationTaps } from '../lib/reminders';
 import { hydrate } from '../lib/storage';
 import { ageBlockedUntil, needsOnboarding, useStore, wireStore } from '../lib/store-hooks';
@@ -37,6 +37,8 @@ export default function RootLayout() {
       // Lessons, decks, and custom questions come from Supabase (edited in the website's admin console).
       // The saved copy applies instantly; newer content redraws every screen when it arrives.
       initContent(contentClient()).then((changed) => { if (changed) store.emit(); }).catch(console.warn);
+      // Extra fox items added in Supabase (avatar_items).
+      loadAvatarItems(contentClient()).then((n: number) => { if (n) store.emit(); });
       // Build the numbered question bank in the background so the first answer doesn't stall.
       setTimeout(() => { bank('SAT'); bank('ACT'); }, 1500);
       // Keep study reminders current: skip today once you've studied, and mention the latest streak.

@@ -1,5 +1,5 @@
 // News feed, admin console (posts + maintenance switch), and the contact page.
-import { icon } from '../icons.js';
+import { icon, sticker } from '../icons.js';
 import { $, esc, toast, timeAgo } from '../util.js';
 import { store } from '../store.js';
 import { db, isAdmin, cloudEnabled } from '../cloud.js';
@@ -153,7 +153,7 @@ export function newsView(root) {
   const draw = async () => {
     try {
       const list = await fetchNews();
-      $('#feed', root).innerHTML = list.length ? list.map((n) => postHTML(n, admin)).join('') : `<div class="card empty-note"><p class="muted">No news yet. Check back soon.</p></div>`;
+      $('#feed', root).innerHTML = list.length ? list.map((n) => postHTML(n, admin)).join('') : `<div class="card empty-note center"><div class="big-emoji">${sticker('mailbox')}</div><p class="muted">No news yet. Check back soon.</p></div>`;
     } catch { $('#feed', root).innerHTML = `<p class="muted">News couldn't load. Try again in a minute.</p>`; }
   };
   isAdmin().then((a) => { admin = a; if (a) $('#compose', root).innerHTML = composerHTML(false); draw(); });

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Platform, ScrollView, View } from 'react-native';
 import { Text, TextInput } from '../../../../../components/AppText';
 import { Bar, Empty, Pill, Row, Screen, SearchField, Section } from '../../../../../components/ui';
-import { COURSES, store, SUBJECTS } from '../../../../../lib/shared';
+import { COURSES, courseIcon, store, SUBJECTS } from '../../../../../lib/shared';
 import { useStore } from '../../../../../lib/store-hooks';
 import { subjectColor, type, useColors } from '../../../../../lib/theme';
 import type { Course } from '../../../../../lib/types';
@@ -32,7 +32,7 @@ export default function Courses() {
         </ScrollView>
         {!q && subject === 'All' && mine.length ? (
           <Section header="Your classes">
-            {mine.map((x) => <Row key={x.id} icon={x.icon} iconColor={subjectColor(c, x.subject)} title={x.title} subtitle={`${x.lessons.length} lessons · ${x.level}`} onPress={() => router.push(`/courses/${x.id}`)} />)}
+            {mine.map((x) => <Row key={x.id} icon={courseIcon(x)} iconColor={subjectColor(c, x.subject)} title={x.title} subtitle={`${x.lessons.length} lessons · ${x.level}`} onPress={() => router.push(`/courses/${x.id}`)} />)}
           </Section>
         ) : null}
         {groups.length ? groups.map(([s, cs]) => (
@@ -40,7 +40,7 @@ export default function Courses() {
             {cs.map((x) => {
               const done = x.lessons.filter((l) => learned[`${x.id}/${l.id}`]).length;
               return (
-                <Row key={x.id} icon={x.icon} iconColor={subjectColor(c, x.subject)} title={x.title} onPress={() => router.push(`/courses/${x.id}`)}
+                <Row key={x.id} icon={courseIcon(x)} iconColor={subjectColor(c, x.subject)} title={x.title} onPress={() => router.push(`/courses/${x.id}`)}
                   subtitle={
                     <View style={{ gap: 5, marginTop: 1 }}>
                       <Text style={[type.subhead, { color: c.label2 }]}>{x.lessons.length} lessons · {x.level}</Text>

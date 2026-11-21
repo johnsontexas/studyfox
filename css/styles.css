@@ -1167,7 +1167,7 @@ input, select, textarea { border-radius: 12px; }
 .btn.primary:active { border-bottom-width: 1.5px; }
 .note-from { transform: none; }
 /* Course covers: keep the color and big icon, drop the shine, dots, and bubble. */
-.cc-art { background: linear-gradient(135deg, var(--t), color-mix(in srgb, var(--t) 70%, #000)) !important; }
+.cc-art { background: var(--pat), linear-gradient(135deg, var(--t), color-mix(in srgb, var(--t) 70%, #000)) !important; }
 .cc-art::after { display: none; }
 .mock .q-right, .mock .q-miss { box-shadow: none; }
 
@@ -1393,3 +1393,80 @@ a.hx-t:hover { border-color: var(--brand); }
   .hx-subj { grid-template-columns: 1fr; }
   .hx-final { padding: 2rem 1.4rem; }
 }
+
+/* One color per subject, matched to the iOS app (lib/theme subjectColor):
+   Math blue, Science green, English purple, History orange, Social Science teal,
+   Computer Science indigo, Arts pink, World Languages mint, Study Skills yellow, SAT & ACT red. */
+.tone-0 { --t: #2f5d9e; --t-soft: #e4ecf8; } .tone-1 { --t: #1f6b47; --t-soft: #e1efe6; } .tone-2 { --t: #6b3fa0; --t-soft: #efe7f8; }
+.tone-3 { --t: #b0531a; --t-soft: #fbeadb; } .tone-4 { --t: #137076; --t-soft: #dff1f1; } .tone-5 { --t: #3f43a8; --t-soft: #e6e7f8; }
+.tone-6 { --t: #b0336e; --t-soft: #f9e3ee; } .tone-7 { --t: #2a7d63; --t-soft: #ddf3eb; } .tone-8 { --t: #8a6a0c; --t-soft: #f8f0d4; }
+.tone-9 { --t: #b42335; --t-soft: #fbe2e5; }
+:root[data-theme="dark"] .tone-0 { --t: #8fb6f0; --t-soft: #18243a; } :root[data-theme="dark"] .tone-1 { --t: #6fd49f; --t-soft: #173022; }
+:root[data-theme="dark"] .tone-2 { --t: #c4a2ee; --t-soft: #2a1f3a; } :root[data-theme="dark"] .tone-3 { --t: #f0a675; --t-soft: #3a2316; }
+:root[data-theme="dark"] .tone-4 { --t: #6fd0d4; --t-soft: #123033; } :root[data-theme="dark"] .tone-5 { --t: #a3a7f5; --t-soft: #1e2040; }
+:root[data-theme="dark"] .tone-6 { --t: #f294c0; --t-soft: #3a1a2a; } :root[data-theme="dark"] .tone-7 { --t: #7ee0bd; --t-soft: #133026; }
+:root[data-theme="dark"] .tone-8 { --t: #e7c75e; --t-soft: #342b10; } :root[data-theme="dark"] .tone-9 { --t: #f28b97; --t-soft: #3a1a1f; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .tone-0 { --t: #8fb6f0; --t-soft: #18243a; } :root:not([data-theme="light"]) .tone-1 { --t: #6fd49f; --t-soft: #173022; }
+  :root:not([data-theme="light"]) .tone-2 { --t: #c4a2ee; --t-soft: #2a1f3a; } :root:not([data-theme="light"]) .tone-3 { --t: #f0a675; --t-soft: #3a2316; }
+  :root:not([data-theme="light"]) .tone-4 { --t: #6fd0d4; --t-soft: #123033; } :root:not([data-theme="light"]) .tone-5 { --t: #a3a7f5; --t-soft: #1e2040; }
+  :root:not([data-theme="light"]) .tone-6 { --t: #f294c0; --t-soft: #3a1a2a; } :root:not([data-theme="light"]) .tone-7 { --t: #7ee0bd; --t-soft: #133026; }
+  :root:not([data-theme="light"]) .tone-8 { --t: #e7c75e; --t-soft: #342b10; } :root:not([data-theme="light"]) .tone-9 { --t: #f28b97; --t-soft: #3a1a1f; }
+}
+
+/* Class banners: flat subject color with a faint texture of its own (squares for Math, rings for Science,
+   ruled lines for English...), and a slow bob on the big icon. Still no shine, dots, or bubbles. */
+.cc-art { --pat: linear-gradient(transparent, transparent); }
+.tone-0 .cc-art { --pat: linear-gradient(color-mix(in srgb, #fff 14%, transparent) 1px, transparent 1px) 0 0 / 16px 16px, linear-gradient(90deg, color-mix(in srgb, #fff 14%, transparent) 1px, transparent 1px) 0 0 / 16px 16px; }
+.tone-1 .cc-art { --pat: radial-gradient(circle, transparent 7px, color-mix(in srgb, #fff 16%, transparent) 7.5px, color-mix(in srgb, #fff 16%, transparent) 8.5px, transparent 9px) 0 0 / 26px 26px; }
+.tone-2 .cc-art { --pat: repeating-linear-gradient(0deg, color-mix(in srgb, #fff 15%, transparent) 0 1px, transparent 1px 12px); }
+.tone-3 .cc-art { --pat: repeating-linear-gradient(45deg, color-mix(in srgb, #fff 12%, transparent) 0 2px, transparent 2px 14px); }
+.tone-5 .cc-art { --pat: linear-gradient(90deg, color-mix(in srgb, #fff 12%, transparent) 2px, transparent 2px) 0 0 / 10px 100%; }
+.tone-6 .cc-art { --pat: radial-gradient(circle at 30% 30%, color-mix(in srgb, #fff 22%, transparent) 3px, transparent 3.5px) 0 0 / 22px 22px, radial-gradient(circle at 70% 70%, color-mix(in srgb, #fff 14%, transparent) 2px, transparent 2.5px) 0 0 / 22px 22px; }
+.tone-4 .cc-art { --pat: radial-gradient(circle, color-mix(in srgb, #fff 16%, transparent) 2px, transparent 2.5px) 0 0 / 18px 18px, radial-gradient(circle, color-mix(in srgb, #fff 16%, transparent) 2px, transparent 2.5px) 9px 9px / 18px 18px; }
+.tone-7 .cc-art { --pat: radial-gradient(ellipse 12px 6px at 50% 100%, transparent 10px, color-mix(in srgb, #fff 14%, transparent) 10.5px 11.5px, transparent 12px) 0 0 / 24px 12px; }
+.tone-8 .cc-art { --pat: conic-gradient(from 45deg, color-mix(in srgb, #fff 10%, transparent) 25%, transparent 0 50%, color-mix(in srgb, #fff 10%, transparent) 0 75%, transparent 0) 0 0 / 20px 20px; }
+.tone-9 .cc-art { --pat: repeating-linear-gradient(-45deg, color-mix(in srgb, #fff 12%, transparent) 0 6px, transparent 6px 18px); }
+.cc-art .cc-icon { transition: transform .3s cubic-bezier(.3, 1.6, .5, 1); }
+.course-card:hover .cc-art .cc-icon { transform: rotate(-8deg) scale(1.08); }
+.cc-art-big .ico circle[fill="currentColor"] { fill: color-mix(in srgb, #fff 45%, transparent); }
+.cc-icon .ico circle[fill="currentColor"] { fill: var(--t); }
+@keyframes cc-bob { 0%, 100% { transform: rotate(-14deg) translateY(0); } 50% { transform: rotate(-11deg) translateY(-5px); } }
+.cc-art-big { animation: cc-bob 6s ease-in-out infinite; }
+.course-card:nth-child(3n+2) .cc-art-big { animation-delay: -2s; } .course-card:nth-child(3n) .cc-art-big { animation-delay: -4s; }
+@media (prefers-reduced-motion: reduce) { .cc-art-big, .cc-art .cc-icon { animation: none; transition: none; } }
+
+/* Fox avatars (js/avatar.js) */
+.fox-av { display: block; flex: none; border-radius: 50%; }
+.fox-edit { display: flex; gap: 1.2rem; align-items: flex-start; flex-wrap: wrap; }
+.fox-big { flex: none; } .fox-big .fox-av { width: 150px; height: 150px; }
+.fox-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: .5rem; }
+.fox-opt { display: flex; flex-direction: column; align-items: center; gap: .25rem; padding: .45rem .25rem; border: 2px solid transparent; border-radius: 12px; background: var(--surface-2); font: inherit; font-size: .72rem; line-height: 1.15; color: var(--ink); cursor: pointer; }
+.fox-opt:hover { border-color: var(--line-strong); }
+.fox-opt.on { border-color: var(--brand); background: var(--brand-soft); font-weight: 700; }
+.board-who { display: inline-flex; align-items: center; gap: .55rem; }
+.contributors li .fox-av { margin-right: .2rem; }
+.nav-fox .fox-av { width: 30px; height: 30px; }
+.fox-opt { position: relative; }
+.fox-opt em { font-style: normal; font-size: .62rem; color: var(--muted); }
+.fox-opt.rare { background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); }
+.fox-opt.locked .fox-av { filter: grayscale(1) opacity(.45); }
+.fox-opt.locked { cursor: not-allowed; }
+.fox-lock { position: absolute; top: .35rem; right: .45rem; color: var(--muted); } .fox-lock .ico { width: 14px; height: 14px; }
+.seg.wrap { flex-wrap: wrap; }
+.fox-link { align-items: center; text-decoration: none; color: inherit; } .fox-link .block { display: block; }
+/* Review card (js/review.js) */
+.stars { display: flex; gap: .3rem; }
+.stars button { background: none; border: 0; padding: .1rem; cursor: pointer; }
+.stars svg { width: 32px; height: 32px; fill: var(--surface-2); stroke: var(--line-strong); stroke-width: 1.4; stroke-linejoin: round; transition: transform .15s; }
+.stars button.on svg { fill: var(--accent); stroke: color-mix(in srgb, var(--accent) 70%, #000); }
+.stars button:hover svg { transform: scale(1.12); }
+.review-bug { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; } .review-bug .ico { width: 16px; height: 16px; }
+/* Dashboard: a small fox beside the name; a pencil appears on hover. */
+.dash-name { display: flex; align-items: center; gap: .7rem; }
+.dash-fox { position: relative; flex: none; display: block; border-radius: 50%; }
+.dash-fox .fox-av { width: 52px; height: 52px; }
+.dash-fox-edit { position: absolute; right: -4px; bottom: -2px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); color: var(--muted); box-shadow: 0 0 0 1px var(--line); opacity: 0; transition: opacity .15s; }
+.dash-fox-edit .ico { width: 11px; height: 11px; }
+.dash-fox:hover .dash-fox-edit, .dash-fox:focus-visible .dash-fox-edit { opacity: 1; }
+@media (hover: none) { .dash-fox-edit { opacity: 1; } }

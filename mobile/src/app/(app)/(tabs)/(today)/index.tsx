@@ -14,7 +14,8 @@ import { masteredCount, recentSets } from '../../../../lib/cards';
 import { fetchNews, syncNow, type NewsPost } from '../../../../lib/cloud';
 import { mistakes, quickSet, setSession, type Q } from '../../../../lib/questions';
 import { getPrefs, markAsked, setReminders } from '../../../../lib/reminders';
-import { COURSES, questionOfTheDay, SECTIONS, store, today } from '../../../../lib/shared';
+import ReviewCard from '../../../../components/ReviewCard';
+import { COURSES, courseIcon, questionOfTheDay, SECTIONS, store, today } from '../../../../lib/shared';
 import { useStore } from '../../../../lib/store-hooks';
 import { fonts, type, useColors } from '../../../../lib/theme';
 import type { Test } from '../../../../lib/types';
@@ -200,7 +201,7 @@ export default function Today() {
             );
           })}
           {course ? (
-            <Row icon={course.c.icon} iconColor={c.teal} title={course.next.title} subtitle={`${course.c.title} · lesson ${course.c.lessons.indexOf(course.next) + 1} of ${course.c.lessons.length}`}
+            <Row icon={courseIcon(course.c)} iconColor={c.teal} title={course.next.title} subtitle={`${course.c.title} · lesson ${course.c.lessons.indexOf(course.next) + 1} of ${course.c.lessons.length}`}
               onPress={() => router.push(`/courses/${course.c.id}/${course.next.id}`)} />
           ) : null}
         </Section>
@@ -215,6 +216,8 @@ export default function Today() {
       <Section header="Question of the day" footer={`A new ${focus} question every day.`}>
         <Row icon="sparkle" iconColor={c.yellow} title={qotd.skill} subtitle={`${SECTIONS[focus][qotd.section]} · ${qotd.domain}`} onPress={() => go('Question of the day', qotd.section, [qotd])} />
       </Section>
+
+      <View style={{ marginTop: 22 }}><ReviewCard /></View>
 
       <Section header="Explore">
         <Row icon="chartBar" iconColor={c.blue} title="Your progress" subtitle="Skills, scores, and recent activity" onPress={() => router.push('/practice/progress')} />

@@ -6,7 +6,8 @@ import { db, cloudEnabled } from '../cloud.js';
 import { store } from '../store.js';
 import { bySection } from '../content/people.js';
 import { onContent } from '../content/live.js';
-import { topSharers, myNumber, referralUrl, withRanks, loadMember } from '../members.js';
+import { topSharers, myNumber, referralUrl, withRanks, loadMember, myAvatar } from '../members.js';
+import { foxSVG, cleanAvatar } from '../avatar.js';
 
 const initials = (n) => n.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 
@@ -37,7 +38,7 @@ export function contributorsView(root) {
   return onContent(draw);
 }
 
-const row = (r, me) => `<li class="${r.no === me ? 'me' : ''}"><span class="lnum">${r.rank}</span><span class="grow"><b>${esc(r.no === me || !store.data().settings.hideNames ? r.name : `Player #${r.no}`)}</b> <span class="muted small">user #${r.no}</span></span><span>${r.referrals} ${r.referrals === 1 ? 'friend' : 'friends'}</span></li>`;
+const row = (r, me) => `<li class="${r.no === me ? 'me' : ''}"><span class="lnum">${r.rank}</span>${foxSVG(r.no === me ? myAvatar() : cleanAvatar(r.avatar, 'no' + r.no), { size: 34 })}<span class="grow"><b>${esc(r.no === me || !store.data().settings.hideNames ? r.name : `Player #${r.no}`)}</b> <span class="muted small">user #${r.no}</span></span><span>${r.referrals} ${r.referrals === 1 ? 'friend' : 'friends'}</span></li>`;
 
 // Top sharers with shared places for ties (5, 5, 1 friends -> 1, 1, 3), ordered by user number within a tie.
 // limit: show the first N plus an expand link, and the signed-in student's own row under it if they're further down.

@@ -1,15 +1,15 @@
 // "What you're studying for": the SAT, the ACT, and any AP classes. Picked with a search box during
 // onboarding or from the dashboard, saved in settings.studying, and shown at the top of the study pages.
 import { esc } from './util.js';
-import { icon } from './icons.js';
+import { icon, courseIcon } from './icons.js';
 import { store } from './store.js';
 import { COURSES } from './content/courses.js';
 import { modal } from './tools.js';
 
 export const studyOptions = () => [
-  { id: 'SAT', label: 'SAT', icon: 'clipboard', kind: 'test' },
-  { id: 'ACT', label: 'ACT', icon: 'clipboard', kind: 'test' },
-  ...COURSES.filter((c) => c.ap).map((c) => ({ id: c.id, label: c.title, icon: c.icon || 'book', kind: 'ap' })),
+  { id: 'SAT', label: 'SAT', icon: 'sat', kind: 'test' },
+  { id: 'ACT', label: 'ACT', icon: 'act', kind: 'test' },
+  ...COURSES.filter((c) => c.ap).map((c) => ({ id: c.id, label: c.title, icon: courseIcon(c), kind: 'ap' })),
 ];
 const byId = (id) => studyOptions().find((o) => o.id === id);
 

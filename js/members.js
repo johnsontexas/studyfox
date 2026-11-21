@@ -5,6 +5,7 @@
 // No DOM here beyond localStorage, so the iOS app can use it too (it passes its own client).
 import { store } from './store.js';
 import { SITE_URL } from './config.js';
+import { cleanAvatar, PARTS, isUnlocked } from './avatar.js';
 
 const REF = 'sf_ref';
 
@@ -45,7 +46,7 @@ export async function loadMember(client) {
   if (m) {
     m.no = Number(m.no); m.referrals = Number(m.referrals); m.total = Number(m.total);
     const s = store.data().settings;
-    if (s.memberNo !== m.no) { s.memberNo = m.no; store.save(); }
+    if (s.memberNo !== m.no || s.memberRefs !== m.referrals) { s.memberNo = m.no; s.memberRefs = m.referrals; store.save(); }
   }
   return m;
 }
@@ -73,10 +74,55 @@ export async function topSharers(client, lim = 5000) {
   if (!sb) return [];
   const { data, error } = await sb.rpc('top_sharers', { lim });
   if (error) { console.warn(error); return []; }
-  return (data || []).map((r) => ({ no: Number(r.no), name: r.name, referrals: Number(r.referrals) }));
+  return (data || []).map((r) => ({ no: Number(r.no), name: r.name, referrals: Number(r.referrals), avatar: r.avatar || null }));
 }
 
 /** Standard competition ranks: ties share a place, the next place skips (5,5,1 friends -> 1,1,3). List is sorted. */
 export const withRanks = (list) => { let rank = 0; return list.map((r, i) => { if (!i || list[i - 1].referrals !== r.referrals) rank = i + 1; return { ...r, rank }; }); };
 
 export const ordinal = (n) => { const s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); };
+
+/* ---------- Fox avatars (js/avatar.js) ---------- */
+
+/** The signed-in student's fox: the saved one, else a random starting fox tied to their account. */
+export const myAvatar = () => cleanAvatar(store.data().settings.avatar, store.user()?.id || store.user()?.name || 'guest');
+
+/** Save the fox on this device (synced with progress) and on leaderboards when signed in. */
+export async function saveAvatar(client, a) {
+  const s = store.data().settings;
+  s.avatar = cleanAvatar(a);
+  store.save();
+  const sb = await client;
+  if (!sb || !store.user()?.cloud) return;
+  const { error } = await sb.rpc('set_my_avatar', { a: s.avatar });
+  if (error && !/set_my_avatar/.test(error.message || '')) console.warn(error);
+}
+
+/**
+ * Player number and fox for leaderboard user ids: Map(user_id -> { no, avatar }).
+ * Uses member_cards (supabase/fox_avatars.sql); falls back to member_numbers before that is applied.
+ */
+export async function memberCards(sb, ids) {
+  if (!ids.length) return new Map();
+  let { data, error } = await sb.rpc('member_cards', { ids });
+  if (error) ({ data } = await sb.rpc('member_numbers', { ids }));
+  return new Map((data || []).map((m) => [m.user_id, { no: m.no, avatar: m.avatar || null }]));
+}
+
+/** Progress that earns exclusive fox items: friends who joined, streak, questions answered, lessons done. */
+export function foxStats() {
+  const d = store.data();
+  return {
+    shares: d.settings.memberRefs || 0,
+    streak: store.streak(),
+    questions: Object.values(d.stats || {}).reduce((n, x) => n + (x.t || 0), 0),
+    lessons: Object.keys(d.learned || {}).length,
+  };
+}
+/** Exclusive items this student has earned. Once earned, an item stays unlocked (settings.foxUnlocked). */
+export function foxUnlocked() {
+  const s = store.data().settings, stats = foxStats(), had = s.foxUnlocked || [];
+  const now = Object.values(PARTS).flat().filter((it) => it.unlock && isUnlocked(it, stats, had)).map((it) => it.id);
+  if (now.some((id) => !had.includes(id))) { s.foxUnlocked = [...new Set([...had, ...now])]; store.save(); }
+  return s.foxUnlocked || [];
+}

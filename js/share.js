@@ -4,7 +4,8 @@ import { icon } from './icons.js';
 import { toast } from './util.js';
 import { modal } from './tools.js';
 import { SHARE_KINDS, shareMessage } from './share-text.js';
-import { referralUrl, myNumber, loadMember, ordinal } from './members.js';
+import { referralUrl, myNumber, loadMember, ordinal, myAvatar } from './members.js';
+import { foxSVG } from './avatar.js';
 import { db } from './cloud.js';
 import { store } from './store.js';
 
@@ -65,7 +66,7 @@ const THEMES = [
   } },
 ];
 
-function drawCard(kind, themeId = 'paper') {
+function drawCard(kind, themeId = 'paper', fox = null) {
   const m = shareMessage(kind);
   const t = THEMES.find((x) => x.id === themeId) || THEMES[0];
   const cv = Object.assign(document.createElement('canvas'), { width: W, height: H });
@@ -82,6 +83,8 @@ function drawCard(kind, themeId = 'paper') {
   g.fillStyle = '#1a1a1a'; g.beginPath(); g.arc(23, 28, 3, 0, 7); g.arc(41, 28, 3, 0, 7); g.fill(); g.fill(new Path2D('M26.5 54h11L32 60z'));
   g.restore();
   g.fillStyle = t.ink; g.font = `700 54px ${head}`; g.fillText('StudyFox', X + 120, 300);
+  // The student's own fox, if they chose to show it (an <img> of foxSVG, loaded before drawing).
+  if (fox?.complete && fox.naturalWidth) g.drawImage(fox, W - 130 - 400, 360, 400, 400);
   // label, then the big number
   g.fillStyle = t.sub; g.font = `600 48px ${SANS}`; g.fillText(m.title, X, 820);
   const long = m.big.length > 6;
@@ -112,12 +115,18 @@ function wrap(g, text, x, y, max, lh) {
 const toBlob = (cv) => new Promise((r) => cv.toBlob(r, 'image/png'));
 
 export function openShare(start = 'streak') {
-  let kind = start, theme = 'paper';
+  let kind = start, theme = 'paper', showFox = !!store.user();
   try { const saved = localStorage.getItem('sf_share_theme'); if (THEMES.some((t) => t.id === saved)) theme = saved; } catch {}
+  try { if (localStorage.getItem('sf_share_fox') === '0') showFox = false; } catch {}
+  // The fox as an image the canvas can draw (an SVG data URL doesn't taint the canvas).
+  const foxImg = new Image();
+  if (store.user()) foxImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(foxSVG(myAvatar(), { size: 400, bg: 'none' }));
+  const card = () => drawCard(kind, theme, showFox ? foxImg : null);
   const m = modal(`<div class="share-sheet">
       <div class="seg full" id="shKind">${SHARE_KINDS.map(([k, t]) => `<button data-k="${k}">${t}</button>`).join('')}</div>
       <div class="share-preview"><img id="shImg" alt="Preview of the image you'll share"></div>
       <div class="share-themes" id="shTheme" aria-label="Card design">${THEMES.map((t) => `<button data-t="${t.id}" class="sw-${t.id}" title="${t.name}"><span>${t.name}</span></button>`).join('')}</div>
+      ${store.user() ? '<label class="consent small"><input type="checkbox" id="shFox"> <span>Show my fox on the image</span></label>' : ''}
       <div class="share-link" id="shLink"></div>
       <p class="muted small" id="shText"></p>
       <div class="share-actions">
@@ -132,7 +141,8 @@ export function openShare(start = 'streak') {
   const draw = () => {
     el.querySelectorAll('[data-k]').forEach((b) => b.classList.toggle('on', b.dataset.k === kind));
     el.querySelectorAll('[data-t]').forEach((b) => b.classList.toggle('on', b.dataset.t === theme));
-    el.querySelector('#shImg').src = drawCard(kind, theme).toDataURL('image/png');
+    el.querySelector('#shImg').src = card().toDataURL('image/png');
+    const fb = el.querySelector('#shFox'); if (fb) fb.checked = showFox;
     el.querySelector('#shText').textContent = shareMessage(kind).text;
     const no = store.user() ? myNumber() : null;
     el.querySelector('#shLink').innerHTML = no
@@ -148,7 +158,7 @@ export function openShare(start = 'streak') {
     else if (a === 'email') location.href = `mailto:?subject=${encodeURIComponent('Check out StudyFox')}&body=${encodeURIComponent(msg.text)}`;
     else if (a === 'copy') { try { await navigator.clipboard.writeText(referralUrl(store.user() ? myNumber() : null)); toast('Link copied.', 'good'); } catch { toast("Couldn't copy. Select the text above instead."); } }
     else if (a === 'story' || a === 'save') {
-      const blob = await toBlob(drawCard(kind, theme));
+      const blob = await toBlob(card());
       const file = new File([blob], `studyfox-${kind}.png`, { type: 'image/png' });
       if (a === 'story' && navigator.canShare?.({ files: [file] })) {
         try { await navigator.share({ files: [file], text: msg.text }); return; } catch (err) { if (err?.name === 'AbortError') return; }
@@ -159,6 +169,8 @@ export function openShare(start = 'streak') {
       if (a === 'story') toast('Image saved. Open Instagram, start a story, and pick it from your photos.');
     }
   });
+  el.querySelector('#shFox')?.addEventListener('change', (e) => { showFox = e.target.checked; try { localStorage.setItem('sf_share_fox', showFox ? '1' : '0'); } catch {} draw(); });
+  foxImg.onload = () => { if (el.isConnected) draw(); };
   draw();
   if (store.user()?.cloud && !myNumber()) loadMember(db()).then(() => { if (el.isConnected) draw(); });
   return m;

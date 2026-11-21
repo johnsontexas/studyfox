@@ -1,4 +1,6 @@
 // Hand-drawn SVG icon set (replaces emoji). Icons use currentColor, so they follow light/dark mode.
+import { COURSE_ICONS } from './course-icons.js';
+
 // icon(name) -> small line icon; sticker(name) -> large outlined illustration with pastel fills.
 
 const P = {
@@ -66,11 +68,21 @@ const P = {
   megaphone: '<path d="M4 10v4a1.5 1.5 0 0 0 1.5 1.5H7l4 3.5V5L7 8.5H5.5A1.5 1.5 0 0 0 4 10z"/><path d="M15 9a4 4 0 0 1 0 6M17.5 6.5a7.5 7.5 0 0 1 0 11"/>',
   instagram: '<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17" cy="7" r=".9" fill="currentColor"/>',
   arrow: '<path d="M7 17L17 7M9 7h8v8"/>',
+  trophy: '<path d="M7.5 4h9v5a4.5 4.5 0 0 1-9 0z"/><path d="M7.5 6H4.5v1.5A3.5 3.5 0 0 0 8 11M16.5 6h3v1.5A3.5 3.5 0 0 1 16 11M12 13.5V17M8.5 20.5h7l-1-3.5h-5z"/>',
+  sat: '<rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8 8.5h8M8 12h5"/><circle cx="9" cy="16.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="12.5" cy="16.5" r="1.2"/><circle cx="16" cy="16.5" r="1.2"/>',
+  act: '<rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8 8l1.5 1.5 3-3M8 13.5l1.5 1.5 3-3M14.5 8.5H16M14.5 14H16"/>',
+  student: '<path d="M12 3.5l8 3.5-8 3.5-8-3.5z"/><path d="M20 7v4"/><path d="M8 9v2.5a4 4 0 0 0 8 0V9"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/>',
+  students: '<path d="M9 4l6 2.5L9 9 3 6.5z"/><path d="M6 8v1.5a3 3 0 0 0 6 0V8"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M15.5 9.5a3 3 0 0 0 1-5.5"/><path d="M17 14.2c2.3.6 3.7 2.8 4 5.8"/>',
   grid: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>',
 };
 
 /** Every icon name (for pickers, like the course icon in the admin console). */
 export const ICON_NAMES = Object.keys(P);
+
+// Each class has its own drawn icon, keyed by course id (js/course-icons.js).
+Object.assign(P, COURSE_ICONS);
+/** Icon name for a course: its custom icon if one is drawn, else the icon picked in the admin console. */
+export const courseIcon = (c) => (c && COURSE_ICONS[c.id] ? c.id : c?.icon || 'book');
 
 export function icon(name, { fill = false, cls = '' } = {}) {
   return `<svg class="ico ${cls}" viewBox="0 0 24 24" fill="${fill ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name] || ''}</svg>`;
@@ -86,6 +98,16 @@ const S = {
   stopwatch: `<circle cx="40" cy="44" r="24" fill="var(--brand-soft)"/><path d="M34 10h12M40 10v10M59 23l5-5" fill="none"/><path d="M40 44V30M40 44l9 7" fill="none"/><circle cx="40" cy="44" r="3" fill="var(--ink)"/>`,
   party: `<path d="M12 68l14-40 26 26z" fill="var(--accent)"/><path d="M19 48l13 13M23 37l20 20" fill="none"/>
     <path d="M44 12c4 6-4 10 0 16M58 22c6 2 2 10 10 10" fill="none"/><circle cx="62" cy="12" r="4" fill="var(--bad-soft)"/><circle cx="68" cy="50" r="4" fill="var(--good-soft)"/><rect x="30" y="8" width="7" height="7" rx="1.5" fill="var(--lilac)" transform="rotate(20 33 11)"/>`,
+  target: `<circle cx="40" cy="42" r="26" fill="var(--bad-soft)"/><circle cx="40" cy="42" r="16" fill="var(--surface)"/><circle cx="40" cy="42" r="7" fill="var(--accent)"/>
+    <path d="M40 42L64 18" fill="none"/><path d="M58 14l6 4 4-2-2 6-6 2z" fill="var(--brand-soft)"/>`,
+  cards: `<rect x="14" y="20" width="36" height="46" rx="5" fill="var(--lilac)" transform="rotate(-10 32 43)"/><rect x="28" y="14" width="36" height="46" rx="5" fill="var(--brand-soft)" transform="rotate(8 46 37)"/>
+    <path d="M38 34h18M37 42h14" fill="none" transform="rotate(8 46 37)"/><path d="M60 58l4 4M66 52l5 1M56 64l-1 5" fill="none"/>`,
+  magnifier: `<path d="M49 49l15 15" fill="none" stroke-width="9"/><circle cx="34" cy="34" r="21" fill="var(--lilac)"/><path d="M22 30a12 12 0 0 1 9-9" fill="none" stroke="var(--surface)" stroke-width="4"/>
+    <path d="M29 31a5 5 0 1 1 7 4.6c-1.3.6-2 1.6-2 3V40" fill="none"/><circle cx="34" cy="46" r="2" fill="var(--ink)"/>`,
+  mailbox: `<path d="M14 36a14 14 0 0 1 28 0v26H14z" fill="var(--lilac)"/><path d="M28 22h30a14 14 0 0 1 14 14v26H42" fill="var(--brand-soft)"/><path d="M42 62V36a14 14 0 0 0-14-14" fill="none"/>
+    <path d="M36 72V62M58 40V18h10v8H58" fill="none"/><rect x="58" y="18" width="10" height="8" fill="var(--accent)"/>`,
+  book: `<path d="M40 22c-6-5-14-6-26-6v44c12 0 20 1 26 6 6-5 14-6 26-6V16c-12 0-20 1-26 6z" fill="var(--good-soft)"/><path d="M40 22v44" fill="none"/>
+    <path d="M20 28h12M20 36h12M48 28h12M48 36h8" fill="none"/><path d="M54 10v18l4-3 4 3V10" fill="var(--accent)"/>`,
 };
 
 export function sticker(name) {

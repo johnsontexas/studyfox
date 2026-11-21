@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 import { Text } from './AppText';
 import { loadAPCounts } from '../lib/ap';
-import { apDone, COURSES, HARDEST_ID } from '../lib/shared';
+import { apDone, COURSES, courseIcon, HARDEST_ID } from '../lib/shared';
 import { type, useColors } from '../lib/theme';
 import Icon from './Icon';
 import { myStudying } from './StudyPicker';
@@ -32,7 +32,7 @@ export default function APList({ counts }: { counts: Record<string, Record<strin
   const total = list.reduce((a, l) => a + l.n, 0);
   const mine = myStudying();
   const row = ({ x, n, units }: (typeof list)[number]) => (
-    <Row key={x.id} icon={x.icon} iconColor={c.tint} title={x.title.replace(/^AP /, '')}
+    <Row key={x.id} icon={courseIcon(x)} iconColor={c.tint} title={x.title.replace(/^AP /, '')}
       subtitle={<View style={{ gap: 6, marginTop: 2 }}><Text style={[type.subhead, { color: c.label2 }]}>{n} questions · {units} units</Text><Bar value={Math.min(1, (doneBy[x.id] || 0) / n)} height={4} /></View>}
       right={(
         <Pressable accessibilityRole="button" accessibilityLabel={`${x.title} Rush`} hitSlop={8} onPress={() => { tap(); rushAP(x.id); }}

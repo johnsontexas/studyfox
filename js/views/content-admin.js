@@ -1,7 +1,7 @@
 // Admin console: edit study content stored in Supabase (courses, lessons, flashcard decks, custom
 // questions, hidden bank questions). Changes go live on the website and the iOS app without a redeploy:
 // both load content through js/content/live.js. Every write is checked by the server (public.is_admin()).
-import { icon, ICON_NAMES } from '../icons.js';
+import { icon, ICON_NAMES, courseIcon } from '../icons.js';
 import { $, esc, tex, toast } from '../util.js';
 import { db, isAdmin } from '../cloud.js';
 import { confirmBox } from '../tools.js';
@@ -64,7 +64,7 @@ async function coursesPane(host) {
     ${SUBJECTS.map((s) => {
       const cs = courses.filter((x) => x.subject === s);
       return cs.length ? `<h2 class="h3">${esc(s)}</h2><div class="stack">${cs.map((x) => `<a class="card hover row between gap ce-row" href="#/admin/content?course=${x.id}">
-        <span class="row gap">${icon(x.icon)}<span><b>${esc(x.title)}</b> ${x.hidden ? '<span class="tag">Hidden</span>' : ''}${x.ap ? '<span class="tag subtle">AP</span>' : ''}<br><span class="muted small">${count[x.id] || 0} lessons · ${esc(x.level)} · order ${x.sort}</span></span></span>${icon('right')}</a>`).join('')}</div>` : '';
+        <span class="row gap">${icon(courseIcon(x))}<span><b>${esc(x.title)}</b> ${x.hidden ? '<span class="tag">Hidden</span>' : ''}${x.ap ? '<span class="tag subtle">AP</span>' : ''}<br><span class="muted small">${count[x.id] || 0} lessons · ${esc(x.level)} · order ${x.sort}</span></span></span>${icon('right')}</a>`).join('')}</div>` : '';
     }).join('')}`;
 }
 

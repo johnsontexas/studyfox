@@ -2,7 +2,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
 import { Text } from '../../../../../../components/AppText';
 import { Bar, Button, Empty, Icon, IconTile, Row, Screen, Section } from '../../../../../../components/ui';
-import { getCourse, store } from '../../../../../../lib/shared';
+import { courseIcon, getCourse, store } from '../../../../../../lib/shared';
 import { useStore } from '../../../../../../lib/store-hooks';
 import { subjectColor, type, useColors } from '../../../../../../lib/theme';
 
@@ -22,7 +22,7 @@ export default function CourseScreen() {
       <Stack.Screen options={{ title: course.title, headerLargeTitle: false }} />
       <Screen>
         <View style={{ alignItems: 'center', paddingHorizontal: 24, paddingTop: 10, gap: 8 }}>
-          <IconTile name={course.icon} color={subjectColor(c, course.subject)} size={64} />
+          <IconTile name={courseIcon(course)} color={subjectColor(c, course.subject)} size={64} />
           <Text style={[type.title2, { color: c.label, textAlign: 'center', marginTop: 4 }]}>{course.title}</Text>
           <Text style={[type.subhead, { color: c.label2, textAlign: 'center' }]}>{course.blurb}</Text>
           <Text style={[type.footnote, { color: c.label2 }]}>{course.lessons.length} lessons · about {mins} min · {course.level}</Text>

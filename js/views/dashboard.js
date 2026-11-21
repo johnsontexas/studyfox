@@ -1,4 +1,5 @@
-import { myNumber, ordinal } from '../members.js';
+import { myNumber, ordinal, myAvatar } from '../members.js';
+import { foxSVG } from '../avatar.js';
 import { icon } from '../icons.js';
 import { esc, timeAgo, toast } from '../util.js';
 import { store, today } from '../store.js';
@@ -10,7 +11,8 @@ import { confirmBox } from '../tools.js';
 import { COURSES } from '../content/courses.js';
 import { BUILTIN_DECKS } from '../content/decks.js';
 import { newsWidget } from './news.js';
-import { cloudEnabled } from '../cloud.js';
+import { cloudEnabled, db } from '../cloud.js';
+import { reviewCardHTML, wireReview } from '../review.js';
 
 const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; };
 
@@ -91,7 +93,7 @@ export function dashboardView(root) {
     <section class="dash-hero">
       <div>
         <p class="kicker">${greeting()}</p>
-        <h1>${u ? esc(u.name.split(' ')[0]) : 'Welcome back'}</h1>
+        <h1 class="dash-name">${u ? `<a class="dash-fox" href="#/fox" title="Change your fox" aria-label="Change your fox">${foxSVG(myAvatar(), { size: 52 })}<span class="dash-fox-edit" aria-hidden="true">${icon('edit')}</span></a>` : ''}${u ? esc(u.name.split(' ')[0]) : 'Welcome back'}</h1>
         ${myNumber() ? `<a class="student-no" href="#/settings" title="You're the ${ordinal(myNumber())} student to join StudyFox">${icon('users')} Student #${myNumber()}</a>` : ''}
         <p>${streak ? `You're on a ${streak}-day streak. Keep it going.` : 'Answer a few questions today to start a streak.'}</p>
       </div>
@@ -154,11 +156,13 @@ export function dashboardView(root) {
           ${d.attempts.length ? `<ul class="attempts">${d.attempts.slice(0, 6).map((a) => `<li><a href="#/results/${a.id}"><span><b>${esc(a.title)}</b><span class="muted small">${timeAgo(a.date)}</span></span><span class="score-pill">${a.kind === 'exam' ? a.headline : `${a.correct}/${a.total}`}</span></a></li>`).join('')}</ul>` : '<p class="muted">No sessions yet.</p>'}
         </div>
         <div class="card"><h2 class="h3">Question of the day</h2><div id="qotd"></div></div>
+        ${reviewCardHTML()}
       </div>
     </div>
   </div>`;
 
   qotdWidget(root.querySelector('#qotd'), focus);
+  wireReview(root, cloudEnabled && store.user()?.cloud ? db() : null);
   newsWidget(root.querySelector('#newsSlot'));
   root.querySelector('#moveCloud')?.addEventListener('click', () => { const em = u.email; store.logout(); location.hash = '#/login'; setTimeout(() => { const f = document.querySelector('[name=email]'); if (f) f.value = em; }, 50); });
   root.querySelector('#focusSeg').onclick = (e) => { const f = e.target.dataset.f; if (f) { d.settings.focus = f; store.save(); dashboardView(root); } };
