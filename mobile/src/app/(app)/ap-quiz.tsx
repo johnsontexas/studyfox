@@ -2,7 +2,8 @@
 // website's AP bank keeps them (store.data().ap), so progress matches on studyfox.org.
 import { router } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View, type ScrollViewInstance } from 'react-native';
+import { Text } from '../../components/AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ModalBar from '../../components/ModalBar';
 import QuestionView from '../../components/QuestionView';
@@ -21,7 +22,7 @@ export default function APQuiz() {
   const [i, setI] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number | null>>({});
   const [done, setDone] = useState(false);
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
 
   if (!session || !qs.length) return <View style={{ flex: 1, backgroundColor: c.bg }}><ModalBar /><Empty icon="search" title="No questions" body="Pick a unit to practice." /></View>;
   const q = qs[i];

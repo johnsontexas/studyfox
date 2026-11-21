@@ -1,7 +1,8 @@
 import { ClassesBar } from '../../../../../components/StudyPicker';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, RefreshControl, Text, View } from 'react-native';
+import { Pressable, RefreshControl, View } from 'react-native';
+import { Text } from '../../../../../components/AppText';
 import APList, { rushAP, useAPCounts } from '../../../../../components/APList';
 import { myStudying } from '../../../../../components/StudyPicker';
 import { Bar, cardStyle, Icon, Row, Screen, Section, Segmented, tap } from '../../../../../components/ui';
@@ -119,7 +120,7 @@ function QuickStart({ tiles }: { tiles: Tile[] }) {
         <Pressable key={t.label} accessibilityRole="button" accessibilityLabel={`${t.label}. ${t.sub}`} onPress={() => { tap(); t.onPress(); }}
           style={({ pressed }) => [cardStyle(c, 16), { flex: 1, padding: 12, gap: 6, minHeight: 104, opacity: pressed ? 0.75 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}>
           <View style={{ width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: t.color }}><Icon name={t.icon} size={18} color="#fff" /></View>
-          <Text numberOfLines={1} style={{ fontFamily: fonts.displayBold, fontSize: 16, color: c.label }}>{t.label}</Text>
+          <Text numberOfLines={1} style={{ fontFamily: fonts.sansBold, fontSize: 16, color: c.label }}>{t.label}</Text>
           <Text numberOfLines={2} style={[type.caption, { color: c.label2 }]}>{t.sub}</Text>
         </Pressable>
       ))}

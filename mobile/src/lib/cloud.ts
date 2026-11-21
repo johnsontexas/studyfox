@@ -242,7 +242,7 @@ export async function removePushToken(token: string) {
 }
 /** Admin kill switch for email sign-up (site_status.email_signup). Assumes on if it can't be read. */
 /** Top 10 Match times for a set (one per person), like the website's leaderboard. */
-export async function fetchMatchBoard(key: string): Promise<{ user_id: string; name: string; seconds: number }[]> {
+export async function fetchMatchBoard(key: string): Promise<{ user_id: string; name: string; seconds: number; no?: number }[]> {
   const c = client(); if (!c) return [];
   const [{ data, error }, { data: blocks }] = await Promise.all([
     c.from('match_scores').select('user_id,name,seconds').eq('set_key', key).order('seconds').limit(300),
@@ -250,7 +250,11 @@ export async function fetchMatchBoard(key: string): Promise<{ user_id: string; n
   ]);
   if (error) throw error;
   const seen = new Set<string>((blocks || []).map((b: any) => b.blocked));
-  return (data as any[]).filter((r) => !seen.has(r.user_id) && seen.add(r.user_id)).slice(0, 10);
+  const top = (data as any[]).filter((r) => !seen.has(r.user_id) && seen.add(r.user_id)).slice(0, 10);
+  // Player numbers, shown instead of names when "Hide other students' names" is on (supabase/member_numbers.sql).
+  const { data: nos } = await c.rpc('member_numbers', { ids: top.map((r) => r.user_id) });
+  const byId = new Map<string, number>(((nos as any[]) || []).map((m) => [m.user_id, m.no]));
+  return top.map((r) => ({ ...r, no: byId.get(r.user_id) }));
 }
 export async function reportMatchPlayer(key: string, userId: string, name: string) {
   const { error } = await client()!.from('match_reports').insert({ set_key: key, reported_user: userId, name });

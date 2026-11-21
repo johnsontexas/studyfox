@@ -1,7 +1,8 @@
 // The numbered question bank (SAT #1, #2, ...), same numbers as the website. Tap any number to try it.
 import { router, Stack } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, Pressable, ScrollView, Text, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, View } from 'react-native';
+import { Text } from '../../../../../components/AppText';
 import { Pill, Segmented, tap } from '../../../../../components/ui';
 import { setSession } from '../../../../../lib/questions';
 import { bank, DIFF_LABEL, regen, SECTIONS, store } from '../../../../../lib/shared';

@@ -2,7 +2,8 @@
 // Everything here is synced, so practice done on studyfox.org shows up too.
 import { router, Stack } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { RefreshControl, Text, View } from 'react-native';
+import { RefreshControl, View } from 'react-native';
+import { Text } from '../../../../../components/AppText';
 import { Bar, Card, Empty, Row, Screen, Section, Segmented, Stat } from '../../../../../components/ui';
 import { syncNow } from '../../../../../lib/cloud';
 import { setSession } from '../../../../../lib/questions';

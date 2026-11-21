@@ -132,7 +132,7 @@ export function settingsView(root) {
     ${u?.cloud ? `<div class="card stack" id="memberCard"><h2 class="h3">${icon('users')} Your StudyFox number</h2><p class="muted small">Loading...</p></div>` : ''}
     ${appearanceCardHTML()}
     <div class="card stack"><h2 class="h3">Leaderboards</h2>
-      <label class="a11y-toggle"><span><b>Hide other students' names</b><span class="muted small">Shows other players as "Player 1", "Player 2", and so on, on the Match leaderboard and Top sharers. Your own name still shows to you.</span></span><input type="checkbox" class="switch" id="hideNamesSet" ${s.hideNames ? 'checked' : ''}></label>
+      <label class="a11y-toggle"><span><b>Hide other students' names</b><span class="muted small">Shows other players by their player number (Player #123) on the Match leaderboard and Top sharers. Your own name still shows to you.</span></span><input type="checkbox" class="switch" id="hideNamesSet" ${s.hideNames ? 'checked' : ''}></label>
     </div>
     ${a11yCardHTML()}
     ${u?.cloud && u.provider === 'email' ? `<form class="card stack" id="pwForm">

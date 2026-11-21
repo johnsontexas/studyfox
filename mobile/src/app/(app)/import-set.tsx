@@ -1,7 +1,8 @@
 // Paste a StudyFox share link (from the website or a friend) to save a copy of that set.
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { Text } from '../../components/AppText';
 import { Button, Field, Section } from '../../components/ui';
 import SharedSet from '../../components/SharedSet';
 import { parseShared } from '../../lib/cards';

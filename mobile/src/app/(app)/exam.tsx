@@ -3,7 +3,8 @@
 // saves the finished test in the same attempt shape, so scores show on studyfox.org too.
 import { router } from 'expo-router';
 import { useEffect, useReducer, useRef, useState } from 'react';
-import { Alert, AppState, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, AppState, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, View, type ScrollViewInstance } from 'react-native';
+import { Text, TextInput } from '../../components/AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ModalBar from '../../components/ModalBar';
 import QuestionView from '../../components/QuestionView';
@@ -25,7 +26,7 @@ export default function Exam() {
   const [view, setView] = useState<'q' | 'review'>('q');
   const [navOpen, setNavOpen] = useState(false);
   const [hideTimer, setHideTimer] = useState(false);
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
   const lastSave = useRef(0);
 
   const m: any = r?.modules[r.current];

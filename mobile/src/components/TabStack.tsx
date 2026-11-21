@@ -15,7 +15,7 @@ export default function TabStack() {
         headerShadowVisible: false,
         headerStyle: { backgroundColor: c.bg },
         headerTintColor: c.tint,
-        headerTitleStyle: { color: c.label, fontFamily: fonts.display, fontSize: 18 },
+        headerTitleStyle: { color: c.label, fontFamily: fonts.sansBold, fontSize: 17 },
         headerBackButtonDisplayMode: 'minimal',
         contentStyle: { backgroundColor: c.bg },
       })}

@@ -18,7 +18,7 @@ export { CREATOR, INSTAGRAM, SITE_URL, CONTACT_EMAIL, SUPPORT_EMAIL, SUPPORT_FOR
 export { blocksFor, screens, isQuestion, gradeInput, gradeMulti, gradeOrder, gradeMatch, youtubeId } from '../../../js/content/blocks.js';
 export { choiceNotes, hasChoiceNotes, detectSlip } from '../../../js/explain.js';
 export { setting, SETTING_DEFAULTS } from '../../../js/content/settings.js';
-export { pendingRef, clearRef, setReferrer, updateMemberProfile, loadMember, ordinal, referralUrl, myNumber, topSharers } from '../../../js/members.js';
+export { pendingRef, clearRef, setReferrer, updateMemberProfile, loadMember, ordinal, referralUrl, myNumber, topSharers, withRanks } from '../../../js/members.js';
 export { PEOPLE, bySection, creditLine, SECTIONS as PEOPLE_SECTIONS } from '../../../js/content/people.js';
 export { socials, SOCIAL_PLATFORMS } from '../../../js/content/socials.js';
 export { SHARE_KINDS, shareMessage } from '../../../js/share-text.js';

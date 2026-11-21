@@ -74,6 +74,7 @@ const load_about = () => import('./views/about.js');
 const aboutView = lazy(load_about, 'aboutView');
 const load_contributors = () => import('./views/contributors.js');
 const contributorsView = lazy(load_contributors, 'contributorsView');
+const sharersView = lazy(load_contributors, 'sharersView');
 
 export const BRAND = 'StudyFox';
 
@@ -85,7 +86,7 @@ const routes = [
   ['/flashcards/:id/learn', learnView], ['/flashcards/:id/test', testView], ['/flashcards/:id/match', matchView], ['/share/:data', importView],
   ['/learn', learnHubView], ['/learn/:course', courseView], ['/learn/:course/:lesson', lessonView],
   ['/formulas', formulasView], ['/calculator', calculatorView], ['/speed', speedView],
-  ['/ap', apHubView], ['/ap/:course', apCourseView], ['/hardest', (m) => apCourseView(m, { course: 'hardest' })], ['/about', aboutView], ['/contributors', contributorsView], ['/news', newsView], ['/admin', adminView], ['/admin/content', contentAdminView], ['/contact', contactView],
+  ['/ap', apHubView], ['/ap/:course', apCourseView], ['/hardest', (m) => apCourseView(m, { course: 'hardest' })], ['/about', aboutView], ['/contributors', contributorsView], ['/contributors/sharers', sharersView], ['/news', newsView], ['/admin', adminView], ['/admin/content', contentAdminView], ['/contact', contactView],
   ['/donate', donateView], ['/privacy', privacyView], ['/terms', termsView], ['/welcome', welcomeView], ['/too-young', ageBlockedView],
 ];
 
@@ -143,7 +144,7 @@ function tabShell(main, m, tabs) {
   return r;
 }
 
-const PUBLIC = ['/', '/about', '/contributors', '/news', '/contact', '/donate', '/login', '/signup', '/privacy', '/terms', '/too-young'];
+const PUBLIC = ['/', '/about', '/contributors', '/contributors/sharers', '/news', '/contact', '/donate', '/login', '/signup', '/privacy', '/terms', '/too-young'];
 export const AFTER_LOGIN = 'sf_after_login';
 
 let cleanup = null;
@@ -184,7 +185,7 @@ function router() {
   try { cleanup = (tabGroup(m.pat) ? tabShell(main, m, tabGroup(m.pat)[1]) : m.view(main, m.params)) || null; }
   catch (e) { console.error(e); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><pre class="err">${esc(e.stack || e)}</pre><a class="btn" href="#/">Go home</a></div>`; }
   delete main.dataset.shell;
-  const title = { '/': store.user() ? 'Dashboard' : 'Free Study Material for School', '/learn': 'Free Courses', '/privacy': 'Privacy Policy', '/terms': 'Terms of Use', '/speed': 'Speed Practice', '/donate': 'Donate', '/news': 'News', '/contact': 'Contact', '/about': 'About', '/contributors': 'Contributors', '/admin': 'Admin', '/welcome': 'Welcome', '/too-young': 'Welcome' }[path] || (path.startsWith('/learn') ? 'Free Courses' : path.startsWith('/ap') ? 'AP Practice' : null) || path.split('/')[1]?.replace(/^\w/, (c) => c.toUpperCase());
+  const title = { '/': store.user() ? 'Dashboard' : 'Free Study Material for School', '/learn': 'Free Courses', '/privacy': 'Privacy Policy', '/terms': 'Terms of Use', '/speed': 'Speed Practice', '/donate': 'Donate', '/news': 'News', '/contact': 'Contact', '/about': 'About', '/contributors': 'Contributors', '/contributors/sharers': 'Top sharers', '/admin': 'Admin', '/welcome': 'Welcome', '/too-young': 'Welcome' }[path] || (path.startsWith('/learn') ? 'Free Courses' : path.startsWith('/ap') ? 'AP Practice' : null) || path.split('/')[1]?.replace(/^\w/, (c) => c.toUpperCase());
   document.title = `${BRAND} · ${title || 'Free Study Material for School'}`;
 }
 

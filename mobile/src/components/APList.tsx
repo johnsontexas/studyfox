@@ -2,7 +2,8 @@
 // Practice tab and the AP Practice page. Same bank as studyfox.org/#/ap.
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
+import { Text } from './AppText';
 import { loadAPCounts } from '../lib/ap';
 import { apDone, COURSES, HARDEST_ID } from '../lib/shared';
 import { type, useColors } from '../lib/theme';

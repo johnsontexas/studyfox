@@ -3,7 +3,8 @@
 // The age check is a yes/no question: we don't ask for a date of birth (App Store guideline 5.1.1(v)).
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { Text } from '../components/AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Field, menu, Pill, Row, Section, SwitchRow } from '../components/ui';
 import { cloudSignOut, contentClient, deleteAccount } from '../lib/cloud';

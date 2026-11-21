@@ -1,7 +1,8 @@
 // News posts from the StudyFox team. Posts are written in the website's admin console.
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Image, RefreshControl, Text } from 'react-native';
+import { Image, RefreshControl } from 'react-native';
+import { Text } from '../../../../components/AppText';
 import { PostBody } from '../../../../components/AnnouncementPopup';
 import { Button, Card, Empty, Screen } from '../../../../components/ui';
 import { openLink } from '../../../../lib/links';

@@ -1,6 +1,7 @@
 // Preview of a set from a share link (from the website or the app) with a Save button.
 import { router } from 'expo-router';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from './AppText';
 import type { CardT } from '../lib/cards';
 import { store } from '../lib/shared';
 import { type, useColors } from '../lib/theme';

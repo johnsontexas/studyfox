@@ -2,7 +2,8 @@
 // one-subject half tests, section tests, a test code box, and past tests.
 import { router, Stack } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
+import { Text } from '../../../../../components/AppText';
 import { Button, cardStyle, confirm, Field, Row, Screen, Section, Segmented, tap } from '../../../../../components/ui';
 import { codeFor, discardInProgress, examDef, hasInProgress, inProgressTitle, parseCode, startExam } from '../../../../../lib/exams';
 import { createExam, numberedTests, store, timeAgo } from '../../../../../lib/shared';

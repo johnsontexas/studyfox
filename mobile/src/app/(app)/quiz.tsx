@@ -2,7 +2,8 @@
 // Answers count toward the same stats, mistake log, and numbered bank as the website.
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, View, type ScrollViewInstance } from 'react-native';
+import { Text, TextInput } from '../../components/AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ModalBar from '../../components/ModalBar';
 import QuestionView from '../../components/QuestionView';
@@ -24,7 +25,7 @@ export default function Quiz() {
   const [typed, setTyped] = useState('');
   const [done, setDone] = useState(false);
   const started = useRef(Date.now());
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
 
   if (!session || !session.questions.length) {
     return <View style={{ flex: 1, backgroundColor: c.bg }}><ModalBar /><Empty icon="search" title="No questions" body="Nothing matched. Try a different section." /></View>;

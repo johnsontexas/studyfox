@@ -1,7 +1,8 @@
 // Practice test from a flashcard set: true/false, multiple choice, and written (same mix as the website).
 import { useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View, type ScrollViewInstance } from 'react-native';
+import { Text, TextInput } from '../../../components/AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ModalBar from '../../../components/ModalBar';
 import { Button, buzz, Card, Icon, Section, Segmented, SwitchRow, tap } from '../../../components/ui';
@@ -22,7 +23,7 @@ export default function Test() {
   const [qs, setQs] = useState<TQ[] | null>(null);
   const [ans, setAns] = useState<Record<number, any>>({});
   const [graded, setGraded] = useState(false);
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
 
   const build = () => {
     const types = (['tf', 'mc', 'wr'] as const).filter((t) => cfg[t]);

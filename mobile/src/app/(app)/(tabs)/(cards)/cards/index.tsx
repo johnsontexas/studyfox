@@ -1,6 +1,7 @@
 import { router, Stack } from 'expo-router';
 import { useState } from 'react';
-import { Platform, Text, TextInput, View } from 'react-native';
+import { Platform, View } from 'react-native';
+import { Text, TextInput } from '../../../../../components/AppText';
 import { Bar, Button, Empty, IconButton, menu, Row, Screen, SearchField, Section } from '../../../../../components/ui';
 import { masteredCount, norm, progress, type SetT } from '../../../../../lib/cards';
 import { BUILTIN_DECKS, store } from '../../../../../lib/shared';

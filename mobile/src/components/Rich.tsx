@@ -1,7 +1,8 @@
 // Draws the website's lesson and question content with native views: text, lists, callout boxes,
 // tables, SVG figures, and math. The content itself comes unchanged from js/content and js/gen.
 import { memo, useMemo, type ReactNode } from 'react';
-import { Platform, ScrollView, Text, useWindowDimensions, View, type TextStyle } from 'react-native';
+import { Platform, ScrollView, useWindowDimensions, View, type TextStyle } from 'react-native';
+import { Text } from './AppText';
 import { SvgXml } from 'react-native-svg';
 import { decode, parseHTML, type HNode } from '../lib/html';
 import { openLink } from '../lib/links';
@@ -60,7 +61,7 @@ function inline(n: HNode, ctx: Ctx, key: number | string, first = false): ReactN
   if (n.t === 'math') return <MathInline key={key} tex={n.tex} fontSize={ctx.size} color={ctx.color} />;
   if (n.t === 'svg') return null;
   const kids = n.kids.map((k, i) => inline(k, ctx, `${key}.${i}`, first && i === 0));
-  const style: TextStyle = {};
+  const style: { -readonly [K in keyof TextStyle]: TextStyle[K] } = {};
   switch (n.tag) {
     case 'br': return '\n';
     case 'b': case 'strong': style.fontWeight = '700'; break;

@@ -1,0 +1,452 @@
+[
+ {
+  "file": "courses",
+  "title": "Free Courses",
+  "sub": "49 classes, 301 lessons, all free",
+  "kicker": "StudyFox courses"
+ },
+ {
+  "file": "ap",
+  "title": "AP Review",
+  "sub": "Notes for all 30 AP classes, unit by unit",
+  "kicker": "StudyFox AP"
+ },
+ {
+  "file": "sat-act",
+  "title": "SAT & ACT Prep",
+  "sub": "Lessons, practice tests and a question bank",
+  "kicker": "StudyFox test prep"
+ },
+ {
+  "file": "flashcards",
+  "title": "Flashcards",
+  "sub": "21 free decks for AP, SAT and ACT",
+  "kicker": "StudyFox flashcards"
+ },
+ {
+  "file": "course-algebra-1",
+  "title": "Algebra 1 Essentials",
+  "sub": "Free course · 6 lessons",
+  "kicker": "Math"
+ },
+ {
+  "file": "course-geometry",
+  "title": "Geometry Essentials",
+  "sub": "Free course · 5 lessons",
+  "kicker": "Math"
+ },
+ {
+  "file": "course-precalc",
+  "title": "Algebra 2 & Precalculus",
+  "sub": "Free course · 4 lessons",
+  "kicker": "Math"
+ },
+ {
+  "file": "course-calculus",
+  "title": "Calculus",
+  "sub": "Free review notes for every unit · 6 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-statistics",
+  "title": "Statistics & Probability",
+  "sub": "Free review notes for every unit · 4 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-precalc",
+  "title": "AP Precalculus",
+  "sub": "Free review notes for every unit · 9 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-calc-bc",
+  "title": "AP Calculus: Exam Guide and BC Topics",
+  "sub": "Free review notes for every unit · 5 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-biology",
+  "title": "Biology Essentials",
+  "sub": "Free course · 5 lessons",
+  "kicker": "Science"
+ },
+ {
+  "file": "course-chemistry",
+  "title": "Chemistry Essentials",
+  "sub": "Free course · 5 lessons",
+  "kicker": "Science"
+ },
+ {
+  "file": "course-physics",
+  "title": "Physics Essentials",
+  "sub": "Free course · 5 lessons",
+  "kicker": "Science"
+ },
+ {
+  "file": "course-ap-bio",
+  "title": "AP Biology",
+  "sub": "Free review notes for every unit · 8 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-chem",
+  "title": "AP Chemistry",
+  "sub": "Free review notes for every unit · 9 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-enviro",
+  "title": "AP Environmental Science",
+  "sub": "Free review notes for every unit · 9 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-physics-1",
+  "title": "AP Physics 1",
+  "sub": "Free review notes for every unit · 8 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-physics-2",
+  "title": "AP Physics 2",
+  "sub": "Free review notes for every unit · 7 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-physics-c-mech",
+  "title": "AP Physics C: Mechanics",
+  "sub": "Free review notes for every unit · 6 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-physics-c-em",
+  "title": "AP Physics C: Electricity and Magnetism",
+  "sub": "Free review notes for every unit · 6 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-essay-writing",
+  "title": "Writing Strong Essays",
+  "sub": "Free course · 6 lessons",
+  "kicker": "English"
+ },
+ {
+  "file": "course-history",
+  "title": "How to Study History",
+  "sub": "Free course · 4 lessons",
+  "kicker": "History"
+ },
+ {
+  "file": "course-how-to-learn",
+  "title": "How to Learn Any Subject",
+  "sub": "Free course · 7 lessons",
+  "kicker": "Study Skills"
+ },
+ {
+  "file": "course-ap-lang",
+  "title": "AP English Language and Composition",
+  "sub": "Free review notes for every unit · 6 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-lit",
+  "title": "AP English Literature and Composition",
+  "sub": "Free review notes for every unit · 6 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-seminar",
+  "title": "AP Seminar and AP Research",
+  "sub": "Free review notes for every unit · 4 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-apush",
+  "title": "AP U.S. History",
+  "sub": "Free review notes for every unit · 10 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-world",
+  "title": "AP World History: Modern",
+  "sub": "Free review notes for every unit · 10 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-euro",
+  "title": "AP European History",
+  "sub": "Free review notes for every unit · 10 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-afam",
+  "title": "AP African American Studies",
+  "sub": "Free review notes for every unit · 5 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-gov",
+  "title": "AP U.S. Government and Politics",
+  "sub": "Free review notes for every unit · 6 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-comp-gov",
+  "title": "AP Comparative Government",
+  "sub": "Free review notes for every unit · 6 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-macro",
+  "title": "AP Macroeconomics",
+  "sub": "Free review notes for every unit · 7 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-micro",
+  "title": "AP Microeconomics",
+  "sub": "Free review notes for every unit · 6 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-psych",
+  "title": "AP Psychology",
+  "sub": "Free review notes for every unit · 6 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-hug",
+  "title": "AP Human Geography",
+  "sub": "Free review notes for every unit · 7 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-csa",
+  "title": "AP Computer Science A",
+  "sub": "Free review notes for every unit · 6 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-csp",
+  "title": "AP Computer Science Principles",
+  "sub": "Free review notes for every unit · 6 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-art-history",
+  "title": "AP Art History",
+  "sub": "Free review notes for every unit · 5 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-music-theory",
+  "title": "AP Music Theory",
+  "sub": "Free review notes for every unit · 4 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-art-design",
+  "title": "AP Art and Design",
+  "sub": "Free review notes for every unit · 2 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-ap-world-languages",
+  "title": "AP World Languages: Exam Skills",
+  "sub": "Free review notes for every unit · 4 lessons",
+  "kicker": "AP review"
+ },
+ {
+  "file": "course-desmos",
+  "title": "Desmos for the SAT",
+  "sub": "Free course · 7 lessons",
+  "kicker": "SAT & ACT"
+ },
+ {
+  "file": "course-grammar",
+  "title": "SAT Grammar Rules",
+  "sub": "Free course · 9 lessons",
+  "kicker": "SAT & ACT"
+ },
+ {
+  "file": "course-test-strategy",
+  "title": "SAT & ACT Study Strategy",
+  "sub": "Free course · 6 lessons",
+  "kicker": "SAT & ACT"
+ },
+ {
+  "file": "course-sat-rw",
+  "title": "SAT Reading and Writing",
+  "sub": "Free course · 6 lessons",
+  "kicker": "SAT & ACT"
+ },
+ {
+  "file": "course-sat-math-algebra",
+  "title": "SAT Math: Algebra and Advanced Math",
+  "sub": "Free course · 6 lessons",
+  "kicker": "SAT & ACT"
+ },
+ {
+  "file": "course-sat-math-data-geo",
+  "title": "SAT Math: Data, Geometry, and Trig",
+  "sub": "Free course · 7 lessons",
+  "kicker": "SAT & ACT"
+ },
+ {
+  "file": "course-act-english",
+  "title": "ACT English",
+  "sub": "Free course · 6 lessons",
+  "kicker": "SAT & ACT"
+ },
+ {
+  "file": "course-act-math",
+  "title": "ACT Math",
+  "sub": "Free course · 6 lessons",
+  "kicker": "SAT & ACT"
+ },
+ {
+  "file": "course-act-reading",
+  "title": "ACT Reading",
+  "sub": "Free course · 4 lessons",
+  "kicker": "SAT & ACT"
+ },
+ {
+  "file": "course-act-science",
+  "title": "ACT Science",
+  "sub": "Free course · 4 lessons",
+  "kicker": "SAT & ACT"
+ },
+ {
+  "file": "deck-sat-vocab-1",
+  "title": "SAT Words in Context: Core 60",
+  "sub": "60 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-math-formulas",
+  "title": "SAT & ACT Math Formulas",
+  "sub": "36 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-grammar",
+  "title": "Grammar & Punctuation Rules",
+  "sub": "20 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-transitions",
+  "title": "Transition Words by Function",
+  "sub": "18 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-act-science",
+  "title": "ACT Science Essentials",
+  "sub": "22 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-ap-bio-cram",
+  "title": "AP Biology Cram Set",
+  "sub": "25 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-ap-chem-cram",
+  "title": "AP Chemistry Cram Set",
+  "sub": "24 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-ap-physics1-cram",
+  "title": "AP Physics 1 Cram Set",
+  "sub": "23 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-ap-calc-cram",
+  "title": "AP Calculus AB/BC Cram Set",
+  "sub": "24 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-ap-stats-cram",
+  "title": "AP Statistics Cram Set",
+  "sub": "24 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-apush-cram",
+  "title": "AP U.S. History Cram Set",
+  "sub": "20 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-ap-world-cram",
+  "title": "AP World History Cram Set",
+  "sub": "16 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-ap-gov-cram",
+  "title": "AP U.S. Government Cram Set",
+  "sub": "18 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-ap-psych-cram",
+  "title": "AP Psychology Cram Set",
+  "sub": "20 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-ap-macro-cram",
+  "title": "AP Macroeconomics Cram Set",
+  "sub": "16 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-ap-micro-cram",
+  "title": "AP Microeconomics Cram Set",
+  "sub": "16 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-ap-lang-cram",
+  "title": "AP English Language Cram Set",
+  "sub": "16 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-ap-lit-cram",
+  "title": "AP English Literature Cram Set",
+  "sub": "16 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-apes-cram",
+  "title": "AP Environmental Science Cram Set",
+  "sub": "15 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-ap-hug-cram",
+  "title": "AP Human Geography Cram Set",
+  "sub": "14 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "deck-ap-csp-cram",
+  "title": "AP Computer Science Principles Cram Set",
+  "sub": "16 free flashcards",
+  "kicker": "Flashcards"
+ },
+ {
+  "file": "studyfox",
+  "title": "StudyFox",
+  "sub": "Free study material for every AP class, SAT and ACT",
+  "kicker": "StudyFox"
+ }
+]

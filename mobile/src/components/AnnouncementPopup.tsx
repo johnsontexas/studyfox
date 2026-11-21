@@ -1,7 +1,8 @@
 // Pop-up announcement shown when the app opens (news posts with "pop up" on, from the admin console).
 // Each one shows once; "Got it" or the button marks it seen. Checks again whenever the app comes back.
 import { useEffect, useState } from 'react';
-import { AppState, Image, Modal, ScrollView, Text, View } from 'react-native';
+import { AppState, Image, Modal, ScrollView, View } from 'react-native';
+import { Text } from './AppText';
 import { markPopupSeen, nextPopup, notificationsAllowed, setAnnouncementPush } from '../lib/announcements';
 import type { NewsPost } from '../lib/cloud';
 import { openLink } from '../lib/links';

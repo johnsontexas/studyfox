@@ -68,12 +68,15 @@ export async function updateMemberProfile(client, name, show) {
 }
 
 /** [{ no, name, referrals }] for the Top sharers list. */
-export async function topSharers(client, lim = 20) {
+export async function topSharers(client, lim = 5000) {
   const sb = await client;
   if (!sb) return [];
   const { data, error } = await sb.rpc('top_sharers', { lim });
   if (error) { console.warn(error); return []; }
   return (data || []).map((r) => ({ no: Number(r.no), name: r.name, referrals: Number(r.referrals) }));
 }
+
+/** Standard competition ranks: ties share a place, the next place skips (5,5,1 friends -> 1,1,3). List is sorted. */
+export const withRanks = (list) => { let rank = 0; return list.map((r, i) => { if (!i || list[i - 1].referrals !== r.referrals) rank = i + 1; return { ...r, rank }; }); };
 
 export const ordinal = (n) => { const s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); };

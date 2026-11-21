@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import { useColors } from '../../lib/theme';
 
-export const unstable_settings = { initialRouteName: '(tabs)' };
+export const unstable_settings = { anchor: '(tabs)' };
 
 // Signed-in app. Study modes open full screen; editing and importing open as sheets, like iOS apps do.
 export default function AppLayout() {

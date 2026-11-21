@@ -146,6 +146,6 @@ language sql stable security definer set search_path = '' as $$
   select m.no, coalesce(nullif(m.display_name, ''), 'Student'), count(r.no)
   from public.members m join public.members r on r.referred_by = m.no and r.user_id is not null
   where m.user_id is not null and m.show_on_leaderboard
-  group by m.no, m.display_name order by count(r.no) desc, m.no limit least(greatest(lim, 1), 100);
+  group by m.no, m.display_name order by count(r.no) desc, m.no limit least(greatest(lim, 1), 5000);
 $$;
 grant execute on function public.top_sharers(int) to anon, authenticated;

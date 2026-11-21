@@ -236,6 +236,9 @@ on conflict (day) do nothing;
 -- Student retention: one row per student per active day (web + app log it after sync). Admins read.
 -- Views: retention_daily (DAU/WAU/MAU), retention_cohorts (week 1/2/4/8 return rates by signup week).
 -- Full definition applied as migration "student_retention".
+-- Migration "fix_user_activity_logging": students can select their own rows (the client's upsert uses
+-- ON CONFLICT, which RLS rejects without a SELECT policy, so only admins were being logged); days are
+-- America/Chicago; cohort week columns stay null until that week has fully passed.
 
 -- Interactive lessons (lessons.blocks), per-choice question explanations (choice_expl, hint, steps),
 -- editable behavior settings (content_settings), and "How did you hear about StudyFox?" (signup_sources).
@@ -244,3 +247,4 @@ on conflict (day) do nothing;
 -- Contributors page and footer credit (contributors), editable About page (site_pages), permanent user numbers
 -- (members: #1 was the first sign-up, never reused), and friend referrals (members.referred_by, top_sharers()).
 -- Full definition in supabase/members_and_contributors.sql (applied as migration "members_contributors_referrals").
+-- Leaderboard player numbers (Player #123 when names are hidden): supabase/member_numbers.sql (migration "member_numbers").

@@ -1,7 +1,8 @@
 // Create or edit a flashcard set. "Paste a List" turns notes into many cards at once.
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native';
+import { Text, TextInput } from '../../components/AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Field, Icon, Row, Section, Segmented, tap } from '../../components/ui';
 import { parseImport, type CardT, type RowT, type SepT } from '../../lib/cards';
@@ -18,7 +19,7 @@ export default function EditSet() {
   const [cards, setCards] = useState<CardT[]>(existing ? existing.cards.map((x: CardT) => ({ ...x })) : [{ t: '', d: '' }, { t: '', d: '' }, { t: '', d: '' }]);
   const [importing, setImporting] = useState(false);
   const [imp, setImp] = useState(() => { const p = importPrefs(store.data().settings); return { txt: '', sep: p.sep as SepT, row: p.row as RowT, cSep: p.cSep as string, cRow: p.cRow as string }; });
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
   const parsed = parseImport(imp.txt, imp.sep, imp.row, imp.cSep, imp.cRow);
 
   const update = (i: number, f: 't' | 'd', v: string) => setCards(cards.map((x, k) => (k === i ? { ...x, [f]: v } : x)));

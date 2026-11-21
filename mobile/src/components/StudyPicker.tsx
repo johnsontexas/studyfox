@@ -2,7 +2,8 @@
 // js/studying.js (settings.studying), picked with a search field in onboarding and the Me tab.
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
+import { Text } from './AppText';
 import { COURSES, store } from '../lib/shared';
 import { useStore } from '../lib/store-hooks';
 import { type, useColors } from '../lib/theme';

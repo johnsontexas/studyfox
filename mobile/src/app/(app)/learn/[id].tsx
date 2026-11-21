@@ -1,7 +1,8 @@
 // Learn mode, same rules as the website: multiple choice first, then typed answers, until every term is mastered.
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
+import { Text, TextInput } from '../../../components/AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ModalBar from '../../../components/ModalBar';
 import { Button, buzz, Icon, menu, tap } from '../../../components/ui';

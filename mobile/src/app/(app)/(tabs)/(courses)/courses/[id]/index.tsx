@@ -1,5 +1,6 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '../../../../../../components/AppText';
 import { Bar, Button, Empty, Icon, IconTile, Row, Screen, Section } from '../../../../../../components/ui';
 import { getCourse, store } from '../../../../../../lib/shared';
 import { useStore } from '../../../../../../lib/store-hooks';

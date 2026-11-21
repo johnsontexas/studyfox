@@ -2,7 +2,8 @@
 // section's score, and every question with your answer and the explanation.
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
+import { Text } from '../../../components/AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ModalBar from '../../../components/ModalBar';
 import QuestionView from '../../../components/QuestionView';

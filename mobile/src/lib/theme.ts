@@ -1,7 +1,7 @@
 // StudyFox look, modeled on studyfox.org: sage paper and forest ink in light mode, deep forest in dark
 // mode, forest-green brand, fox-amber accent, Fraunces for headlines and numbers. Colors come from the
 // website's CSS (generated/site.ts), so a palette change on the site carries over to the app.
-// Everyday text uses Apple's system font, which matches the site's sans and keeps bold weights reliable.
+// Everyday text uses Instrument Sans, the website's body font (components/AppText).
 import { useEffect } from 'react';
 import { Appearance, Platform, useColorScheme, type TextStyle } from 'react-native';
 import { TOKENS } from '../generated/site';
@@ -101,14 +101,18 @@ export const fonts = {
   displayItalic: 'Fraunces_600SemiBold_Italic',
   serif: 'SourceSerif4_400Regular',
   serifSemi: 'SourceSerif4_600SemiBold',
+  // The website's body face; Text from components/AppText picks the weight automatically.
+  sans: 'InstrumentSans_400Regular',
+  sansSemi: 'InstrumentSans_600SemiBold',
+  sansBold: 'InstrumentSans_700Bold',
 };
 
-// Text styles. Titles use Fraunces (weight comes from the font file, so fontWeight stays normal).
+// Text styles, matching the site: Fraunces only for big page titles; section titles and numbers in bold Instrument Sans.
 export const type: Record<string, TextStyle> = {
-  largeTitle: { fontFamily: fonts.displayBold, fontSize: 36, lineHeight: 42, fontWeight: 'normal', letterSpacing: -0.6 },
-  title1: { fontFamily: fonts.displayBold, fontSize: 29, lineHeight: 35, fontWeight: 'normal', letterSpacing: -0.4 },
-  title2: { fontFamily: fonts.display, fontSize: 23, lineHeight: 29, fontWeight: 'normal', letterSpacing: -0.2 },
-  title3: { fontFamily: fonts.display, fontSize: 20, lineHeight: 25, fontWeight: 'normal' },
+  largeTitle: { fontFamily: fonts.display, fontSize: 36, lineHeight: 42, fontWeight: 'normal', letterSpacing: -0.5 },
+  title1: { fontFamily: fonts.display, fontSize: 29, lineHeight: 35, fontWeight: 'normal', letterSpacing: -0.4 },
+  title2: { fontFamily: fonts.sansBold, fontSize: 22, lineHeight: 28, fontWeight: 'normal', letterSpacing: -0.2 },
+  title3: { fontFamily: fonts.sansBold, fontSize: 19, lineHeight: 24, fontWeight: 'normal', letterSpacing: -0.1 },
   headline: { fontSize: 17, lineHeight: 22, fontWeight: '600' },
   body: { fontSize: 17, lineHeight: 23 },
   callout: { fontSize: 16, lineHeight: 21 },
@@ -117,7 +121,7 @@ export const type: Record<string, TextStyle> = {
   caption: { fontSize: 12, lineHeight: 16 },
   caption2: { fontSize: 11, lineHeight: 13 },
   // Big numbers (streaks, scores, timers), like the site's stat figures.
-  number: { fontFamily: fonts.displayBold, fontSize: 30, lineHeight: 34, fontWeight: 'normal' },
+  number: { fontFamily: fonts.sansBold, fontSize: 30, lineHeight: 34, fontWeight: 'normal', letterSpacing: -0.8, fontVariant: ['tabular-nums'] },
   eyebrow: { fontSize: 12, lineHeight: 16, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
 };
 // Reading text for lessons and passages: the website's book serif.

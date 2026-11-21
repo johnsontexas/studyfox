@@ -2,7 +2,8 @@
 // Bests and runs are saved where the website's Speed page keeps them (same keys).
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, View, type ScrollViewInstance } from 'react-native';
+import { Text, TextInput } from '../../components/AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ModalBar from '../../components/ModalBar';
 import QuestionView from '../../components/QuestionView';
@@ -49,7 +50,7 @@ export default function Speed() {
   const [reveal, setReveal] = useState<{ a: any } | null>(null);
   const [pop, setPop] = useState('');
   const game = useRef<G>(fresh());
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
   const [summary, setSummary] = useState<{ score: number | null; prev?: number; record: boolean; correct: number; answered: number; avg: string; bestStreak: number; missed: (Q & { ap?: APRow })[] } | null>(null);
 
   const isAP = cfg.test === 'AP';
