@@ -11,7 +11,7 @@
 
 const INK = '#22201c';
 
-/** Fur colors: natural fox shades only. Orange is the default fox. */
+/** Fur colors: natural fox shades only. New foxes start with a random one (defaultAvatar). */
 export const FURS = [
   { id: 'orange', name: 'Orange', fur: '#e07a35', dark: '#a9521f', light: '#fff7ee' },
   { id: 'rust', name: 'Rust', fur: '#c2562c', dark: '#8a3518', light: '#fff3ea' },
@@ -179,13 +179,14 @@ const PRESETS = [
   { shirt: 'henley', color: 'sage', glasses: 'none', hat: 'beanie', eyes: 'open', mouth: 'tongue' },
 ];
 
-/** The starting fox: orange fur and a random preppy-leaning look. Same seed, same fox. */
+/** The starting fox: a random natural fur color and a random preppy-leaning look. Same seed, same fox. */
 export function defaultAvatar(seed) {
   const r = rng(seed);
   const pick = (a) => a[Math.floor(r() * a.length)];
-  if (r() < 0.5) return { fur: 'orange', ...pick(PRESETS) };
+  const fur = pick(ids(FURS, true));
+  if (r() < 0.5) return { fur, ...pick(PRESETS) };
   return {
-    fur: 'orange',
+    fur,
     eyes: pick(['open', 'open', 'shiny', 'smile', 'wink']),
     mouth: pick(['smile', 'smile', 'grin', 'teeth', 'cat', 'tongue']),
     shirt: r() < 0.6 ? pick(['polo', 'oxford', 'vest', 'cardigan', 'tie']) : pick(ids(SHIRTS, true)),
