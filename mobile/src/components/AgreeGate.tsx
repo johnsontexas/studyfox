@@ -2,7 +2,8 @@
 // the same rule as the website's requireAgreement().
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from './AppText';
 import { cloudSignOut } from '../lib/cloud';
 import { store, TERMS_VERSION } from '../lib/shared';
 import { type, useColors } from '../lib/theme';

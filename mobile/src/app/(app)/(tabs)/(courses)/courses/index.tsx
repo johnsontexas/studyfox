@@ -1,6 +1,7 @@
 import { router, Stack } from 'expo-router';
 import { useState } from 'react';
-import { Platform, ScrollView, Text, TextInput, View } from 'react-native';
+import { Platform, ScrollView, View } from 'react-native';
+import { Text, TextInput } from '../../../../../components/AppText';
 import { Bar, Empty, Pill, Row, Screen, SearchField, Section } from '../../../../../components/ui';
 import { COURSES, store, SUBJECTS } from '../../../../../lib/shared';
 import { useStore } from '../../../../../lib/store-hooks';

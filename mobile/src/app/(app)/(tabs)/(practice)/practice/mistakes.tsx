@@ -1,7 +1,8 @@
 // Mistake log, shared with the website. Get a question right in a set to clear it.
 import { router, Stack } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '../../../../../components/AppText';
 import QuestionView from '../../../../../components/QuestionView';
 import { Button, confirm, Empty, Row, Screen, Section, Segmented } from '../../../../../components/ui';
 import { mistakes, setSession, type Q } from '../../../../../lib/questions';

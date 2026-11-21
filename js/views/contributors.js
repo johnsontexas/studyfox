@@ -6,7 +6,7 @@ import { db, cloudEnabled } from '../cloud.js';
 import { store } from '../store.js';
 import { bySection } from '../content/people.js';
 import { onContent } from '../content/live.js';
-import { topSharers, myNumber, referralUrl } from '../members.js';
+import { topSharers, myNumber, referralUrl, withRanks, loadMember } from '../members.js';
 
 const initials = (n) => n.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 
@@ -31,14 +31,40 @@ export function contributorsView(root) {
         ${no ? `<p class="small muted">You're user #${no}. Your link: <a href="${esc(referralUrl(no))}">${esc(referralUrl(no).replace(/^https:\/\//, ''))}</a></p>` : ''}
       </section>
     </div>`;
-    topSharers(cloudEnabled ? db() : null, 20).then((list) => {
-      const el = $('#sharers', root);
-      if (!el) return;
-      el.innerHTML = list.length
-        ? `<ol class="sharers">${list.map((r, i) => `<li class="${r.no === myNumber() ? 'me' : ''}"><span class="lnum">${i + 1}</span><span class="grow"><b>${esc(r.no === myNumber() || !store.data().settings.hideNames ? r.name : 'Student')}</b> <span class="muted small">user #${r.no}</span></span><span>${r.referrals} ${r.referrals === 1 ? 'friend' : 'friends'}</span></li>`).join('')}</ol>`
-        : `<p class="muted small">No one yet. ${store.user() ? 'Share your link with a friend who could use free study help.' : ''}</p>`;
-    });
+    fillSharers($('#sharers', root), 25);
   };
   draw();
   return onContent(draw);
+}
+
+const row = (r, me) => `<li class="${r.no === me ? 'me' : ''}"><span class="lnum">${r.rank}</span><span class="grow"><b>${esc(r.no === me || !store.data().settings.hideNames ? r.name : `Player #${r.no}`)}</b> <span class="muted small">user #${r.no}</span></span><span>${r.referrals} ${r.referrals === 1 ? 'friend' : 'friends'}</span></li>`;
+
+// Top sharers with shared places for ties (5, 5, 1 friends -> 1, 1, 3), ordered by user number within a tie.
+// limit: show the first N plus an expand link, and the signed-in student's own row under it if they're further down.
+async function fillSharers(el, limit) {
+  const client = cloudEnabled ? db() : null;
+  const [all, m] = await Promise.all([topSharers(client), loadMember(client).catch(() => null)]);
+  if (!el?.isConnected) return;
+  const ranked = withRanks(all);
+  const me = m?.no || myNumber();
+  if (!ranked.length) { el.innerHTML = `<p class="muted small">No one yet. ${store.user() ? 'Share your link with a friend who could use free study help.' : ''}</p>`; return; }
+  const shown = limit ? ranked.slice(0, limit) : ranked;
+  let mine = '';
+  if (limit && me && !shown.some((r) => r.no === me)) {
+    const listed = ranked.find((r) => r.no === me);
+    const n = listed ? listed.referrals : (m?.referrals || 0);
+    const rank = listed ? listed.rank : 1 + ranked.filter((r) => r.referrals > n).length;
+    mine = `<li class="sharers-gap" aria-hidden="true">...</li>${row({ no: me, name: m?.display_name || 'You', referrals: n, rank }, me)}`;
+  }
+  el.innerHTML = `<ol class="sharers">${shown.map((r) => row(r, me)).join('')}${mine}</ol>`
+    + (limit && ranked.length > limit ? `<div class="sharers-more"><a class="btn ghost" href="#/contributors/sharers">Show all ${ranked.length} sharers ${icon('arrow')}</a></div>` : '');
+}
+
+export function sharersView(root) {
+  root.innerHTML = `<div class="page narrow-wide stack contributors">
+    <div class="page-head"><a class="muted small" href="#/contributors">Back to Contributors</a><h1>Top sharers</h1>
+      <p class="muted">Every student whose StudyFox link brought a friend. Students with the same number of friends share a place.</p></div>
+    <div id="sharers" class="card"><p class="muted small">Loading...</p></div>
+  </div>`;
+  fillSharers($('#sharers', root), 0);
 }

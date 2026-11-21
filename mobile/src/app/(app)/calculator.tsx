@@ -2,7 +2,8 @@
 // in a web view; lessons can preload their example expressions.
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Platform, Pressable, Text, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
+import { Text } from '../../components/AppText';
 import { WebView } from 'react-native-webview';
 import { Segmented } from '../../components/ui';
 import { DESMOS_KEY } from '../../lib/shared';

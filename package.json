@@ -8,7 +8,7 @@
     "test": "node tests/courses.test.js && node tests/generators.test.js && node mobile/scripts/check-shared.mjs",
     "app": "npm --prefix mobile run phone",
     "tunnel": "npm --prefix mobile run tunnel",
-    "seo": "node tools/build-seo.mjs",
+    "seo": "node tools/build-seo.mjs && python3 tools/build-card-images.py",
     "build": "node tools/build-web.mjs",
     "backup:db": "bash tools/backup-supabase.sh"
   },

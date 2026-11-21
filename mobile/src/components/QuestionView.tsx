@@ -3,7 +3,8 @@
 // After answering, every choice can be tapped to see why it's right or wrong (js/explain.js, same notes as the
 // website), followed by the hint, the step-by-step solution, and "What happened?" tags for a miss.
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from './AppText';
 import { choiceNotes, DIFF_LABEL, setting, store } from '../lib/shared';
 import { isRight, type Q } from '../lib/questions';
 import { type, useColors } from '../lib/theme';

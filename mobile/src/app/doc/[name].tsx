@@ -1,7 +1,8 @@
 // Privacy Policy and Terms of Use from the website's js/views/legal.js, drawn natively.
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
+import { Text } from '../../components/AppText';
 import { Rich } from '../../components/Rich';
 import { captureView } from '../../lib/capture';
 import { privacyView, termsView } from '../../lib/shared';

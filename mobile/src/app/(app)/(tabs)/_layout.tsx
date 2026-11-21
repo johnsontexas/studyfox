@@ -2,7 +2,6 @@ import { Tabs } from 'expo-router';
 import TabBar from '../../../components/TabBar';
 import { useColors } from '../../../lib/theme';
 
-export const unstable_settings = { initialRouteName: '(today)' };
 
 // Five tabs with StudyFox's own floating tab bar (components/TabBar.tsx).
 export default function TabsLayout() {

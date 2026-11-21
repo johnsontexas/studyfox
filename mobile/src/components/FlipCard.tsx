@@ -1,6 +1,7 @@
 // A flashcard that flips in 3D when tapped.
 import { useEffect } from 'react';
-import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Text } from './AppText';
 import Animated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { fonts, type, useColors } from '../lib/theme';
 import Icon from './Icon';

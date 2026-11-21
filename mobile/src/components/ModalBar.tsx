@@ -1,7 +1,8 @@
 // Top bar for full-screen study modes: close button, title, and an optional action on the right.
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from './AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { type, useColors } from '../lib/theme';
 import { Bar, IconButton } from './ui';

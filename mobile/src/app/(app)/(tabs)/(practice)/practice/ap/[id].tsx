@@ -1,7 +1,8 @@
 // One AP class: practice a unit, one concept inside a unit, or a mix of everything.
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, View } from 'react-native';
+import { Text } from '../../../../../../components/AppText';
 import { Bar, Button, Card, Empty, Pill, Screen, Section, Segmented, Stat } from '../../../../../../components/ui';
 import { loadAP, setAPSession, type APRow } from '../../../../../../lib/ap';
 import { apStats, apUnits, getCourse, HARDEST, HARDEST_ID, pickAP } from '../../../../../../lib/shared';

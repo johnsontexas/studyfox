@@ -5,11 +5,12 @@
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { contentClient } from '../../../../lib/cloud';
-import { Image, Text, View } from 'react-native';
+import { Image, View } from 'react-native';
+import { Text } from '../../../../components/AppText';
 import { Rich } from '../../../../components/Rich';
 import { Button, Card, Screen } from '../../../../components/ui';
 import { openWeb } from '../../../../lib/links';
-import { bySection, BETTERU_URL, CREATOR, CREATOR_SITE, INSTAGRAM, PEOPLE, SITE_URL, socials, store, topSharers } from '../../../../lib/shared';
+import { bySection, BETTERU_URL, CREATOR, CREATOR_SITE, INSTAGRAM, PEOPLE, SITE_URL, socials, store, topSharers, withRanks } from '../../../../lib/shared';
 import { useStore } from '../../../../lib/store-hooks';
 import { type, useColors } from '../../../../lib/theme';
 
@@ -55,17 +56,17 @@ function Team() {
 /** Top sharers: students whose referral links brought in the most friends (names hidden if they asked). */
 function TopSharers() {
   const c = useColors();
-  const [rows, setRows] = useState<{ no: number; name: string; referrals: number }[]>([]);
-  useEffect(() => { topSharers(contentClient(), 10).then(setRows).catch(() => {}); }, []);
+  const [rows, setRows] = useState<{ no: number; name: string; referrals: number; rank: number }[]>([]);
+  useEffect(() => { topSharers(contentClient(), 10).then((r) => setRows(withRanks(r))).catch(() => {}); }, []);
   if (!rows.length) return null;
   const hide = !!store.data().settings.hideNames;
   return (
     <Card style={{ gap: 8 }}>
       <Text style={[type.title3, { color: c.label }]}>Top sharers</Text>
       <Text style={[type.subhead, { color: c.label2 }]}>Students whose links brought the most friends to StudyFox.</Text>
-      {rows.map((r, i) => (
+      {rows.map((r) => (
         <View key={r.no} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={[type.body, { color: c.label }]}>{i + 1}. {hide || !r.name ? `Student #${r.no}` : r.name}</Text>
+          <Text style={[type.body, { color: c.label }]}>{r.rank}. {hide || !r.name ? `Player #${r.no}` : r.name}</Text>
           <Text style={[type.body, { color: c.label2 }]}>{r.referrals} {r.referrals === 1 ? 'friend' : 'friends'}</Text>
         </View>
       ))}

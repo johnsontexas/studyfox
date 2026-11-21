@@ -3,7 +3,8 @@
 // matchTimes), and times post to the same public leaderboard as studyfox.org.
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, View } from 'react-native';
+import { Text } from '../../../components/AppText';
 import Animated, { FadeOut, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ModalBar from '../../../components/ModalBar';
@@ -36,7 +37,7 @@ export default function Match() {
   const key = boardKey(s, pairs);
   const me = store.user() as any;
   const [tab, setTab] = useState<'all' | 'me'>('all');
-  const [board, setBoard] = useState<{ user_id: string; name: string; seconds: number }[] | null | 'error'>(null);
+  const [board, setBoard] = useState<{ user_id: string; name: string; seconds: number; no?: number }[] | null | 'error'>(null);
   const loadBoard = () => fetchMatchBoard(key).then(setBoard, () => setBoard('error'));
   useEffect(() => { loadBoard(); }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -94,7 +95,7 @@ export default function Match() {
     <View style={{ marginTop: 18, gap: 8 }}>
       <Segmented options={[['all', 'Everyone'], ['me', 'My times']]} value={tab} onChange={setTab} />
       {(tab === 'me' ? mine.map((r, n) => ({ k: String(r.at), left: `${n + 1}. ${new Date(r.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`, right: r.s, you: false, other: null as null | { id: string; name: string } }))
-        : Array.isArray(board) ? board.map((r, n) => ({ k: r.user_id, left: `${n + 1}. ${(me?.cloud && r.user_id === me.id) || !store.data().settings.hideNames ? r.name : `Player ${n + 1}`}${me?.cloud && r.user_id === me.id ? ' (you)' : ''}`, right: r.seconds, you: me?.cloud && r.user_id === me.id, other: me?.cloud && r.user_id !== me.id ? { id: r.user_id, name: r.name } : null }))
+        : Array.isArray(board) ? board.map((r, n) => ({ k: r.user_id, left: `${n + 1}. ${(me?.cloud && r.user_id === me.id) || !store.data().settings.hideNames ? r.name : (r.no ? `Player #${r.no}` : `Player ${n + 1}`)}${me?.cloud && r.user_id === me.id ? ' (you)' : ''}`, right: r.seconds, you: me?.cloud && r.user_id === me.id, other: me?.cloud && r.user_id !== me.id ? { id: r.user_id, name: r.name } : null }))
         : []).map((r) => (
         <View key={r.k} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 6 }}>
           <Text style={[type.subhead, { color: r.you ? c.tint : c.label, fontWeight: r.you ? '700' : '400' }]}>{r.left}</Text>

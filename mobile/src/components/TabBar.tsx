@@ -2,7 +2,8 @@
 // grows into a forest-green pill with its label; tapping it again returns to the top of that tab.
 import { BlurView } from 'expo-blur';
 import type { BottomTabBarProps } from 'expo-router/tabs';
-import { Platform, Pressable, Text, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
+import { Text } from './AppText';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { type, useColors } from '../lib/theme';
@@ -13,7 +14,7 @@ const TABS: Record<string, [string, string]> = {
   '(today)': ['Today', 'home'], '(cards)': ['Cards', 'cards'], '(practice)': ['Practice', 'bolt'], '(courses)': ['Courses', 'book'], '(me)': ['Me', 'person'],
 };
 
-export default function TabBar({ state, navigation }: BottomTabBarProps) {
+export default function TabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
   const c = useColors();
   const ins = useSafeAreaInsets();
   return (
@@ -25,10 +26,9 @@ export default function TabBar({ state, navigation }: BottomTabBarProps) {
             const on = state.index === i;
             const press = () => {
               tap();
-              const e = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-              const inner = (route as { state?: { key: string; index?: number } }).state;
-              if (on) { if (inner?.key && (inner.index ?? 0) > 0) navigation.dispatch({ type: 'POP_TO_TOP', target: inner.key }); }
-              else if (!e.defaultPrevented) navigation.navigate(route.name);
+              // A tabPress on the focused tab makes its stack pop to the top (React Navigation handles that).
+              const e = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+              if (!on && !e.defaultPrevented) navigateToTab(route.key);
             };
             return (
               <Animated.View key={route.key} layout={LinearTransition.duration(220)}>

@@ -1,6 +1,7 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, Pressable, Share, Text, useWindowDimensions, View } from 'react-native';
+import { FlatList, Pressable, Share, useWindowDimensions, View } from 'react-native';
+import { Text } from '../../../../../components/AppText';
 import FlipCard from '../../../../../components/FlipCard';
 import { Button, confirm, Empty, Icon, IconButton, menu, Row, Screen, Section, tap } from '../../../../../components/ui';
 import { getSet, masteredCount, progress, shareUrl } from '../../../../../lib/cards';

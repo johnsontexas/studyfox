@@ -64,3 +64,4 @@ table.data th, table.data td { border: 1px solid var(--line); padding: .35rem .7
 .pager { display: flex; justify-content: space-between; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
 .foot { border-top: 1px solid var(--line); color: var(--muted); font-size: .88rem; padding: 1rem 0 2rem; }
 @media (max-width: 640px) { .ex, .deck div { display: block; } .lesson { padding: 1rem; } }
+.hero-card { margin: 0 0 1.2rem; } .hero-card img { width: 100%; max-width: 720px; height: auto; border-radius: 14px; display: block; }

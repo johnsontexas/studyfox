@@ -3,10 +3,8 @@
 // branded segmented controls, and haptics.
 import * as Haptics from 'expo-haptics';
 import { Children, Fragment, isValidElement, useState, type ReactNode } from 'react';
-import {
-  ActionSheetIOS, ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View,
-  type ScrollViewProps, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle,
-} from 'react-native';
+import { ActionSheetIOS, ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, View, type ScrollViewProps, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle } from 'react-native';
+import { Text, TextInput } from './AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, SvgXml } from 'react-native-svg';
 import { fonts, type, useColors } from '../lib/theme';

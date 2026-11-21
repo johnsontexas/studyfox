@@ -3,7 +3,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { Pressable, RefreshControl, Text, View } from 'react-native';
+import { Pressable, RefreshControl, View } from 'react-native';
+import { Text } from '../../../../components/AppText';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
@@ -92,7 +93,7 @@ export default function Today() {
         <Pressable onPress={() => router.push('/practice/progress')} accessibilityLabel={`${streak} day streak`}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, height: 34, borderRadius: 17, backgroundColor: c.amberSoft }}>
           <Icon name="flame" size={16} color={c.flame} />
-          <Text style={{ fontFamily: fonts.displayBold, fontSize: 17, color: c.dark ? c.amber : '#8a4a10' }}>{streak}</Text>
+          <Text style={{ fontFamily: fonts.sansBold, fontSize: 17, color: c.dark ? c.amber : '#8a4a10' }}>{streak}</Text>
         </Pressable>
       </View>
 
@@ -118,7 +119,7 @@ export default function Today() {
           <View style={[cardStyle(c, 16), { padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }]}>
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
               <Ring value={todayN / GOAL} color={todayN >= GOAL ? c.good : c.tint} track={c.fill2} />
-              <Text style={{ position: 'absolute', fontFamily: fonts.displayBold, fontSize: 17, color: c.label }}>{Math.min(todayN, 99)}</Text>
+              <Text style={{ position: 'absolute', fontFamily: fonts.sansBold, fontSize: 17, color: c.label }}>{Math.min(todayN, 99)}</Text>
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[type.headline, { color: c.label }]}>{todayN >= GOAL ? 'Goal done' : 'Daily goal'}</Text>

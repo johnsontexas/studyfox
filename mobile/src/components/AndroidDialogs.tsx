@@ -1,7 +1,8 @@
 // Android has no action sheet or text prompt, and its alerts only hold three buttons, so menus and
 // prompts there use this dialog. DialogHost is mounted once in the root layout.
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Pressable, ScrollView, View } from 'react-native';
+import { Text, TextInput } from './AppText';
 import { type, useColors } from '../lib/theme';
 
 type Item = { title: string; destructive?: boolean; onPress: () => void };

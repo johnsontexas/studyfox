@@ -9,7 +9,8 @@ import { router, Stack } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import * as Sharing from 'expo-sharing';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, Pressable, RefreshControl, Share, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, Pressable, RefreshControl, Share, View, Linking } from 'react-native';
+import { Text } from '../../../../components/AppText';
 import { Card, confirm, Icon, menu, Row, Screen, Section, Stat, SwitchRow } from '../../../../components/ui';
 import { masteredCount } from '../../../../lib/cards';
 import { cloudSignOut, deleteAccount, linkedProviders, linkProvider, syncNow, syncStatus } from '../../../../lib/cloud';
@@ -190,6 +191,7 @@ export default function Me() {
         </Section>
 
         <Section header="Preferences" footer={s.lang && s.lang !== 'en' ? 'The SAT and ACT are in English, so questions stay in English.' : undefined}>
+          {/* Safari, not the in-app browser: the full site has a Donate page, which the app must not show (guideline 3.1.1). */}
           <Row icon="globe" iconColor={c.blue} title="Language" value={langName(lang)} onPress={() => pickLanguage()} />
           {s.lang && s.lang !== 'en' ? (
             <Row icon="book" iconColor={c.blue} title="Reading English" value={prof[1]}
@@ -198,7 +200,7 @@ export default function Me() {
           <Row icon="moon" iconColor={c.indigo} title="Appearance" value={THEME_NAME[s.theme] || 'Automatic'} onPress={() => menu('Appearance', Object.entries(THEME_NAME).map(([k, v]) => ({ title: v, onPress: () => set({ theme: k }) })))} />
           <Row icon="sparkle" iconColor={c.tint} title="Color Theme" value={(THEME_PRESETS.find((p: { id: string }) => p.id === (s.appearance?.preset || 'forest')) || THEME_PRESETS[0]).name}
             onPress={() => menu('Color theme', THEME_PRESETS.map((p: { id: string; name: string }) => ({ title: p.name, onPress: () => set({ appearance: { ...(s.appearance || {}), preset: p.id } }) })))} />
-          <SwitchRow icon="eyeSlash" iconColor={c.gray} title="Hide Other Students' Names" subtitle="Leaderboards show Player 1, Player 2, and so on" value={!!s.hideNames} onChange={(v) => set({ hideNames: v })} />
+          <SwitchRow icon="eyeSlash" iconColor={c.gray} title="Hide Other Students' Names" subtitle="Leaderboards show player numbers, like Player #123" value={!!s.hideNames} onChange={(v) => set({ hideNames: v })} />
           <SwitchRow icon="mail" iconColor={c.teal} title="Email Updates" subtitle="New courses, features, and study opportunities" value={!!s.emails} onChange={(v) => set({ emails: v, emailsAt: new Date().toISOString() })} />
         </Section>
 
@@ -226,7 +228,7 @@ export default function Me() {
           <Row icon="mail" iconColor={c.teal} title="Contact Us" subtitle={SUPPORT_EMAIL}
             onPress={() => menu(SUPPORT_EMAIL, [{ title: 'Copy Email Address', onPress: () => { Clipboard.setStringAsync(SUPPORT_EMAIL); Alert.alert('Copied', SUPPORT_EMAIL); } }, { title: 'Write an Email', onPress: () => openWeb(`mailto:${SUPPORT_EMAIL}`) }])} />
           {SUPPORT_FORM_URL ? <Row icon="support" iconColor={c.teal} title="Suggestion Box" subtitle="Send an idea or report a problem" onPress={() => openWeb(SUPPORT_FORM_URL)} /> : null}
-          <Row icon="globe" iconColor={c.tint} title="studyfox.org" onPress={() => openWeb(SITE_URL)} />
+          <Row icon="globe" iconColor={c.tint} title="studyfox.org" onPress={() => Linking.openURL(SITE_URL)} />
           {socials().map((l: { platform: string; icon: string; name: string; label: string; href: string }) => (
             <Row key={l.platform + l.href} icon={l.icon} iconColor={l.platform === 'instagram' ? c.pink : l.platform === 'youtube' ? c.red : c.indigo} title={l.label} subtitle={l.name} onPress={() => openWeb(l.href)} />
           ))}

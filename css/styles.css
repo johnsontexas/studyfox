@@ -1302,10 +1302,14 @@ h2, .section-title { font-weight: 700; letter-spacing: -.01em; font-size: 1.35re
 .choice-why > summary, .q-steps > summary { display: block; }
 
 /* Home hero: live "Join X other students" line under the buttons */
-.join-n { display: flex; align-items: center; gap: .45rem; margin: .9rem 0 0; color: var(--ink-2); font-size: .95rem; }
+.join-n { display: inline-flex; align-items: center; gap: .8rem; margin: 1.4rem 0 0; padding: .7rem 1.2rem .7rem .7rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--muted); font-size: .95rem; line-height: 1.2; }
 .join-n[hidden] { display: none; }
-.join-n svg { width: 1.1em; height: 1.1em; color: var(--accent, currentColor); }
-.join-n b { font-variant-numeric: tabular-nums; }
+.join-ic { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 50%; background: var(--brand-soft); color: var(--brand); flex: none; }
+.join-ic svg { width: 1.3rem; height: 1.3rem; }
+.join-n b { display: block; font-size: 1.9rem; font-weight: 800; letter-spacing: -.03em; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.sharers .lnum { min-width: 1.8rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sharers-gap { text-align: center; color: var(--muted); letter-spacing: .3em; padding: .2rem 0; }
+.sharers-more { display: flex; justify-content: center; margin-top: .8rem; }
 
 /* Home (2026 redesign): bold type, real content, built only on theme tokens so light/dark and every
    color theme in Settings > Appearance carry over. Prefix hx-. */
@@ -1313,6 +1317,7 @@ h2, .section-title { font-weight: 700; letter-spacing: -.01em; font-size: 1.35re
 .hx .hero2-inner { grid-template-columns: 1.25fr 1fr; gap: 3.5rem; padding: 4.5rem 1rem 3rem; }
 .hx-h1 { font-family: var(--font) !important; font-weight: 800; font-size: clamp(3.2rem, 8vw, 7.2rem) !important; line-height: .9 !important; letter-spacing: -.055em; text-transform: lowercase; margin: 0 0 1.6rem !important; color: var(--ink); }
 .hx-h1 span { color: var(--brand); }
+.hx-links { display: flex; flex-wrap: wrap; gap: .4rem 1.1rem; margin-top: 1.3rem; font-size: .9rem; } .hx-links a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; } .hx-links a:hover { color: var(--brand); }
 .hx .lead { max-width: 30rem; color: var(--muted); }
 .hx .btn.lg { border-radius: 999px; padding-inline: 1.6rem; }
 .hx-k { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: .72rem; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin: 0; }
@@ -1378,6 +1383,13 @@ a.hx-t:hover { border-color: var(--brand); }
   .hx-steps { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
-  .hx-side { grid-template-columns: 1fr; } .hx-note { grid-template-columns: 1fr; } .hx-face { width: 72px; height: 72px; }
+  .hx-side { grid-template-columns: 1fr; } .hx-side > * { grid-column: auto; } .hx-side .hx-t { min-height: 0; }
+  .hx-note { grid-template-columns: 1fr; gap: 1rem; padding: 1.4rem; } .hx-face { width: 72px; height: 72px; }
+  .hx .hero2-inner { padding: 2rem 1rem 2rem; }
+  .hx-head, .hx-note, .hx-final { margin-top: 3rem !important; }
+  .hx-t { padding: 1.2rem; border-radius: 18px; }
+  .hx-row { gap: .8rem; padding: .9rem .6rem; }
+  .hx-facts { font-size: .92rem; }
+  .hx-subj { grid-template-columns: 1fr; }
   .hx-final { padding: 2rem 1.4rem; }
 }

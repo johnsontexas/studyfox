@@ -3,7 +3,8 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
+import { Text } from '../components/AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 import Backdrop from '../components/Backdrop';
@@ -68,7 +69,7 @@ export default function Login() {
             study every{'\n'}class. <Text style={{ color: c.tint }}>free.</Text>
           </Text>
           <Text style={[type.body, { color: c.label2, marginTop: 6 }]}>Courses for every AP class, flashcards, and SAT and ACT practice. Built by a student, for students. No ads, ever.</Text>
-          {students > 0 ? <Text style={[type.subhead, { color: c.tint, fontWeight: '600' }]}>Join {students.toLocaleString()} other students</Text> : null}
+          {students > 0 ? <Text style={[type.subhead, { color: c.label2 }]}><Text style={[type.title2, { color: c.tint, fontWeight: '800' }]}>{students.toLocaleString()}</Text>  students already study here</Text> : null}
           <Text style={[type.subhead, { color: c.label2, fontWeight: '600', paddingVertical: 12, marginTop: 4, borderTopWidth: 1, borderBottomWidth: 1, borderColor: c.line }]}>
             {COURSES.length} courses  ·  {lessonCount()} lessons  ·  25+ languages  ·  free for everyone
           </Text>

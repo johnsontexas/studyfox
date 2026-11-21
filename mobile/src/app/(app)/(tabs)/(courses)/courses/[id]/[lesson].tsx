@@ -1,7 +1,8 @@
 // A lesson, drawn natively from the same course files as the website (js/content/courses-*.js).
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View, type ScrollViewInstance } from 'react-native';
+import { Text } from '../../../../../../components/AppText';
 import LessonPlayer from '../../../../../../components/LessonPlayer';
 import { Rich, RichText } from '../../../../../../components/Rich';
 import { Button, buzz, Empty, Icon, Row, Screen, Section, tap } from '../../../../../../components/ui';
@@ -19,7 +20,7 @@ export default function Lesson() {
   const co = getCourse(id);
   const idx = co ? co.lessons.findIndex((l) => l.id === lesson) : -1;
   const [chosen, setChosen] = useState<number | null>(null);
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
   if (!co || idx < 0) return <Screen><Empty icon="book" title="Lesson not found" /></Screen>;
   const l = co.lessons[idx], next = co.lessons[idx + 1];
   const key = `${co.id}/${l.id}`;

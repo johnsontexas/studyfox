@@ -4,7 +4,8 @@
 // Continue, wrong answers get a hint and the note for that choice, and the answer shows after max_tries.
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Image, Pressable, Text, TextInput, View } from 'react-native';
+import { Image, Pressable, View } from 'react-native';
+import { Text, TextInput } from './AppText';
 import { WebView } from 'react-native-webview';
 import { blocksFor, choiceNotes, gradeInput, gradeMatch, gradeMulti, gradeOrder, isQuestion, screens as splitScreens, setting, store, youtubeId } from '../lib/shared';
 import { type, useColors } from '../lib/theme';

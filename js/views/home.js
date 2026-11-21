@@ -72,7 +72,8 @@ export function homeView(root) {
         <h1 class="hx-h1">Study every<br>class. <span>Free.</span></h1>
         <p class="lead">Courses for ${COURSES.length} classes including every AP subject, flashcards, and a <span class="bank-n">${(nSat + nAct).toLocaleString()}</span>-question SAT and ACT bank. Built by a student, for students. No ads, ever.</p>
         <div class="row gap wrap">${cta}<a class="btn lg ghost" href="#/learn">Browse courses</a></div>
-        <p class="join-n"${nStu ? '' : ' hidden'}>${icon('users')}<span>Join <b class="stu-n">${nStu.toLocaleString()}</b> other students</span></p>
+        <nav class="hx-links" aria-label="Explore StudyFox"><a href="/courses/">All courses</a><a href="/ap/">AP classes</a><a href="/sat-act/">SAT &amp; ACT prep</a><a href="/flashcards/">Flashcards</a><a href="/sitemap/">Site map</a></nav>
+        <p class="join-n"${nStu ? '' : ' hidden'}><span class="join-ic">${icon('users')}</span><span><b class="stu-n">${nStu.toLocaleString()}</b><span>students already study here. Join them.</span></span></p>
       </div>
       <div class="hx-pop">
         <p class="hx-k">Popular right now</p>
