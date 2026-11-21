@@ -9,12 +9,14 @@ import { initCloud } from './cloud.js';
 import { welcomeView, ageBlockedView, ageBlockedUntil, needsOnboarding } from './views/welcome.js';
 import { CREATOR, CREATOR_EMAIL, KOFI } from './config.js';
 import { newsView, adminView, contactView, maintenanceHTML, fetchStatus } from './views/news.js';
-import { isAdmin, db } from './cloud.js';
+import { isAdmin, db, cloudEnabled } from './cloud.js';
 import { initContent, onContent } from './content/live.js';
 import { creditLine } from './content/people.js';
 import { socials } from './content/socials.js';
 import { checkAnnouncements } from './announce.js';
-import { captureRef, loadMember, myNumber } from './members.js';
+import { captureRef, loadMember, myNumber, myAvatar } from './members.js';
+import { foxSVG, loadAvatarItems } from './avatar.js';
+import { foxView } from './avatar-editor.js';
 import { applyA11y } from './a11y.js';
 import { applyAppearance } from './appearance.js';
 import { openShare } from './share.js';
@@ -79,7 +81,7 @@ const sharersView = lazy(load_contributors, 'sharersView');
 export const BRAND = 'StudyFox';
 
 const routes = [
-  ['/', homeView], ['/home', homeView], ['/login', loginView], ['/signup', signupView], ['/settings', settingsView],
+  ['/', homeView], ['/home', homeView], ['/login', loginView], ['/signup', signupView], ['/settings', settingsView], ['/fox', (root) => foxView(root, store.user()?.cloud ? db() : null)],
   ['/dashboard', dashboardView], ['/practice', practiceView], ['/review', reviewView], ['/exams', examsView],
   ['/test', runnerView], ['/results/:id', resultsView],
   ['/flashcards', libraryView], ['/flashcards/new', editView], ['/flashcards/:id', setView], ['/flashcards/:id/edit', editView],
@@ -119,6 +121,7 @@ function navHTML(path) {
     </nav>
     <div class="nav-right">
       <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">${icon('contrast')}</button>
+      ${u ? `<a class="nav-fox" href="#/fox" title="Your fox" aria-label="Your fox">${foxSVG(myAvatar(), { size: 30 })}</a>` : ''}
       ${u && myNumber() ? `<a class="nav-no" href="#/settings" title="Your StudyFox student number">#${myNumber()}</a>` : ''}
       <button class="btn sm ghost share-btn" id="shareBtn" title="Share" aria-label="Share">${icon('upload')}<span>Share</span></button>
       ${u ? '' : `<a class="btn sm ghost" href="#/login">Log in</a><a class="btn sm primary" href="#/signup">Sign up free</a>`}
@@ -130,7 +133,7 @@ function navHTML(path) {
 // Related pages share one nav item and show as tabs: settings and support inside the dashboard,
 // and every SAT/ACT tool under SAT & ACT.
 const TAB_GROUPS = {
-  DASH: [['/dashboard', 'Overview'], ['/settings', 'Settings'], ['/contact', 'Support']],
+  DASH: [['/dashboard', 'Overview'], ['/fox', 'Your fox'], ['/settings', 'Settings'], ['/contact', 'Support']],
   SAT: [['/practice', 'Practice'], ['/hardest', 'Hardest questions'], ['/speed', 'Speed practice'], ['/exams', 'Practice tests'], ['/formulas', 'Formula sheets'], ['/calculator', 'Calculator']],
 };
 const tabGroup = (pat) => Object.entries(TAB_GROUPS).find(([g, tabs]) => (g !== 'DASH' || store.user()) && tabs.some(([p]) => p === pat));
@@ -205,6 +208,9 @@ const footSocials = () => socials().map((l) => `<a class="foot-ig" href="${esc(l
 
 function boot() {
   captureRef();
+  // Extra fox items added in Supabase (avatar_items). Only the fox page redraws when they arrive,
+  // so nothing else (like a test in progress) is interrupted.
+  if (cloudEnabled) loadAvatarItems(db()).then((n) => { if (n && /^#\/fox/.test(location.hash)) router(); });
   const footer = `<footer class="site-foot"><div class="foot-inner">
       <div class="foot-brand"><b>${BRAND}</b><p>Free study material for school and the SAT and ACT. No ads, no paywalls, no limits.</p>
         <p class="foot-credit" id="footCredit"><a href="#/contributors">${esc(creditLine() || `Made by ${CREATOR}.`)}</a></p>

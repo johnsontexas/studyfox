@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { Text } from './AppText';
-import { COURSES, store } from '../lib/shared';
+import { COURSES, courseIcon, store } from '../lib/shared';
 import { useStore } from '../lib/store-hooks';
 import { type, useColors } from '../lib/theme';
 import Icon from './Icon';
@@ -12,9 +12,9 @@ import { Row, SearchField } from './ui';
 
 type Opt = { id: string; label: string; icon: string; kind: 'test' | 'ap' };
 export const studyOptions = (): Opt[] => [
-  { id: 'SAT', label: 'SAT', icon: 'test2', kind: 'test' },
-  { id: 'ACT', label: 'ACT', icon: 'test2', kind: 'test' },
-  ...COURSES.filter((c) => c.ap).map((c) => ({ id: c.id, label: c.title, icon: c.icon || 'book', kind: 'ap' as const })),
+  { id: 'SAT', label: 'SAT', icon: 'sat', kind: 'test' },
+  { id: 'ACT', label: 'ACT', icon: 'act', kind: 'test' },
+  ...COURSES.filter((c) => c.ap).map((c) => ({ id: c.id, label: c.title, icon: courseIcon(c), kind: 'ap' as const })),
 ];
 const byId = (id: string) => studyOptions().find((o) => o.id === id);
 

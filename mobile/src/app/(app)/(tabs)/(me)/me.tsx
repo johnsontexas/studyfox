@@ -11,13 +11,14 @@ import * as Sharing from 'expo-sharing';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, Pressable, RefreshControl, Share, View, Linking } from 'react-native';
 import { Text } from '../../../../components/AppText';
+import Fox from '../../../../components/Fox';
 import { Card, confirm, Icon, menu, Row, Screen, Section, Stat, SwitchRow } from '../../../../components/ui';
 import { masteredCount } from '../../../../lib/cards';
 import { cloudSignOut, deleteAccount, linkedProviders, linkProvider, syncNow, syncStatus } from '../../../../lib/cloud';
 import { openWeb } from '../../../../lib/links';
 import { pushPrefs, setAnnouncementPush, syncPushToken } from '../../../../lib/announcements';
 import { getPrefs, KINDS, openSystemSettings, reschedule, setKind, setReminders, timeLabel, type Kind } from '../../../../lib/reminders';
-import { BUILTIN_DECKS, CREATOR, SHARE_KINDS, shareMessage, socials, loadMember, ordinal, referralUrl, updateMemberProfile, LANGS, PROFICIENCY, SITE_URL, store, SUPPORT_EMAIL, SUPPORT_FORM_URL, timeAgo } from '../../../../lib/shared';
+import { myAvatar, BUILTIN_DECKS, CREATOR, SHARE_KINDS, shareMessage, socials, loadMember, ordinal, referralUrl, updateMemberProfile, LANGS, PROFICIENCY, SITE_URL, store, SUPPORT_EMAIL, SUPPORT_FORM_URL, timeAgo } from '../../../../lib/shared';
 import { useStore } from '../../../../lib/store-hooks';
 import { THEME_PRESETS, type, useColors } from '../../../../lib/theme';
 import { contentClient } from '../../../../lib/cloud';
@@ -124,9 +125,9 @@ export default function Me() {
       <Screen header={{ title: 'Your', accent: 'account' }} refreshControl={u?.cloud ? <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={c.tint} /> : undefined}>
         <Card style={{ marginHorizontal: 16, marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 14 }}
           onPress={() => ask('Name', undefined, u.name, 'default', (v) => { if (v.trim()) store.updateProfile({ name: v.trim() }); })}>
-          <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: c.tint, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontSize: 26, fontWeight: '600', color: c.onTint }}>{(u?.name || '?')[0].toUpperCase()}</Text>
-          </View>
+          <Pressable accessibilityRole="button" accessibilityLabel="Change your fox" onPress={() => router.push('/fox')}>
+            <Fox avatar={myAvatar()} size={60} />
+          </Pressable>
           <View style={{ flex: 1 }}>
             <Text style={[type.title3, { color: c.label }]}>{u?.name}</Text>
             <Text style={[type.subhead, { color: c.label2 }]} numberOfLines={2}>{u?.cloud ? u.email || `${u.provider === 'apple' ? 'Apple' : 'Google'} account` : `${u?.email} · this iPhone only`}</Text>
@@ -140,6 +141,10 @@ export default function Me() {
           <Stat value={mastered} label="cards mastered" />
           <Stat value={lessons} label="lessons done" />
         </Card>
+
+        <Section>
+          <Row icon="sparkle" iconColor={c.orange} title="Your Fox" subtitle="Fur, face, shirt, hat, and glasses" onPress={() => router.push('/fox')} />
+        </Section>
 
         {member ? (
           <Section header="Your StudyFox number" footer={`Numbers go in the order people sign up, and they never change. When a friend signs up with your link, your number is filled in for them${member.referrals ? `. ${member.referrals} ${member.referrals === 1 ? 'friend has' : 'friends have'} joined with it so far` : ''}.`}>

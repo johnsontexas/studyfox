@@ -73,7 +73,7 @@ export function homeView(root) {
         <p class="lead">Courses for ${COURSES.length} classes including every AP subject, flashcards, and a <span class="bank-n">${(nSat + nAct).toLocaleString()}</span>-question SAT and ACT bank. Built by a student, for students. No ads, ever.</p>
         <div class="row gap wrap">${cta}<a class="btn lg ghost" href="#/learn">Browse courses</a></div>
         <nav class="hx-links" aria-label="Explore StudyFox"><a href="/courses/">All courses</a><a href="/ap/">AP classes</a><a href="/sat-act/">SAT &amp; ACT prep</a><a href="/flashcards/">Flashcards</a><a href="/sitemap/">Site map</a></nav>
-        <p class="join-n"${nStu ? '' : ' hidden'}><span class="join-ic">${icon('users')}</span><span><b class="stu-n">${nStu.toLocaleString()}</b><span>students already study here. Join them.</span></span></p>
+        <p class="join-n"${nStu ? '' : ' hidden'}><span class="join-ic">${icon(nStu === 1 ? 'student' : 'students')}</span><span><b class="stu-n">${nStu.toLocaleString()}</b><span class="stu-l">${nStu === 1 ? 'student already studies here. Join them.' : 'students already study here. Join them.'}</span></span></p>
       </div>
       <div class="hx-pop">
         <p class="hx-k">Popular right now</p>
@@ -99,7 +99,7 @@ export function homeView(root) {
     <ul class="hx-subj">
       ${SUBJECTS.map((sub) => {
         const cs = COURSES.filter((c) => c.subject === sub);
-        return `<li><a href="#/learn?s=${encodeURIComponent(sub)}"><span class="subj-ic tone-${Math.max(0, SUBJECTS.indexOf(sub)) % 6}">${icon(SUBJECT_ICON[sub] || 'book')}</span><span><b>${esc(sub)}</b><small>${tileList(cs)}</small></span><em>${cs.length}</em></a></li>`;
+        return `<li><a href="#/learn?s=${encodeURIComponent(sub)}"><span class="subj-ic tone-${Math.max(0, SUBJECTS.indexOf(sub)) % 10}">${icon(SUBJECT_ICON[sub] || 'book')}</span><span><b>${esc(sub)}</b><small>${tileList(cs)}</small></span><em>${cs.length}</em></a></li>`;
       }).join('')}
     </ul>
 
@@ -152,6 +152,8 @@ async function liveStudentCount(root) {
     const el = root.querySelector('.join-n');
     if (!el) return;
     el.querySelector('.stu-n').textContent = data.toLocaleString();
+    el.querySelector('.join-ic').innerHTML = icon(data === 1 ? 'student' : 'students');
+    el.querySelector('.stu-l').textContent = data === 1 ? 'student already studies here. Join them.' : 'students already study here. Join them.';
     el.hidden = false;
   } catch {}
 }

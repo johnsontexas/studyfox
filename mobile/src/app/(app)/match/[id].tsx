@@ -10,7 +10,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ModalBar from '../../../components/ModalBar';
 import { Button, buzz, confirm, Icon, menu, Segmented, tap } from '../../../components/ui';
 import { blockMatchPlayer, fetchMatchBoard, postMatchTime, reportMatchPlayer } from '../../../lib/cloud';
-import { store } from '../../../lib/shared';
+import { myAvatar, store } from '../../../lib/shared';
+import Fox from '../../../components/Fox';
 import { boardKey, boardName, getSet, progress, shuffle, touch } from '../../../lib/cards';
 import { type, useColors } from '../../../lib/theme';
 import { useStore } from '../../../lib/store-hooks';
@@ -37,7 +38,7 @@ export default function Match() {
   const key = boardKey(s, pairs);
   const me = store.user() as any;
   const [tab, setTab] = useState<'all' | 'me'>('all');
-  const [board, setBoard] = useState<{ user_id: string; name: string; seconds: number; no?: number }[] | null | 'error'>(null);
+  const [board, setBoard] = useState<{ user_id: string; name: string; seconds: number; no?: number; avatar?: any }[] | null | 'error'>(null);
   const loadBoard = () => fetchMatchBoard(key).then(setBoard, () => setBoard('error'));
   useEffect(() => { loadBoard(); }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -94,11 +95,14 @@ export default function Match() {
   const Board = () => (
     <View style={{ marginTop: 18, gap: 8 }}>
       <Segmented options={[['all', 'Everyone'], ['me', 'My times']]} value={tab} onChange={setTab} />
-      {(tab === 'me' ? mine.map((r, n) => ({ k: String(r.at), left: `${n + 1}. ${new Date(r.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`, right: r.s, you: false, other: null as null | { id: string; name: string } }))
-        : Array.isArray(board) ? board.map((r, n) => ({ k: r.user_id, left: `${n + 1}. ${(me?.cloud && r.user_id === me.id) || !store.data().settings.hideNames ? r.name : (r.no ? `Player #${r.no}` : `Player ${n + 1}`)}${me?.cloud && r.user_id === me.id ? ' (you)' : ''}`, right: r.seconds, you: me?.cloud && r.user_id === me.id, other: me?.cloud && r.user_id !== me.id ? { id: r.user_id, name: r.name } : null }))
+      {(tab === 'me' ? mine.map((r, n) => ({ k: String(r.at), left: `${n + 1}. ${new Date(r.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`, right: r.s, you: false, other: null as null | { id: string; name: string }, avatar: null as any }))
+        : Array.isArray(board) ? board.map((r, n) => ({ k: r.user_id, left: `${n + 1}. ${(me?.cloud && r.user_id === me.id) || !store.data().settings.hideNames ? r.name : (r.no ? `Player #${r.no}` : `Player ${n + 1}`)}${me?.cloud && r.user_id === me.id ? ' (you)' : ''}`, right: r.seconds, you: me?.cloud && r.user_id === me.id, avatar: r.avatar, other: me?.cloud && r.user_id !== me.id ? { id: r.user_id, name: r.name } : null }))
         : []).map((r) => (
         <View key={r.k} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 6 }}>
-          <Text style={[type.subhead, { color: r.you ? c.tint : c.label, fontWeight: r.you ? '700' : '400' }]}>{r.left}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 }}>
+            {tab === 'all' ? <Fox avatar={r.you ? myAvatar() : r.avatar} seed={r.k} size={28} /> : null}
+            <Text style={[type.subhead, { color: r.you ? c.tint : c.label, fontWeight: r.you ? '700' : '400' }]}>{r.left}</Text>
+          </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <Text style={[type.subhead, { color: c.label, fontWeight: '700', fontVariant: ['tabular-nums'] }]}>{r.right.toFixed(1)}s</Text>
             {tab === 'all' && me?.cloud ? (r.other ? <Pressable accessibilityRole="button" accessibilityLabel={`Report or block ${r.other.name}`} hitSlop={10} onPress={() => { tap(); moderate(r.other!.id, r.other!.name); }}><Text style={[type.subhead, { color: c.label2, fontWeight: '700' }]}>•••</Text></Pressable> : <View style={{ width: 22 }} />) : null}

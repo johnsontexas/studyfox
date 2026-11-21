@@ -2,7 +2,7 @@
 import { SymbolView, type SymbolWeight } from 'expo-symbols';
 import { Platform } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import { icon as siteIcon } from '../lib/shared';
+import { COURSE_ICONS, icon as siteIcon } from '../lib/shared';
 import { useColors } from '../lib/theme';
 
 // App icon name -> [SF Symbol, website icon fallback]
@@ -27,19 +27,22 @@ const MAP = {
   leaf: ['leaf', 'leaf'], scale: ['scalemass', 'scale'], coins: ['dollarsign.circle', 'coins'], map: ['map', 'map'], music: ['music.note', 'music'],
   palette: ['paintpalette', 'palette'], scroll: ['scroll', 'scroll'], users: ['person.2', 'users'], brain: ['brain', 'brain'], home: ['house', 'home'],
   pen: ['pencil.line', 'edit'], bell: ['bell.fill', 'timer'], clock: ['clock.fill', 'timer'], sync: ['arrow.triangle.2.circlepath', 'shuffle'], download: ['square.and.arrow.down', 'upload'],
-  rush: ['bolt.circle.fill', 'bolt'], bookmark: ['bookmark', 'bookmark'], bookmarkFill: ['bookmark.fill', 'bookmark'], pause: ['pause.fill', 'pause'],
+  rush: ['bolt.circle.fill', 'bolt'], lock: ['lock.fill', 'shield'], bookmark: ['bookmark', 'bookmark'], bookmarkFill: ['bookmark.fill', 'bookmark'], pause: ['pause.fill', 'pause'],
   eye: ['eye', 'timer'], eyeSlash: ['eye.slash', 'timer'], strike: ['strikethrough', 'x'], chartBar: ['chart.bar.fill', 'chart'], puzzle: ['puzzlepiece', 'puzzle'],
   // Social accounts (js/content/socials.js) and announcements
   tiktok: ['music.note', 'tiktok'], youtube: ['play.rectangle.fill', 'youtube'], 'x-social': ['xmark', 'x-social'], threads: ['at', 'threads'],
   discord: ['bubble.left.and.bubble.right.fill', 'discord'], megaphone: ['megaphone.fill', 'megaphone'],
 } as const;
+// Drawn for StudyFox with no matching SF Symbol, so iOS uses the SVG.
+const CUSTOM = new Set(['sat', 'act', 'student', 'students']);
 export type IconName = keyof typeof MAP;
 
 export default function Icon({ name, size = 20, color, weight = 'regular' }: { name: IconName | string; size?: number; color?: string; weight?: SymbolWeight }) {
   const c = useColors();
   const [sf, web] = (MAP as Record<string, readonly [string, string]>)[name] || ['circle', name];
   const tint = color || c.label;
-  if (Platform.OS === 'ios') return <SymbolView name={sf as any} size={size} tintColor={tint} weight={weight} resizeMode="scaleAspectFit" style={{ width: size, height: size }} />;
-  const xml = siteIcon(web, { fill: name === 'starFill' }).replace(/ class="[^"]*"| aria-hidden="true"/g, '');
+  // Class, SAT and ACT icons are custom drawings with no SF Symbol, so they use the SVG on iOS too.
+  if (Platform.OS === 'ios' && !(name in COURSE_ICONS) && !CUSTOM.has(name)) return <SymbolView name={sf as any} size={size} tintColor={tint} weight={weight} resizeMode="scaleAspectFit" style={{ width: size, height: size }} />;
+  const xml = siteIcon(web, { fill: name === 'starFill' }).replace(/ class="[^"]*"| aria-hidden="true"/g, '').replace(/currentColor/g, tint);
   return <SvgXml xml={xml} width={size} height={size} color={tint} />;
 }

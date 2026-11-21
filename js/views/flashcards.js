@@ -1,5 +1,7 @@
 // Quizlet-style flashcards: library, editor/import, flip viewer, Learn, Test, Match, share links.
 import { icon, sticker } from '../icons.js';
+import { foxSVG, cleanAvatar } from '../avatar.js';
+import { memberCards, myAvatar } from '../members.js';
 import { $, $$, esc, toast, uid, b64enc, b64dec, fmtTime, rng, newSeed } from '../util.js';
 import { store } from '../store.js';
 import { BUILTIN_DECKS } from '../content/decks.js';
@@ -31,7 +33,7 @@ export function libraryView(root) {
     const built = BUILTIN_DECKS.filter((s) => !st.q || norm(s.title + ' ' + s.desc + ' ' + s.tag).includes(norm(st.q)));
     $('#lists', root).innerHTML = `
       <h2 class="section-title left">Your sets</h2>
-      ${mine.length ? `<div class="set-grid">${mine.map(setCard).join('')}</div>` : `<div class="empty card slim"><p>You haven't made any sets yet.</p><a class="btn primary" href="#/flashcards/new">Create your first set</a></div>`}
+      ${mine.length ? `<div class="set-grid">${mine.map(setCard).join('')}</div>` : `<div class="empty card slim"><div class="big-emoji">${sticker('cards')}</div><p>You haven't made any sets yet.</p><a class="btn primary" href="#/flashcards/new">Create your first set</a></div>`}
       <h2 class="section-title left">Free study sets</h2>
       <div class="set-grid">${built.map(setCard).join('')}</div>`;
   }
@@ -441,9 +443,9 @@ async function fetchBoard(key) {
   const seen = new Set((blocks || []).map((b) => b.blocked));
   const top = data.filter((r) => !seen.has(r.user_id) && seen.add(r.user_id)).slice(0, 10);
   // Player numbers, shown instead of names when "Hide names" is on (supabase/member_numbers.sql).
-  const { data: nos } = await c.rpc('member_numbers', { ids: top.map((r) => r.user_id) });
-  const byId = new Map((nos || []).map((m) => [m.user_id, m.no]));
-  return top.map((r) => ({ ...r, no: byId.get(r.user_id) }));
+  // Foxes come with them (supabase/fox_avatars.sql).
+  const byId = await memberCards(c, top.map((r) => r.user_id));
+  return top.map((r) => ({ ...r, no: byId.get(r.user_id)?.no, avatar: byId.get(r.user_id)?.avatar }));
 }
 
 export function matchView(root, { id }) {
@@ -472,7 +474,7 @@ export function matchView(root, { id }) {
       if (tab !== 'all' || !$('#boardBody', root)) return;
       // "Hide names" (Settings, or the box above the board) shows other players by number: Player #123.
       const hide = !!store.data().settings.hideNames;
-      el.innerHTML = rows.length ? `<ol class="board">${rows.map((r, i) => { const mine = me?.cloud && r.user_id === me.id; const nm = mine || !hide ? r.name : (r.no ? `Player #${r.no}` : `Player ${i + 1}`); return `<li class="${mine ? 'you' : ''}"><span>${esc(nm)}${mine ? ' (you)' : ''}</span><b>${fmt(r.seconds)}${me?.cloud && !mine ? ` <button class="btn ghost sm" data-report="${esc(r.user_id)}" data-name="${esc(r.name)}">Report</button> <button class="btn ghost sm" data-block="${esc(r.user_id)}" data-name="${esc(nm)}">Block</button>` : ''}</b></li>`; }).join('')}</ol>`
+      el.innerHTML = rows.length ? `<ol class="board">${rows.map((r, i) => { const mine = me?.cloud && r.user_id === me.id; const nm = mine || !hide ? r.name : (r.no ? `Player #${r.no}` : `Player ${i + 1}`); return `<li class="${mine ? 'you' : ''}"><span class="board-who">${foxSVG(mine ? myAvatar() : cleanAvatar(r.avatar, r.user_id), { size: 30 })}${esc(nm)}${mine ? ' (you)' : ''}</span><b>${fmt(r.seconds)}${me?.cloud && !mine ? ` <button class="btn ghost sm" data-report="${esc(r.user_id)}" data-name="${esc(r.name)}">Report</button> <button class="btn ghost sm" data-block="${esc(r.user_id)}" data-name="${esc(nm)}">Block</button>` : ''}</b></li>`; }).join('')}</ol>`
         : '<p class="muted small">No times yet. Be the first on the board.</p>';
       if (!me?.cloud) el.insertAdjacentHTML('beforeend', '<p class="muted small">Sign in with an account that syncs to post your times here.</p>');
     } catch { el.innerHTML = '<p class="muted small">The leaderboard could not load.</p>'; }
