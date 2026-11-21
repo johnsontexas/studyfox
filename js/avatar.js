@@ -33,7 +33,8 @@ export const FURS = [
 
 /** Eye expressions. */
 export const EYES = [
-  { id: 'open', name: 'Happy' },
+  { id: 'open', name: 'Dots' },
+  { id: 'shiny', name: 'Shiny' },
   { id: 'smile', name: 'Smiling' },
   { id: 'wink', name: 'Wink' },
   { id: 'blink', name: 'Blinking' },
@@ -185,7 +186,7 @@ export function defaultAvatar(seed) {
   if (r() < 0.5) return { fur: 'orange', ...pick(PRESETS) };
   return {
     fur: 'orange',
-    eyes: pick(['open', 'open', 'smile', 'wink', 'sparkle']),
+    eyes: pick(['open', 'open', 'shiny', 'smile', 'wink']),
     mouth: pick(['smile', 'smile', 'grin', 'teeth', 'cat', 'tongue']),
     shirt: r() < 0.6 ? pick(['polo', 'oxford', 'vest', 'cardigan', 'tie']) : pick(ids(SHIRTS, true)),
     color: pick(ids(COLORS)),
@@ -241,7 +242,10 @@ export async function loadAvatarItems(client) {
 
 /* ---------- Drawing (100 x 100, clipped to a circle) ---------- */
 
-const S = (d, fill, extra = '') => `<path d="${d}" fill="${fill}" stroke="${INK}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"${extra}/>`;
+// Flat style: shapes are solid color with no outline (S). Small pieces that need an edge to read,
+// like glasses frames and open mouths, use the outlined version (SO).
+const S = (d, fill, extra = '') => (fill === 'none' ? '' : `<path d="${d}" fill="${fill}"${extra.replace(/ stroke-width="[^"]*"/g, '')}/>`);
+const SO = (d, fill, extra = '') => `<path d="${d}" fill="${fill}" stroke="${INK}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"${extra}/>`;
 const L = (d, w = 2.4, color = INK) => `<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
 const C = (cx, cy, r, fill, sw = 1.6) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${INK}" stroke-width="${sw}"/>`;
 function shade(hex, amt) {
@@ -250,7 +254,7 @@ function shade(hex, amt) {
 }
 const isLight = (hex) => { const n = parseInt(hex.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 170; };
 
-const BODY = 'M10 104C12 86 28 79 50 79s38 7 40 25z';
+const BODY = 'M6 104C8 85 27 77.5 50 77.5S92 85 94 104z';
 const CREW = 'M40 80c2 5 6 7 10 7s8-2 10-7';
 function shirt(id, c) {
   const c2 = shade(c, -0.22), trim = isLight(c) ? '#2f4f7f' : '#f7f5f0';
@@ -299,41 +303,42 @@ function glasses(id) {
     case 'round': return lens(39) + lens(61) + L('M46 50c2-2 6-2 8 0M32 50l-8-3M68 50l8-3', 2);
     case 'wire': return lens(39, 6.5, '#8a8f96', 1.4) + lens(61, 6.5, '#8a8f96', 1.4) + L('M45.5 50c2-1.5 7-1.5 9 0M32.5 50l-8-3M67.5 50l8-3', 1.3, '#8a8f96');
     case 'gold': return lens(39, 7, '#c9a24a', 2.2) + lens(61, 7, '#c9a24a', 2.2) + L('M46 50c2-2 6-2 8 0M32 50l-8-3M68 50l8-3', 1.8, '#c9a24a');
-    case 'square': return S('M30 45h17v12H30z', '#ffffff', ' fill-opacity=".25"') + S('M53 45h17v12H53z', '#ffffff', ' fill-opacity=".25"') + L('M47 49h6M30 48l-6-2M70 48l6-2', 2.4);
-    case 'half': return S('M31 52h15l-1 4c-1 2-3 3-6 3s-6-1-7-3z', '#ffffff', ' fill-opacity=".3"') + S('M54 52h15l-1 4c-1 2-3 3-6 3s-6-1-7-3z', '#ffffff', ' fill-opacity=".3"') + L('M46 53h8M31 52l-6-2M69 52l6-2', 1.8);
-    case 'shades': return S('M29 46h18l-1 7c-1 4-4 6-8 6s-8-2-9-6z', INK) + S('M53 46h18l-1 7c-1 4-4 6-8 6s-8-2-9-6z', INK) + L('M47 48h6M29 47l-5-2M71 47l5-2', 2.4);
-    case 'cateye': return S('M29 46c6-1 13 0 18 1l-1 6c-1 4-4 6-8 6s-7-2-8-6z', '#e7a3b5', ' fill-opacity=".55"') + S('M53 47c5-1 12-2 18-1l-1 7c-1 4-4 6-8 6s-7-2-8-6z', '#e7a3b5', ' fill-opacity=".55"') + L('M47 49h6', 2.2) + L('M29 46l-4-4M71 46l4-4', 2.4);
+    case 'square': return SO('M30 45h17v12H30z', '#ffffff', ' fill-opacity=".25"') + SO('M53 45h17v12H53z', '#ffffff', ' fill-opacity=".25"') + L('M47 49h6M30 48l-6-2M70 48l6-2', 2.4);
+    case 'half': return SO('M31 52h15l-1 4c-1 2-3 3-6 3s-6-1-7-3z', '#ffffff', ' fill-opacity=".3"') + SO('M54 52h15l-1 4c-1 2-3 3-6 3s-6-1-7-3z', '#ffffff', ' fill-opacity=".3"') + L('M46 53h8M31 52l-6-2M69 52l6-2', 1.8);
+    case 'shades': return SO('M29 46h18l-1 7c-1 4-4 6-8 6s-8-2-9-6z', INK) + SO('M53 46h18l-1 7c-1 4-4 6-8 6s-8-2-9-6z', INK) + L('M47 48h6M29 47l-5-2M71 47l5-2', 2.4);
+    case 'cateye': return SO('M29 46c6-1 13 0 18 1l-1 6c-1 4-4 6-8 6s-7-2-8-6z', '#e7a3b5', ' fill-opacity=".55"') + SO('M53 47c5-1 12-2 18-1l-1 7c-1 4-4 6-8 6s-7-2-8-6z', '#e7a3b5', ' fill-opacity=".55"') + L('M47 49h6', 2.2) + L('M29 46l-4-4M71 46l4-4', 2.4);
     case 'monocle': return `<circle cx="61" cy="51" r="7.5" fill="#ffffff" fill-opacity=".3" stroke="#c9a24a" stroke-width="2.6"/>` + L('M66 57c2 8 0 14-4 20', 1.4, '#c9a24a');
-    case 'goggles': return L('M24 49h52', 4, '#2f6f6a') + S('M29 44h17v13H29z', '#bfe8e3', ' fill-opacity=".7"') + S('M54 44h17v13H54z', '#bfe8e3', ' fill-opacity=".7"') + L('M46 50h8', 2.4);
+    case 'goggles': return L('M24 49h52', 4, '#2f6f6a') + SO('M29 44h17v13H29z', '#bfe8e3', ' fill-opacity=".7"') + SO('M54 44h17v13H54z', '#bfe8e3', ' fill-opacity=".7"') + L('M46 50h8', 2.4);
     default: return '';
   }
 }
 
-const dot = (x, y, rx = 3, ry = 3.6) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${INK}"/>`;
-const shine = (x, y) => `<circle cx="${x}" cy="${y}" r="1" fill="#fff"/>`;
+const dot = (x, y, r = 3.2) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${INK}"/>`;
+const shine = (x, y, r = 1.1) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff"/>`;
 function faceEyes(id) {
   switch (id) {
     case 'smile': return L('M35 52c2-3 6-3 8 0M57 52c2-3 6-3 8 0', 2.6);
-    case 'wink': return dot(39, 51) + shine(40, 49.6) + L('M57 52c2-3 6-3 8 0', 2.6);
+    case 'wink': return dot(39, 51) + L('M57 52c2-3 6-3 8 0', 2.6);
     case 'blink': return L('M35 51h8M57 51h8', 2.6);
-    case 'sparkle': return dot(39, 51, 3.4, 4) + dot(61, 51, 3.4, 4) + shine(40.2, 49.4) + shine(62.2, 49.4) + `<circle cx="38" cy="53" r=".6" fill="#fff"/><circle cx="60" cy="53" r=".6" fill="#fff"/>`;
-    case 'side': return L('M35 49h8M57 49h8', 1.6) + dot(41.5, 51.5, 2.2, 2.6) + dot(63.5, 51.5, 2.2, 2.6);
+    case 'shiny': return dot(39, 51) + dot(61, 51) + shine(40.1, 49.9) + shine(62.1, 49.9);
+    case 'sparkle': return dot(39, 51, 3.6) + dot(61, 51, 3.6) + shine(40.2, 49.8) + shine(62.2, 49.8) + shine(37.9, 52.3, .55) + shine(59.9, 52.3, .55);
+    case 'side': return L('M35 48.5h8M57 48.5h8', 1.6) + dot(41.5, 51.5, 2.4) + dot(63.5, 51.5, 2.4);
     case 'mad': return dot(39, 52) + dot(61, 52) + L('M33 45l10 3M67 45l-10 3', 2.6);
     case 'worried': return dot(39, 52) + dot(61, 52) + L('M34 47l9-3M66 47l-9-3', 2.2);
     case 'sleepy': return L('M35 50c2 3 6 3 8 0M57 50c2 3 6 3 8 0', 2.6) + L('M35 50h8M57 50h8', 2);
-    case 'wide': return `<circle cx="39" cy="51" r="4.6" fill="#fff" stroke="${INK}" stroke-width="2"/><circle cx="61" cy="51" r="4.6" fill="#fff" stroke="${INK}" stroke-width="2"/>` + dot(39, 51.5, 2, 2.2) + dot(61, 51.5, 2, 2.2);
-    case 'teary': return dot(39, 51) + dot(61, 51) + shine(40, 49.6) + shine(62, 49.6) + `<path d="M35 55c-1 2-1 3.5 0 4.5 1-1 1-2.5 0-4.5z" fill="#8dbbe0"/>`;
-    case 'focused': return dot(39, 52, 2.6, 2.6) + dot(61, 52, 2.6, 2.6) + L('M34 47.5h9M57 47.5h9', 2.2);
+    case 'wide': return `<circle cx="39" cy="51" r="4.6" fill="#fff" stroke="${INK}" stroke-width="2"/><circle cx="61" cy="51" r="4.6" fill="#fff" stroke="${INK}" stroke-width="2"/>` + dot(39, 51.5, 2) + dot(61, 51.5, 2);
+    case 'teary': return dot(39, 51) + dot(61, 51) + shine(40, 49.8) + shine(62, 49.8) + `<path d="M35 55c-1 2-1 3.5 0 4.5 1-1 1-2.5 0-4.5z" fill="#8dbbe0"/>`;
+    case 'focused': return dot(39, 52, 2.6) + dot(61, 52, 2.6) + L('M34 47.5h9M57 47.5h9', 2.2);
     default: return dot(39, 51) + dot(61, 51) + shine(40, 49.6) + shine(62, 49.6);
   }
 }
 function mouth(id) {
   switch (id) {
-    case 'grin': return S('M43 67c2 4 12 4 14 0z', '#fff', ' stroke-width="1.8"');
-    case 'teeth': return S('M42 66c1 6 15 6 16 0z', '#fff', ' stroke-width="1.8"') + L('M46 66.5v2.4M50 66.7v2.8M54 66.5v2.4', 1);
-    case 'open': return S('M44 67c0 6 12 6 12 0z', '#a33b3b', ' stroke-width="1.8"');
-    case 'tongue': return S('M48 68v3.4a2 2 0 0 0 4 0V68', '#e8838a', ' stroke-width="1.4"') + L('M44 67c3 2 9 2 12 0', 2);
-    case 'blep': return L('M50 64.5v2M45.5 67c2 2 7 2 9 0', 2) + S('M51 68.5v2.4a1.6 1.6 0 0 0 3.2 0v-2.6', '#e8838a', ' stroke-width="1.2"');
+    case 'grin': return SO('M43 67c2 4 12 4 14 0z', '#fff', ' stroke-width="1.8"');
+    case 'teeth': return SO('M42 66c1 6 15 6 16 0z', '#fff', ' stroke-width="1.8"') + L('M46 66.5v2.4M50 66.7v2.8M54 66.5v2.4', 1);
+    case 'open': return SO('M44 67c0 6 12 6 12 0z', '#a33b3b', ' stroke-width="1.8"');
+    case 'tongue': return SO('M48 68v3.4a2 2 0 0 0 4 0V68', '#e8838a', ' stroke-width="1.4"') + L('M44 67c3 2 9 2 12 0', 2);
+    case 'blep': return L('M50 64.5v2M45.5 67c2 2 7 2 9 0', 2) + SO('M51 68.5v2.4a1.6 1.6 0 0 0 3.2 0v-2.6', '#e8838a', ' stroke-width="1.2"');
     case 'smirk': return L('M45 68c3 1 7 0 10-3', 2);
     case 'cat': return L('M50 64.5v2M44 67c1.5 2 4.5 2 6 0 1.5 2 4.5 2 6 0', 2);
     case 'flat': return L('M46 68h8', 2);
@@ -354,23 +359,26 @@ let uid = 0;
  * The fox as an SVG string. size is the rendered width/height; bg is the circle color
  * (pass 'none' for no circle).
  */
-export function foxSVG(avatar, { size = 64, bg = '#e1efe6', title = '' } = {}) {
+export function foxSVG(avatar, { size = 64, bg, title = '' } = {}) {
   const a = cleanAvatar(avatar);
   const f = FURS.find((x) => x.id === a.fur);
   const c = COLORS.find((x) => x.id === a.color)?.hex || '#3f74b5';
   const v = { ink: INK, fur: f.fur, dark: f.dark, light: f.light, c, c2: shade(c, -0.22) };
   const id = `fx${(uid = (uid + 1) % 1e6)}`;
+  // Circle behind the fox: soft sage, a shade deeper for pale furs so they don't fade into it.
+  if (bg == null) bg = isLight(f.fur) ? '#c4d8ca' : '#e1efe6';
+  const neck = `<path d="M40 68h20v14H40z" fill="${f.light}"/>`;
   const head =
-    // ears
-    S('M27 42L22 13l21 17z', f.fur) + S('M73 42l5-29-21 17z', f.fur) +
-    `<path d="M28 35l-3-14 10 9z" fill="${f.dark}"/><path d="M72 35l3-14-10 9z" fill="${f.dark}"/>` +
-    // head, then the pale lower face
-    S('M50 27c-15 0-25 9-28 22l-8 9c11 5 22 11 36 20 14-9 25-15 36-20l-8-9c-3-13-13-22-28-22z', f.fur) +
-    `<path d="M15 58c11 1 22 4 35 6 13-2 24-5 35-6-11 5-22 11-35 20-13-9-24-15-35-20z" fill="${f.light}"/>` +
-    S('M46 61c0-1.6 1.8-2.5 4-2.5s4 .9 4 2.5-2 2.8-4 3.6c-2-.8-4-2-4-3.6z', INK, ' stroke-width="1"') +
+    // ears: clean triangles with the inner ear set inside
+    S('M24 44L22 12 45 37z', f.fur) + S('M76 44l2-32-23 25z', f.fur) +
+    `<path d="M26.5 37.5L25 19.5 38.5 34z" fill="${f.dark}"/><path d="M73.5 37.5L75 19.5 61.5 34z" fill="${f.dark}"/>` +
+    // head: flat across the top between the ears, wide cheeks, a soft chin that stays above the collar
+    S('M30 35h40l18 22-22 14-16 4-16-4-22-14z', f.fur) +
+    `<path d="M12 57L50 63 88 57 66 71 50 75 34 71z" fill="${f.light}"/>` +
+    `<path d="M45.6 59.5h8.8L50 64.5z" fill="${INK}"/>` +
     draw(EYES, a.eyes, faceEyes, v) + draw(MOUTHS, a.mouth, mouth, v);
   const label = title ? `<title>${title.replace(/[<&>]/g, '')}</title>` : '';
   return `<svg class="fox-av" viewBox="0 0 100 100" width="${size}" height="${size}" role="${title ? 'img' : 'presentation'}"${title ? '' : ' aria-hidden="true"'} xmlns="http://www.w3.org/2000/svg">${label}` +
     `<defs><clipPath id="${id}"><circle cx="50" cy="50" r="50"/></clipPath></defs>` +
-    `<g clip-path="url(#${id})">${bg === 'none' ? '' : `<rect width="100" height="100" fill="${bg}"/>`}${draw(SHIRTS, a.shirt, shirt, v)}${head}${draw(GLASSES, a.glasses, glasses, v)}${draw(HATS, a.hat, hat, v)}</g></svg>`;
+    `<g clip-path="url(#${id})">${bg === 'none' ? '' : `<rect width="100" height="100" fill="${bg}"/>`}${neck}${draw(SHIRTS, a.shirt, shirt, v)}${head}${draw(GLASSES, a.glasses, glasses, v)}<g transform="translate(0 5)">${draw(HATS, a.hat, hat, v)}</g></g></svg>`;
 }
