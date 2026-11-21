@@ -245,7 +245,7 @@ export async function loadAvatarItems(client) {
 // Flat style: shapes are solid color with no outline (S). Small pieces that need an edge to read,
 // like glasses frames and open mouths, use the outlined version (SO).
 const S = (d, fill, extra = '') => (fill === 'none' ? '' : `<path d="${d}" fill="${fill}"${extra.replace(/ stroke-width="[^"]*"/g, '')}/>`);
-const SO = (d, fill, extra = '') => `<path d="${d}" fill="${fill}" stroke="${INK}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"${extra}/>`;
+const SO = (d, fill, extra = '') => `<path d="${d}" fill="${fill}" stroke="${INK}"${/stroke-width=/.test(extra) ? '' : ' stroke-width="2"'} stroke-linejoin="round" stroke-linecap="round"${extra}/>`;
 const L = (d, w = 2.4, color = INK) => `<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
 const C = (cx, cy, r, fill, sw = 1.6) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${INK}" stroke-width="${sw}"/>`;
 function shade(hex, amt) {
