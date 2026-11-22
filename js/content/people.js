@@ -17,7 +17,7 @@ export const PEOPLE = {
     { name: 'Enrique Ortiz', section: 'contributor', role: 'Contributor', blurb: '', url: '', image_url: '', sort: 20 },
     { name: 'BetterU LLC', section: 'support', role: 'Support', blurb: '', url: 'https://betterullc.com', image_url: '', sort: 30 },
   ],
-  pages: {}, // slug -> { title, intro, sections: [{ title, html, style: 'card' | 'plain' | 'team', image?, image_alt? }] }
+  pages: {}, // slug -> { title, intro, sections: [{ title, html, style: 'card' | 'plain' | 'motto' | 'team', image?, image_alt? }] }
 };
 
 /** Replace with downloaded rows. */
