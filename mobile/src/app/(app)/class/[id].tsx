@@ -7,14 +7,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
 import { Text } from '../../../components/AppText';
 import ModalBar from '../../../components/ModalBar';
+import Fox from '../../../components/Fox';
 import { Bar, Button, confirm, Field, menu, Row, Section, Segmented } from '../../../components/ui';
 import { contentClient } from '../../../lib/cloud';
 import {
+  myAvatar,
   classDetail, classSet, classTopics, deleteClass, kindLabel, leaveClass, newJoinCode, removeMember, shareSet, SITE_URL, store, topicLabel, unshareSet, updateClass,
 } from '../../../lib/shared';
 import { type, useColors } from '../../../lib/theme';
 
-type BoardRow = { user_id: string; name: string; owner: boolean; me: boolean; score: number };
+type BoardRow = { user_id: string; name: string; owner: boolean; me: boolean; score: number; avatar?: any };
 type SetRow = { id: string; title: string; added_name: string; mine: boolean; count: number };
 type Detail = { id: string; name: string; kind: 'class' | 'group'; topic: string | null; code: string; is_owner: boolean; can_share: boolean; board: BoardRow[]; sets: SetRow[] };
 
@@ -74,7 +76,7 @@ export default function ClassScreen() {
 
         <Section header="Leaderboard" footer="Answers you practice on StudyFox count here once they sync.">
           {d.board.map((r, n) => (
-            <Row key={r.user_id} title={`${n + 1}. ${r.name || 'Student'}${r.me ? ' (you)' : ''}${r.owner ? ' · Admin' : ''}`} accessory="none"
+            <Row key={r.user_id} title={<View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><Fox avatar={r.me ? myAvatar() : r.avatar} seed={r.user_id} size={28} /><Text style={[type.body, { color: c.label, flexShrink: 1 }]} numberOfLines={1}>{`${n + 1}. ${r.name || 'Student'}${r.me ? ' (you)' : ''}${r.owner ? ' · Admin' : ''}`}</Text></View>} accessory="none"
               subtitle={<View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 5 }}><View style={{ flex: 1 }}><Bar value={r.score / max} color={r.me ? c.tint : c.good} /></View><Text style={[type.footnote, { color: c.label, fontWeight: '700' }]}>{r.score}</Text></View>}
               onPress={d.is_owner && !r.me ? () => confirm(`Remove ${r.name}?`, `They leave ${d.name}.`, 'Remove').then((y) => { if (y) removeMember(cl(), d.id, r.user_id).then(load, fail); }) : undefined} />
           ))}

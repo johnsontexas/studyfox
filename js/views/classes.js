@@ -11,6 +11,8 @@ import {
   deleteClass, classSet, shareSet, unshareSet, cleanCode, topicLabel, kindLabel, setPendingClassCode,
 } from '../classes.js';
 import { needsOnboarding } from './welcome.js';
+import { foxSVG, cleanAvatar } from '../avatar.js';
+import { myAvatar } from '../members.js';
 
 // Invite links (#/join/ABC123): join right away when signed in, otherwise keep the code for onboarding.
 export function joinLinkView(root, { code }) {
@@ -89,7 +91,7 @@ export function classView(root, { id }) {
         <div class="row gap"><button class="btn sm" id="copyCode">${icon('link')} Copy invite</button>${c.is_owner ? `<button class="btn ghost sm" id="newCode">New code</button>` : ''}</div></div>
 
       <div class="card"><h2 class="h3">${icon('trophy')} Leaderboard</h2>
-        <ol class="class-board">${c.board.map((r, i) => `<li class="${r.me ? 'me' : ''}"><span class="rank">${i + 1}</span>
+        <ol class="class-board">${c.board.map((r, i) => `<li class="${r.me ? 'me' : ''}"><span class="rank">${i + 1}</span>${foxSVG(r.me ? myAvatar() : cleanAvatar(r.avatar, r.user_id), { size: 30 })}
           <span class="who">${esc(r.name || 'Student')}${r.owner ? ' <span class="tag">Admin</span>' : ''}${r.me ? ' <span class="muted small">(you)</span>' : ''}</span>
           <span class="bar"><i style="width:${Math.round((100 * r.score) / max)}%"></i></span><b>${r.score}</b>
           ${c.is_owner && !r.me ? `<button class="icon-btn" data-remove="${r.user_id}" data-name="${esc(r.name)}" aria-label="Remove ${esc(r.name)}">${icon('x')}</button>` : ''}</li>`).join('')}</ol>

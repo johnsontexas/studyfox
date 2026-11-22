@@ -137,8 +137,9 @@ begin
     'is_owner', c.owner = auth.uid(), 'can_share', c.owner = auth.uid() or c.kind = 'group',
     'board', coalesce((select jsonb_agg(r order by r.score desc, r.name) from (
         select m.user_id, m.name, m.user_id = c.owner as owner, m.user_id = auth.uid() as me,
-          coalesce(public.class_score(p.data, c.topic), 0) as score
+          coalesce(public.class_score(p.data, c.topic), 0) as score, mb.avatar
         from public.class_members m left join public.progress p on p.user_id = m.user_id
+          left join public.members mb on mb.user_id = m.user_id
         where m.class_id = c.id) r), '[]'),
     'sets', coalesce((select jsonb_agg(jsonb_build_object('id', s.id, 'title', s.title, 'added_name', s.added_name,
         'mine', s.added_by = auth.uid(), 'count', jsonb_array_length(coalesce(s.set->'cards', '[]')), 'created_at', s.created_at) order by s.created_at desc)

@@ -1646,7 +1646,7 @@ body.look-act .tr-top .look-switch[aria-checked="true"] .ls-track { background: 
 .class-page > .card { margin-top: 1rem; }
 .code-big { font-size: 1.8rem; font-weight: 800; letter-spacing: .2em; }
 .class-board { list-style: none; padding: 0; margin: .6rem 0; display: grid; gap: .4rem; }
-.class-board li { display: grid; grid-template-columns: 2rem minmax(0, 1.4fr) minmax(0, 1fr) 3rem auto; align-items: center; gap: .6rem; padding: .35rem .5rem; border-radius: 8px; }
+.class-board li { display: grid; grid-template-columns: 2rem 30px minmax(0, 1.4fr) minmax(0, 1fr) 3rem auto; align-items: center; gap: .6rem; padding: .35rem .5rem; border-radius: 8px; }
 .class-board li.me { background: var(--brand-soft); }
 .class-board .rank { font-weight: 700; color: var(--ink-2); } .class-board .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .class-board .bar { height: .5rem; background: var(--line); border-radius: 99px; overflow: hidden; } .class-board .bar i { display: block; height: 100%; background: var(--brand); }
