@@ -138,11 +138,11 @@ function navHTML(path) {
 // and every SAT/ACT tool under SAT & ACT.
 const TAB_GROUPS = {
   DASH: [['/dashboard', 'Overview'], ['/classes', 'Classes'], ['/fox', 'Your fox'], ['/settings', 'Settings'], ['/contact', 'Support']],
-  SAT: [['/practice', 'Practice'], ['/hardest', 'Hardest questions'], ['/speed', 'Speed practice'], ['/exams', 'Practice tests'], ['/formulas', 'Formula sheets'], ['/calculator', 'Calculator']],
+  SAT: [['/practice', 'Question bank', 'target'], ['/exams', 'Practice tests', 'clipboard'], ['/speed', 'Speed rounds', 'bolt'], ['/hardest', 'Hardest', 'flame'], ['/formulas', 'Formulas', 'ruler'], ['/calculator', 'Calculator', 'calculator']],
 };
 const tabGroup = (pat) => Object.entries(TAB_GROUPS).find(([g, tabs]) => (g !== 'DASH' || store.user()) && tabs.some(([p]) => p === pat));
 function tabShell(main, m, tabs) {
-  main.innerHTML = `<div class="page dash-tabs"><nav class="tabs" aria-label="Sections">${tabs.map(([p, t]) => `<a href="#${p}" class="${p === m.pat ? 'on' : ''}">${t}</a>`).join('')}</nav></div><div id="dashBody"></div>`;
+  main.innerHTML = `<div class="page dash-tabs"><nav class="tabs" aria-label="Sections">${tabs.map(([p, t, ic]) => `<a href="#${p}" class="${p === m.pat ? 'on' : ''}">${ic ? icon(ic) : ''}${t}</a>`).join('')}</nav></div><div id="dashBody"></div>`;
   // On phones the tab bar scrolls; keep the current tab in view.
   const on = main.querySelector('.tabs a.on'); if (on) on.parentElement.scrollLeft = on.offsetLeft - 8;
   const body = $('#dashBody', main);

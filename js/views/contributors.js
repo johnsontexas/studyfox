@@ -42,7 +42,7 @@ const row = (r, me) => `<li class="${r.no === me ? 'me' : ''}"><span class="lnum
 
 // Top sharers with shared places for ties (5, 5, 1 friends -> 1, 1, 3), ordered by user number within a tie.
 // limit: show the first N plus an expand link, and the signed-in student's own row under it if they're further down.
-async function fillSharers(el, limit) {
+export async function fillSharers(el, limit, { compact = false } = {}) {
   const client = cloudEnabled ? db() : null;
   const [all, m] = await Promise.all([topSharers(client), loadMember(client).catch(() => null)]);
   if (!el?.isConnected) return;
@@ -51,14 +51,14 @@ async function fillSharers(el, limit) {
   if (!ranked.length) { el.innerHTML = `<p class="muted small">No one yet. ${store.user() ? 'Share your link with a friend who could use free study help.' : ''}</p>`; return; }
   const shown = limit ? ranked.slice(0, limit) : ranked;
   let mine = '';
-  if (limit && me && !shown.some((r) => r.no === me)) {
+  if (limit && !compact && me && !shown.some((r) => r.no === me)) {
     const listed = ranked.find((r) => r.no === me);
     const n = listed ? listed.referrals : (m?.referrals || 0);
     const rank = listed ? listed.rank : 1 + ranked.filter((r) => r.referrals > n).length;
     mine = `<li class="sharers-gap" aria-hidden="true">...</li>${row({ no: me, name: m?.display_name || 'You', referrals: n, rank }, me)}`;
   }
   el.innerHTML = `<ol class="sharers">${shown.map((r) => row(r, me)).join('')}${mine}</ol>`
-    + (limit && ranked.length > limit ? `<div class="sharers-more"><a class="btn ghost" href="#/contributors/sharers">Show all ${ranked.length} sharers ${icon('arrow')}</a></div>` : '');
+    + (limit && !compact && ranked.length > limit ? `<div class="sharers-more"><a class="btn ghost" href="#/contributors/sharers">Show all ${ranked.length} sharers ${icon('arrow')}</a></div>` : '');
 }
 
 export function sharersView(root) {
