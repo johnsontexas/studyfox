@@ -1,4 +1,5 @@
 import { icon } from '../icons.js';
+import { foxSVG } from '../avatar.js';
 import { tex, esc, checkSpr } from '../util.js';
 import { store } from '../store.js';
 import { questionOfTheDay } from '../gen/index.js';
@@ -37,7 +38,15 @@ const SUBJECT_ICON = { Math: 'integral', Science: 'flask', English: 'book', Hist
 const tileList = (cs) => cs.slice(0, 3).map((c) => esc(c.title)).join(', ') + (cs.length > 3 ? `, and ${cs.length - 3} more` : '');
 
 // Courses shown in the hero list for visitors. Ids from js/content/courses.js; missing ids are skipped.
-const POPULAR = [['apush', 'AP', 'Periods 1 to 9, with practice by unit'], ['sat-math-algebra', 'SAT', 'Algebra and advanced math'], ['ap-bio', 'AP', 'All 8 units, cell biology to ecology'], ['act-english', 'ACT', 'Punctuation, grammar and style'], ['ap-psych', 'AP', 'Every unit of the new course']];
+const POPULAR = [['apush', 'AP', 'Periods 1 to 9, with practice by unit'], ['sat-math-algebra', 'SAT', 'Algebra and advanced math'], ['ap-bio', 'AP', 'All 8 units, cell biology to ecology'], ['act-english', 'ACT', 'Punctuation, grammar and style'], ['ap-psych', 'AP', 'Every unit of the new course'], ['how-to-learn', 'Tip', 'Study smarter in any class']];
+
+// A few students' foxes next to the student count (one fox when there's just one student).
+const JOIN_FOXES = [
+  { fur: 'orange', eyes: 'shiny', mouth: 'smile', shirt: 'oxford', color: 'sky', hat: 'none', glasses: 'round' },
+  { fur: 'cream', eyes: 'open', mouth: 'grin', shirt: 'hoodie', color: 'sage', hat: 'beanie', glasses: 'none' },
+  { fur: 'brown', eyes: 'wink', mouth: 'smile', shirt: 'polo', color: 'navy', hat: 'cap', glasses: 'none' },
+];
+const joinFoxes = (n) => (n === 1 ? JOIN_FOXES.slice(0, 1) : JOIN_FOXES).map((a) => foxSVG(a, { size: 40 })).join('');
 
 // On the first load index.html already shows the hero (data-shell). Build the rest of the page around it
 // instead of replacing it, so the browser doesn't count the headline as painted twice.
@@ -73,11 +82,11 @@ export function homeView(root) {
         <p class="lead">Courses for ${COURSES.length} classes including every AP subject, flashcards, and a <span class="bank-n">${(nSat + nAct).toLocaleString()}</span>-question SAT and ACT bank. Built by a student, for students. No ads, ever.</p>
         <div class="row gap wrap">${cta}<a class="btn lg ghost" href="#/learn">Browse courses</a></div>
         <nav class="hx-links" aria-label="Explore StudyFox"><a href="/courses/">All courses</a><a href="/ap/">AP classes</a><a href="/sat-act/">SAT &amp; ACT prep</a><a href="/flashcards/">Flashcards</a><a href="/sitemap/">Site map</a></nav>
-        <p class="join-n"${nStu ? '' : ' hidden'}><span class="join-ic">${icon(nStu === 1 ? 'student' : 'students')}</span><span><b class="stu-n">${nStu.toLocaleString()}</b><span class="stu-l">${nStu === 1 ? 'student already studies here. Join them.' : 'students already study here. Join them.'}</span></span></p>
+        <p class="join-n"${nStu ? '' : ' hidden'}><span class="join-ic">${joinFoxes(nStu)}</span><span><b class="stu-n">${nStu.toLocaleString()}</b><span class="stu-l">${nStu === 1 ? 'student already studies here. Join them.' : 'students already study here. Join them.'}</span></span></p>
       </div>
       <div class="hx-pop">
         <p class="hx-k">Popular right now</p>
-        ${popular.map(([id, tag, sub]) => `<a class="hx-row" href="#/learn/${id}"><span class="hx-tag">${tag}</span><span><b>${esc(byId[id].title.replace(/^AP /, ''))}</b><small>${sub}</small></span>${icon('arrow')}</a>`).join('')}
+        ${popular.map(([id, tag, sub]) => `<a class="hx-row" href="#/learn/${id}"><span class="hx-tag hx-tag-${tag.toLowerCase()}">${icon(tag.toLowerCase())}<i>${tag}</i></span><span><b>${esc(byId[id].title.replace(/^AP /, ''))}</b><small>${sub}</small></span>${icon('arrow')}</a>`).join('')}
         <a class="hx-all" href="#/learn">All ${COURSES.length} courses ${icon('arrow')}</a>
       </div>
     </div>
@@ -152,7 +161,7 @@ async function liveStudentCount(root) {
     const el = root.querySelector('.join-n');
     if (!el) return;
     el.querySelector('.stu-n').textContent = data.toLocaleString();
-    el.querySelector('.join-ic').innerHTML = icon(data === 1 ? 'student' : 'students');
+    el.querySelector('.join-ic').innerHTML = joinFoxes(data);
     el.querySelector('.stu-l').textContent = data === 1 ? 'student already studies here. Join them.' : 'students already study here. Join them.';
     el.hidden = false;
   } catch {}

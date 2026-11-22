@@ -1470,3 +1470,68 @@ a.hx-t:hover { border-color: var(--brand); }
 .dash-fox-edit .ico { width: 11px; height: 11px; }
 .dash-fox:hover .dash-fox-edit, .dash-fox:focus-visible .dash-fox-edit { opacity: 1; }
 @media (hover: none) { .dash-fox-edit { opacity: 1; } }
+/* Home "Popular right now": AP, SAT, and ACT each get their own icon and color. */
+.hx-tag { display: flex; flex-direction: column; align-items: center; gap: .15rem; width: 3rem; padding: .45rem 0 .35rem; border-radius: 10px;
+  --tg: var(--brand); background: color-mix(in srgb, var(--tg) 13%, var(--surface)); color: var(--tg); }
+.hx-tag .ico { width: 1.25rem; height: 1.25rem; }
+.hx-tag i { font-style: normal; font-size: .62rem; letter-spacing: .04em; }
+.hx-tag-ap { --tg: #6b3fa0; } .hx-tag-sat { --tg: #2f5d9e; } .hx-tag-act { --tg: #b42335; }
+:root[data-theme="dark"] .hx-tag-ap { --tg: #c4a2ee; } :root[data-theme="dark"] .hx-tag-sat { --tg: #8fb6f0; } :root[data-theme="dark"] .hx-tag-act { --tg: #f28b97; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hx-tag-ap { --tg: #c4a2ee; } :root:not([data-theme="light"]) .hx-tag-sat { --tg: #8fb6f0; } :root:not([data-theme="light"]) .hx-tag-act { --tg: #f28b97; } }
+.hx-tag-tip { --tg: #9a6200; } :root[data-theme="dark"] .hx-tag-tip { --tg: #f0b456; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hx-tag-tip { --tg: #f0b456; } }
+/* Student count: a small stack of students' foxes instead of a generic people icon. */
+.join-ic { width: auto; height: auto; background: none; border-radius: 0; display: flex; }
+.join-ic .fox-av { width: 2.5rem; height: 2.5rem; border-radius: 50%; box-shadow: 0 0 0 3px var(--surface); }
+.join-ic .fox-av + .fox-av { margin-left: -.75rem; }
+
+/* ---------- Lessons and practice, calmer and more editorial ----------
+   Fewer tinted boxes and no colored side-stripes. Content reads like a page; color is saved for
+   meaning (right, wrong, a key rule) and shows up as a small label, not a whole panel. */
+
+/* Lesson progress: one thin segmented bar instead of pill dots */
+.lp-dots { gap: 2px; margin: .2rem 0 1.4rem; }
+.lp-dots i { height: 4px; border-radius: 0; background: var(--line); }
+.lp-dots i:first-child { border-radius: 99px 0 0 99px; } .lp-dots i:last-child { border-radius: 0 99px 99px 0; }
+.lp-dots i.done, .lp-dots i.on { background: var(--ink); }
+.lp-dots i.on { background: var(--brand); }
+
+/* Lesson reading column */
+.lp-screen { gap: 1.3rem; }
+.lb-screen-title { font-size: 1.6rem; letter-spacing: -.02em; line-height: 1.2; margin: 0; }
+.lb-text.lesson-body { background: none; border: 0; border-radius: 0; padding: 0; max-width: 68ch; font-size: 1.06rem; line-height: 1.75; }
+
+/* Callouts: a small colored label over a quiet surface */
+.lb-callout, .lb-callout.k-rule, .lb-callout.k-warning, .lb-callout.k-example, .lb-callout.k-key {
+  border: 0; border-left: 0; border-radius: 14px; background: var(--surface-2); padding: 1rem 1.15rem; --k: var(--brand); }
+.lb-callout.k-warning { --k: var(--bad); } .lb-callout.k-example { --k: var(--good); } .lb-callout.k-key { --k: var(--mid); }
+.lb-callout > b { font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--k); margin-bottom: .35rem; }
+
+/* Check-your-understanding questions inside lessons */
+.lb-question { border-left: 0; border: 1px solid var(--line); border-radius: 16px; padding: 1.2rem 1.25rem; background: var(--surface); }
+.lb-q { font-size: 1.1rem; font-weight: 650; letter-spacing: -.01em; }
+.lb-try, .lb-hint, .lb-why { background: var(--surface-2); border-radius: 12px; }
+.lb-try .ico { color: var(--bad); } .lb-hint .ico { color: var(--mid); }
+
+/* Sticky lesson nav: a solid bar with a hairline, not a fade */
+.lp-nav { background: var(--bg); border-top: 1px solid var(--line); padding: .8rem 0; }
+
+/* Answer choices: square letter keys, hairline borders, ink for "selected" */
+.choices { gap: .5rem; }
+.choice, .choices.tappable .choice-tap { border: 1px solid var(--line-strong); border-radius: 12px; padding: .8rem 1rem; transition: border-color .12s, background .12s; }
+.choice:hover:not(:disabled), .lopt:hover:not(:disabled), .choices.tappable .choice-tap:hover { border-color: var(--ink-2); background: var(--surface); }
+.letter { width: 1.75rem; height: 1.75rem; border-radius: 7px; border: 0; background: var(--surface-2); color: var(--ink-2); font-family: ui-monospace, Menlo, monospace; font-size: .8rem; }
+.choices li.sel .choice { border-color: var(--ink); box-shadow: none; }
+.choices li.sel .letter { background: var(--ink); color: var(--bg); }
+.choices li.correct .choice, .choices.static li.correct, .choices.tappable li.correct .choice-tap { border-color: var(--good); background: color-mix(in srgb, var(--good) 7%, var(--surface)); }
+.choices li.wrong .choice, .choices.static li.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 6%, var(--surface)); }
+.choices li.correct .letter { background: var(--good); color: #fff; } .choices li.wrong .letter { background: var(--bad); color: #fff; }
+
+/* Reading passages: set like a page, not a grey box */
+.passage { background: none; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); border-radius: 0; padding: 1rem 0; }
+
+/* Explanations */
+.choice-why, .q-steps { border-radius: 14px; background: var(--surface); }
+.choice-why li { border: 0; background: var(--surface-2); border-radius: 10px; }
+.choice-why li.right { background: color-mix(in srgb, var(--good) 9%, var(--surface)); } .choice-why li.picked { background: color-mix(in srgb, var(--bad) 8%, var(--surface)); }
+.choice-note.wrong { border-left: 0; }

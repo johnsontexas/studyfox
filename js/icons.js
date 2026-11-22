@@ -69,10 +69,12 @@ const P = {
   instagram: '<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17" cy="7" r=".9" fill="currentColor"/>',
   arrow: '<path d="M7 17L17 7M9 7h8v8"/>',
   trophy: '<path d="M7.5 4h9v5a4.5 4.5 0 0 1-9 0z"/><path d="M7.5 6H4.5v1.5A3.5 3.5 0 0 0 8 11M16.5 6h3v1.5A3.5 3.5 0 0 1 16 11M12 13.5V17M8.5 20.5h7l-1-3.5h-5z"/>',
+  tip: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.3 1 2.1h5c0-.8.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>',
+  ap: '<circle cx="12" cy="9.5" r="6"/><path d="M8.5 14.4L7 21l5-2.6 5 2.6-1.5-6.6"/><path d="M12 6.8l.9 1.8 2 .3-1.45 1.4.35 2-1.8-1-1.8 1 .35-2L9.1 8.9l2-.3z" fill="currentColor" stroke="none"/>',
   sat: '<rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8 8.5h8M8 12h5"/><circle cx="9" cy="16.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="12.5" cy="16.5" r="1.2"/><circle cx="16" cy="16.5" r="1.2"/>',
   act: '<rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8 8l1.5 1.5 3-3M8 13.5l1.5 1.5 3-3M14.5 8.5H16M14.5 14H16"/>',
-  student: '<path d="M12 3.5l8 3.5-8 3.5-8-3.5z"/><path d="M20 7v4"/><path d="M8 9v2.5a4 4 0 0 0 8 0V9"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/>',
-  students: '<path d="M9 4l6 2.5L9 9 3 6.5z"/><path d="M6 8v1.5a3 3 0 0 0 6 0V8"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M15.5 9.5a3 3 0 0 0 1-5.5"/><path d="M17 14.2c2.3.6 3.7 2.8 4 5.8"/>',
+  student: '<circle cx="12" cy="8" r="3.8"/><path d="M4.5 20.5c.6-4.3 3.6-6.8 7.5-6.8s6.9 2.5 7.5 6.8"/>',
+  students: '<circle cx="12" cy="7.5" r="3.2"/><path d="M6.5 19.5c.5-3.6 2.7-5.7 5.5-5.7s5 2.1 5.5 5.7"/><circle cx="5.2" cy="10" r="2.3"/><path d="M1.8 18.5c.3-2.4 1.6-3.8 3.4-4"/><circle cx="18.8" cy="10" r="2.3"/><path d="M22.2 18.5c-.3-2.4-1.6-3.8-3.4-4"/>',
   grid: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>',
 };
 
