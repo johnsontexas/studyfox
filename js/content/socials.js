@@ -10,6 +10,7 @@ export const SOCIAL_PLATFORMS = {
   x: { name: 'X', icon: 'x-social', url: (h) => `https://x.com/${h}` },
   threads: { name: 'Threads', icon: 'threads', url: (h) => `https://www.threads.net/@${h}` },
   discord: { name: 'Discord', icon: 'discord', url: (h) => `https://discord.gg/${h}` },
+  linkedin: { name: 'LinkedIn', icon: 'linkedin', url: (h) => `https://www.linkedin.com/company/${h}` },
   website: { name: 'Website', icon: 'globe', url: (h) => (/^https?:\/\//.test(h) ? h : `https://${h}`) },
 };
 

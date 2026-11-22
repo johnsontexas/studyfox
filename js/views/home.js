@@ -71,6 +71,7 @@ export function homeView(root) {
   const nSat = saved?.sat || 1754, nAct = saved?.act || 2312;
   let nStu = 0; try { nStu = +localStorage.getItem('sf_student_count') || 0; } catch {}
   const ap = COURSES.filter((c) => /^AP /.test(c.title));
+  const apNames = [...new Set(ap.map((c) => c.title.replace(/^AP /, '').replace(/:.*$/, '').replace(/ and Composition$/, '').trim()))];
   const cta = u ? '<a class="btn primary lg" href="#/dashboard">Go to your dashboard</a>' : '<a class="btn primary lg" href="#/signup">Start studying, it\'s free</a>';
   const byId = Object.fromEntries(COURSES.map((c) => [c.id, c]));
   const popular = POPULAR.filter(([id]) => byId[id]);
@@ -98,10 +99,10 @@ export function homeView(root) {
     <div class="hx-head"><h2>Try today's question.</h2><a href="#/practice">Open the SAT &amp; ACT bank ${icon('arrow')}</a></div>
     <div class="hx-bento">
       <div class="hx-t hx-q"><p class="hx-k">SAT question of the day</p><div id="hxQotd" class="qotd"></div></div>
-      <div class="hx-side"><a class="hx-t hx-acc" href="#/practice"><p class="hx-k">SAT &amp; ACT</p><div><h3>A numbered question bank</h3><p><span class="bank-sat">${nSat.toLocaleString()}</span> SAT and <span class="bank-act">${nAct.toLocaleString()}</span> ACT questions, full timed tests, and a mistake log.</p></div></a>
-      <a class="hx-t" href="#/learn"><p class="hx-k">Courses</p><div><h3>Short lessons</h3><p>Worked examples and a quick check at the end of each one.</p></div></a>
+      <div class="hx-side"><a class="hx-t hx-acc" href="#/practice"><p class="hx-k">SAT &amp; ACT</p><div><h3>A numbered question bank</h3><p>Full timed tests and a mistake log that tracks what you miss.</p></div><div class="hx-nums"><span><b class="bank-sat">${nSat.toLocaleString()}</b>SAT questions</span><span><b class="bank-act">${nAct.toLocaleString()}</b>ACT questions</span></div></a>
+      <a class="hx-t" href="#/learn"><p class="hx-k">Courses</p><div><span class="hx-ic">${icon('book')}</span><h3>Short lessons</h3><p>Worked examples and a quick check at the end of each one.</p></div></a>
       <a class="hx-t hx-cards" href="#/flashcards"><p class="hx-k">Flashcards</p><div class="hx-stack"><i></i><i></i><div><small>AP Biology · Unit 3</small>Where does the Krebs cycle happen?</div></div><p>Paste your notes and they become cards.</p></a>
-      <a class="hx-t hx-ap" href="#/ap"><p class="hx-k">AP Practice</p><div><h3>Every AP class, by unit</h3><div class="hx-chips">${ap.slice(0, 12).map((c) => `<span>${esc(c.title.replace(/^AP /, '').replace(/:.*$/, ''))}</span>`).join('')}<span>+${Math.max(0, ap.length - 12)} more</span></div></div></a></div>
+      <a class="hx-t hx-ap" href="#/ap"><p class="hx-k">AP Practice</p><div><h3>Every AP class, by unit</h3><div class="hx-chips">${apNames.slice(0, 12).map((t) => `<span>${esc(t)}</span>`).join('')}${apNames.length > 12 ? `<span class="hx-more">+${apNames.length - 12} more</span>` : ''}</div></div></a></div>
     </div>
 
     <div class="hx-head"><h2>Pick your subject.</h2><a href="#/learn">See every course ${icon('arrow')}</a></div>

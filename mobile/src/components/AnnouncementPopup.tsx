@@ -55,7 +55,7 @@ export default function AnnouncementPopup() {
     <Modal transparent animationType="fade" visible onRequestClose={close} supportedOrientations={['portrait', 'landscape']}>
       <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,.45)', justifyContent: 'center', padding: 22 }}>
         <View style={{ backgroundColor: c.bg, borderRadius: 26, overflow: 'hidden', maxHeight: '86%', maxWidth: 520, width: '100%', alignSelf: 'center', borderWidth: 1, borderColor: c.line }}>
-          {post.image_url ? <Image source={{ uri: post.image_url }} accessibilityIgnoresInvertColors style={{ width: '100%', aspectRatio: 16 / 8 }} resizeMode="cover" />
+          {post.image_url ? <Image source={{ uri: post.image_url }} accessibilityIgnoresInvertColors style={{ width: '100%', aspectRatio: 16 / 9, backgroundColor: 'rgba(127,127,127,0.12)' }} resizeMode="contain" />
             : <View style={{ backgroundColor: c.tint, paddingVertical: 22, alignItems: 'center' }}><Icon name="megaphone" size={34} color={c.onTint} /></View>}
           <ScrollView contentContainerStyle={{ padding: 22, gap: 10 }}>
             <Text style={[type.footnote, { color: c.tint, fontWeight: '600' }]}>ANNOUNCEMENT</Text>

@@ -12,7 +12,7 @@ import { Bar, Button, cardStyle, Icon, IconTile, Logo, Row, Scribble, Screen, Se
 import { ClassesBar } from '../../../../components/StudyPicker';
 import { masteredCount, recentSets } from '../../../../lib/cards';
 import { fetchNews, syncNow, type NewsPost } from '../../../../lib/cloud';
-import { mistakes, quickSet, setSession, type Q } from '../../../../lib/questions';
+import { mistakes, quickSet, setSession, skillSet, type Q } from '../../../../lib/questions';
 import { getPrefs, markAsked, setReminders } from '../../../../lib/reminders';
 import ReviewCard from '../../../../components/ReviewCard';
 import { COURSES, courseIcon, questionOfTheDay, SECTIONS, store, today } from '../../../../lib/shared';
@@ -68,6 +68,10 @@ export default function Today() {
   const sets = recentSets(3);
   const course = continueCourse();
   const miss = mistakes(focus).length;
+  const weak = Object.entries(d.skillStats || {})
+    .filter(([k, s]: [string, any]) => k.startsWith(focus + '|') && s.t >= 3)
+    .map(([k, s]: [string, any]) => ({ sec: k.split('|')[1], skill: k.split('|')[2], p: Math.round((100 * s.c) / s.t) }))
+    .sort((a, b) => a.p - b.p)[0];
   const qotd = questionOfTheDay(focus);
   const lastRun = d.speed?.runs?.[0];
   const best = lastRun ? d.speed.best[lastRun.key || `${lastRun.test}|${lastRun.section}|${lastRun.dur}|${lastRun.diff}`] || 0 : 0;
@@ -191,8 +195,12 @@ export default function Today() {
         </View>
       </View>
 
-      {sets.length || course ? (
-        <Section header="Pick up where you left off">
+      {sets.length || course || weak ? (
+        <Section header="Up next">
+          {weak ? (
+            <Row icon="target" iconColor={c.red} title={`Drill ${weak.skill}`} subtitle={`Your weakest skill: ${weak.p}% right`}
+              onPress={() => go(`${weak.skill} drill`, weak.sec, skillSet(focus, weak.sec, { skills: [weak.skill] }))} />
+          ) : null}
           {sets.map((s) => {
             const m = masteredCount(s);
             return (
