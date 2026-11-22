@@ -223,7 +223,7 @@ export async function peoplePane(host) {
   const drawSecs = () => {
     $('#abSections', host).innerHTML = secs.map((x, i) => `<div class="be-block" data-sec="${i}">
       <div class="row between gap"><b class="small">Section ${i + 1}</b><span class="row"><button class="btn sm ghost" data-sup="${i}" ${i ? '' : 'disabled'} aria-label="Move up">${icon('up')}</button><button class="btn sm ghost" data-sdown="${i}" ${i < secs.length - 1 ? '' : 'disabled'} aria-label="Move down">${icon('down')}</button><button class="btn sm ghost danger-text" data-sdel="${i}" aria-label="Delete">${icon('trash')}</button></span></div>
-      <div class="grid2"><label>Title<input data-s="title" value="${esc(x.title || '')}"></label><label>Style<select data-s="style">${['card', 'plain', 'team'].map((k) => `<option ${k === (x.style || 'card') ? 'selected' : ''}>${k}</option>`).join('')}</select></label>
+      <div class="grid2"><label>Title<input data-s="title" value="${esc(x.title || '')}"></label><label>Style<select data-s="style">${['card', 'plain', 'motto', 'team'].map((k) => `<option ${k === (x.style || 'card') ? 'selected' : ''}>${k}</option>`).join('')}</select></label>
       <label>Image (optional)<input data-s="image" value="${esc(x.image || '')}" placeholder="assets/creator.jpg"></label><label>Image description<input data-s="image_alt" value="${esc(x.image_alt || '')}"></label></div>
       <label>Text (HTML)<textarea data-s="html" rows="5" class="mono">${esc(x.html || '')}</textarea></label></div>`).join('');
   };
