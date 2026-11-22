@@ -1631,3 +1631,26 @@ body.look-act .tr-top .look-switch[aria-checked="true"] .ls-track { background: 
 .foot-soc:hover { color: var(--brand); border-color: var(--brand); transform: translateY(-2px); }
 .foot-soc .ico { width: 1.2rem; height: 1.2rem; }
 .foot-mail { margin: .2rem 0 0 !important; font-size: .9rem !important; } .foot-mail a { color: var(--ink-2); }
+/* Question of the Day race (js/views/qotd-card.js) */
+.qd-start { display: grid; gap: .6rem; justify-items: start; }
+.qd-start p { margin: 0; }
+.qd-yday { margin-top: .6rem; }
+#qotd .feedback p { margin: .5rem 0 0; }
+
+/* Classes and study groups */
+.classes-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; align-items: start; }
+.code-input { text-transform: uppercase; letter-spacing: .2em; font-weight: 700; flex: 1; min-width: 0; }
+.class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .8rem; }
+.class-tile { display: flex; flex-direction: column; gap: .3rem; color: inherit; text-decoration: none; }
+.class-tile:hover { border-color: var(--brand); } .class-tile .tag { align-self: flex-start; }
+.class-page > .card { margin-top: 1rem; }
+.code-big { font-size: 1.8rem; font-weight: 800; letter-spacing: .2em; }
+.class-board { list-style: none; padding: 0; margin: .6rem 0; display: grid; gap: .4rem; }
+.class-board li { display: grid; grid-template-columns: 2rem minmax(0, 1.4fr) minmax(0, 1fr) 3rem auto; align-items: center; gap: .6rem; padding: .35rem .5rem; border-radius: 8px; }
+.class-board li.me { background: var(--brand-soft); }
+.class-board .rank { font-weight: 700; color: var(--ink-2); } .class-board .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.class-board .bar { height: .5rem; background: var(--line); border-radius: 99px; overflow: hidden; } .class-board .bar i { display: block; height: 100%; background: var(--brand); }
+.class-board b { text-align: right; }
+.class-sets { display: grid; gap: .3rem; margin-top: .6rem; }
+.class-set { padding: .4rem 0; border-bottom: 1px solid var(--line); } .class-set:last-child { border-bottom: 0; }
+.link-btn { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; } .link-btn:hover b { color: var(--brand); }

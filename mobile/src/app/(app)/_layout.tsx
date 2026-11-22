@@ -14,6 +14,9 @@ export default function AppLayout() {
       <Stack.Screen name="learn/[id]" options={full} />
       <Stack.Screen name="test/[id]" options={full} />
       <Stack.Screen name="match/[id]" options={full} />
+      <Stack.Screen name="qotd" options={full} />
+      <Stack.Screen name="classes" options={full} />
+      <Stack.Screen name="class/[id]" options={full} />
       <Stack.Screen name="quiz" options={{ ...full, gestureEnabled: false }} />
       <Stack.Screen name="ap-quiz" options={{ ...full, gestureEnabled: false }} />
       <Stack.Screen name="speed" options={{ ...full, gestureEnabled: false }} />

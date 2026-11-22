@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Field, menu, Pill, Row, Section, SwitchRow } from '../components/ui';
 import { cloudSignOut, contentClient, deleteAccount } from '../lib/cloud';
 import { setStudying, StudyPicker } from '../components/StudyPicker';
-import { clearRef, LANGS, loadMember, ordinal, pendingRef, PROFICIENCY, setReferrer, setting, store, TERMS_VERSION, updateMemberProfile } from '../lib/shared';
+import { cleanCode, clearRef, joinClass, LANGS, loadMember, ordinal, pendingRef, PROFICIENCY, setReferrer, setting, store, TERMS_VERSION, updateMemberProfile } from '../lib/shared';
 import { AGE_BLOCK } from '../lib/store-hooks';
 import { type, useColors } from '../lib/theme';
 
@@ -31,6 +31,7 @@ export default function Welcome() {
   const [heard, setHeard] = useState<string>(s.heardAbout?.source || (pendingRef() ? 'friend' : ''));
   const [heardDetail, setHeardDetail] = useState<string>(s.heardAbout?.detail || '');
   const [friend, setFriend] = useState<string>(pendingRef());
+  const [classCode, setClassCode] = useState('');
   const [goals, setGoals] = useState<string[]>((s.goals || []).filter((g: string) => !['sat', 'act', 'ap'].includes(g)));
   const [studying, setStudyingIds] = useState<string[]>(s.studying || []);
   const [grade, setGrade] = useState<string>(s.grade || '');
@@ -63,6 +64,11 @@ export default function Welcome() {
       if (r === 'self') return setErr("That's your own user number. Enter your friend's number, or leave it blank.");
       clearRef();
     } else if (!fr) clearRef();
+    const cc = cleanCode(classCode);
+    if (cc && u?.cloud) {
+      if (cc.length !== 6) return setErr('Class codes are 6 letters and numbers, like ABC123.');
+      try { await joinClass(contentClient(), cc, name.trim()); } catch (e: any) { return setErr(e.message); }
+    }
     if (heard) {
       const detail = DETAIL_FOR.includes(heard) ? heardDetail.trim().slice(0, 200) : '';
       store.data().settings.heardAbout = { source: heard, detail };
@@ -130,6 +136,11 @@ export default function Welcome() {
         {u?.cloud ? (
           <Section header="Did a friend share StudyFox?" footer="Optional. Their StudyFox user number is on their Me page or in their link.">
             <Field value={friend} onChangeText={setFriend} keyboardType="number-pad" maxLength={9} placeholder="Friend's user number, like 42" />
+          </Section>
+        ) : null}
+        {u?.cloud ? (
+          <Section header="Class or study group code" footer="Optional. From your teacher or friends. You can join more later.">
+            <Field value={classCode} onChangeText={(v) => setClassCode(cleanCode(v))} autoCapitalize="characters" autoCorrect={false} maxLength={6} placeholder="Like ABC123" />
           </Section>
         ) : null}
 

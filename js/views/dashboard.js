@@ -6,13 +6,13 @@ import { store, today } from '../store.js';
 import { taxonomy, SECTIONS, keysFor } from '../gen/index.js';
 import { launchPractice } from './practice.js';
 import { hasInProgress, discardInProgress } from './runner.js';
-import { qotdWidget } from './home.js';
+import { qotdRaceWidget } from './qotd-card.js';
 import { confirmBox } from '../tools.js';
 import { COURSES } from '../content/courses.js';
 import { BUILTIN_DECKS } from '../content/decks.js';
 import { newsWidget } from './news.js';
-import { cloudEnabled, db } from '../cloud.js';
-import { reviewCardHTML, wireReview } from '../review.js';
+import { cloudEnabled } from '../cloud.js';
+import { reviewCardHTML, reviewBannerHTML, wireReview } from '../review.js';
 
 const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; };
 
@@ -119,6 +119,8 @@ export function dashboardView(root) {
     ${hasInProgress() ? `<div class="banner accent row between wrap gap"><span>${icon('pause')} You have a test in progress: <b>${esc(d.inProgress.title)}</b></span><span class="row gap"><a class="btn primary sm" href="#/test">Resume</a><button class="btn sm ghost" id="discard">Discard</button></span></div>` : ''}
     ${u && !u.cloud && cloudEnabled ? `<div class="banner accent row between wrap gap"><span>${icon('upload')} Your progress is saved on this device only. Sign in again to back it up to the cloud and sync it everywhere.</span><button class="btn primary sm" id="moveCloud">Back up my progress</button></div>` : ''}
 
+    ${reviewBannerHTML()}
+
     <div class="dash-top">
       <section class="card dash-next">
         <h2 class="h3">Up next</h2>
@@ -175,7 +177,7 @@ export function dashboardView(root) {
           ${weak.length ? `<ul class="weak">${weak.map((w) => `<li><div><b>${esc(w.skill)}</b><span class="muted small">${w.p}% of ${w.t}</span></div><button class="btn xs" data-sec="${w.sec}" data-skill="${esc(w.skill)}">Drill</button></li>`).join('')}</ul>` : '<p class="muted">Answer a few questions and your weakest skills will show up here.</p>'}
           <a class="btn block ${mistakes ? 'primary' : ''}" href="#/review">Review mistakes (${mistakes})</a>
         </div>
-        <div class="card"><h2 class="h3">Question of the day</h2><div id="qotd"></div></div>
+        <div class="card"><h2 class="h3">Question of the Day</h2><div id="qotd"></div></div>
       </div>
     </div>
 
@@ -190,8 +192,8 @@ export function dashboardView(root) {
     </div>
   </div>`;
 
-  qotdWidget(root.querySelector('#qotd'), focus);
-  wireReview(root, cloudEnabled && store.user()?.cloud ? db() : null);
+  qotdRaceWidget(root.querySelector('#qotd'));
+  wireReview(root);
   newsWidget(root.querySelector('#newsSlot'));
   root.querySelector('#moveCloud')?.addEventListener('click', () => { const em = u.email; store.logout(); location.hash = '#/login'; setTimeout(() => { const f = document.querySelector('[name=email]'); if (f) f.value = em; }, 50); });
   root.querySelector('#focusSeg').onclick = (e) => { const f = e.target.dataset.f; if (f) { d.settings.focus = f; store.save(); dashboardView(root); } };

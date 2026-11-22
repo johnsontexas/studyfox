@@ -17,4 +17,6 @@ export const KOFI = 'https://ko-fi.com/studyfox';
 export const SITE_URL = 'https://studyfox.org';
 export const SUPPORT_EMAIL = 'studyfoxsupport@gmail.com';
 // Paste the Google Form link here (the .../viewform URL) to show it on the Contact page.
+// Public, independent reviews (Trustpilot). Linked from the dashboard and the app's Today tab.
+export const REVIEW_URL = 'https://www.trustpilot.com/review/studyfox.org';
 export const SUPPORT_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScWsj4w_QQfDN4kSlZR2Uf9LivnoHULR3CVr33vru_SsbF48w/viewform';

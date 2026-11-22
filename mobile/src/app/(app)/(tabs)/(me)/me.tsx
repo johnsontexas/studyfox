@@ -144,6 +144,7 @@ export default function Me() {
 
         <Section>
           <Row icon="sparkle" iconColor={c.orange} title="Your Fox" subtitle="Fur, face, shirt, hat, and glasses" onPress={() => router.push('/fox')} />
+          <Row icon="users" iconColor={c.tint} title="Classes" subtitle="Join with a code or start a class or study group" onPress={() => router.push('/classes')} />
         </Section>
 
         {member ? (

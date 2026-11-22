@@ -15,7 +15,7 @@ import { fetchNews, syncNow, type NewsPost } from '../../../../lib/cloud';
 import { mistakes, quickSet, setSession, skillSet, type Q } from '../../../../lib/questions';
 import { getPrefs, markAsked, setReminders } from '../../../../lib/reminders';
 import ReviewCard from '../../../../components/ReviewCard';
-import { COURSES, courseIcon, questionOfTheDay, SECTIONS, store, today } from '../../../../lib/shared';
+import { COURSES, courseIcon, SECTIONS, store, today } from '../../../../lib/shared';
 import { useStore } from '../../../../lib/store-hooks';
 import { fonts, type, useColors } from '../../../../lib/theme';
 import type { Test } from '../../../../lib/types';
@@ -72,7 +72,6 @@ export default function Today() {
     .filter(([k, s]: [string, any]) => k.startsWith(focus + '|') && s.t >= 3)
     .map(([k, s]: [string, any]) => ({ sec: k.split('|')[1], skill: k.split('|')[2], p: Math.round((100 * s.c) / s.t) }))
     .sort((a, b) => a.p - b.p)[0];
-  const qotd = questionOfTheDay(focus);
   const lastRun = d.speed?.runs?.[0];
   const best = lastRun ? d.speed.best[lastRun.key || `${lastRun.test}|${lastRun.section}|${lastRun.dur}|${lastRun.diff}`] || 0 : 0;
   const [askReminders, setAskReminders] = useState(!getPrefs().asked && !getPrefs().on);
@@ -221,8 +220,12 @@ export default function Today() {
         </Section>
       ) : null}
 
-      <Section header="Question of the day" footer={`A new ${focus} question every day.`}>
-        <Row icon="sparkle" iconColor={c.yellow} title={qotd.skill} subtitle={`${SECTIONS[focus][qotd.section]} · ${qotd.domain}`} onPress={() => go('Question of the day', qotd.section, [qotd])} />
+      <Section header="Question of the Day" footer="One shared question, one try. Fastest right answers make the leaderboard.">
+        <Row icon="timer" iconColor={c.orange} title="Start Question of the Day" subtitle="Race everyone on today's SAT question" onPress={() => router.push('/qotd')} />
+      </Section>
+
+      <Section header="Classes" footer="Join a class or study group with a code, see its leaderboard, and study sets shared with you.">
+        <Row icon="users" iconColor={c.tint} title="Classes and Study Groups" subtitle="Join with a code or start your own" onPress={() => router.push('/classes')} />
       </Section>
 
       <View style={{ marginTop: 22 }}><ReviewCard /></View>
