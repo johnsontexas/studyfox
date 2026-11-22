@@ -171,6 +171,8 @@ export function followUrl(item) {
   if (u.x) return `https://x.com/${u.x}`;
   return null;
 }
+/** Every tap-to-earn item unlocked by the same follow or review (a set, e.g. hat + shirt), as [part, item] pairs. */
+export const followSet = (item) => { const url = followUrl(item); return url ? Object.entries(PARTS).flatMap(([p, l]) => l.filter((x) => followUrl(x) === url).map((x) => [p, x])) : []; };
 /** True if the item is free, or the student has met its unlock goal (or unlocked it before). */
 export function isUnlocked(item, stats = {}, had = []) {
   if (!item?.unlock) return true;
