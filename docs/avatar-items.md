@@ -15,7 +15,7 @@ Only admins (`public.is_admin()`) can write to the table. Everyone can read rows
 | `name` | what students see (`Top hat`) |
 | `art` | for every part except `fur` and `color`: an SVG fragment drawn in the fox's 100 x 100 space |
 | `colors` | `fur`: `{"fur":"#hex","dark":"#hex","light":"#hex"}`. `color`: `{"hex":"#hex"}` |
-| `unlock` | `null` for everyone, or an exclusive: `{"kind":"shares","n":10}`. Kinds: `shares` (friends who joined with their link), `streak` (days), `questions` (answered), `lessons` (finished) |
+| `unlock` | `null` for everyone, or an exclusive: `{"kind":"shares","n":10}`. Kinds: `shares` (friends who joined with their link), `streak` (days), `questions` (answered), `lessons` (finished). Tap-to-earn (tapping opens the page and unlocks it; we can't check): follow `{"kind":"follow","ig":"studyfoxapp"}` (or `"tiktok"`, `"yt"`, `"x"` instead of `"ig"`), review `{"kind":"review"}` (opens the Trustpilot page). Website/app builds before Nov 22 2026 only know `ig` follows, so keep new kinds `hidden` until the update is live |
 | `sort` | order within the part (built-ins come first) |
 | `hidden` | `true` hides it without deleting it. Anyone already wearing it falls back to their default for that part. |
 

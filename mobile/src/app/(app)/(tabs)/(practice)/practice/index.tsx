@@ -53,6 +53,10 @@ export default function Practice() {
             ? { icon: 'pause', label: 'Resume test', sub: d.inProgress.title, color: c.blue, onPress: () => router.push('/exam') }
             : { icon: 'test2', label: 'Practice test', sub: 'Timed and scored', color: c.blue, onPress: () => router.push('/practice/exams') },
         ]} />
+        <QuickStart tiles={[
+          { icon: 'flame', label: 'Hard 10', sub: 'Only the toughest ones', color: c.red, onPress: () => go(`${focus} hard set`, 'mixed', quickSet(focus, null, 10, 'new', 3)) },
+          { icon: 'target', label: 'Retry missed', sub: miss ? `${miss} to get right` : 'Nothing missed yet', color: c.purple, onPress: () => (miss ? go(`${focus} missed retry`, 'mixed', quickSet(focus, null, 10, 'miss')) : router.push('/practice/mistakes')) },
+        ]} />
         <View style={{ marginHorizontal: 16, marginTop: 14 }}>
           <View style={{ marginTop: 14, gap: 6 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
