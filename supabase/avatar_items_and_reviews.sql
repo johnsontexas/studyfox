@@ -27,7 +27,8 @@ create table if not exists public.avatar_items (
   unlock jsonb constraint avatar_items_unlock_check check (unlock is null
     or (unlock->>'kind' in ('shares', 'streak', 'questions', 'lessons') and (unlock->>'n')::int > 0)
     or unlock->>'kind' = 'review'
-    or (unlock->>'kind' = 'follow' and coalesce(unlock->>'ig', unlock->>'tiktok', unlock->>'yt', unlock->>'x') ~ '^[A-Za-z0-9._]{1,30}$')),
+    or (unlock->>'kind' = 'follow' and coalesce(unlock->>'ig', unlock->>'tiktok', unlock->>'yt', unlock->>'x') ~ '^[A-Za-z0-9._]{1,30}$')
+    or (unlock->>'kind' = 'link' and unlock->>'url' ~ '^https://[^\s"<>]{4,300}$' and char_length(coalesce(unlock->>'text','')) between 1 and 80)),
   sort int not null default 0,
   hidden boolean not null default false,
   created_at timestamptz not null default now(),
