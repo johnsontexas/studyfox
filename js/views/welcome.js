@@ -7,6 +7,7 @@ import { setting } from '../content/settings.js';
 import { pendingRef, clearRef, setReferrer, updateMemberProfile, loadMember, ordinal } from '../members.js';
 import { recordAgreement, takeAfterLogin } from './account.js';
 import { studyPicker, setStudying } from '../studying.js';
+import { joinClass, cleanCode, pendingClassCode, setPendingClassCode } from '../classes.js';
 
 const MIN_AGE = 13;
 const AGE_BLOCK = 'sf_age_block'; // ISO date this device may sign up again (a year after an under-13 answer)
@@ -88,6 +89,9 @@ export function welcomeView(root) {
       ${store.user()?.cloud ? `<label>Did a friend share StudyFox with you? <span class="muted small">Optional: their StudyFox user number, from their link or their Settings page</span>
         <span class="row gap"><b aria-hidden="true">#</b><input name="friend" inputmode="numeric" pattern="[0-9]*" maxlength="9" value="${esc(pendingRef())}" placeholder="Like 42" aria-label="Friend's user number"></span></label>` : ''}
 
+      ${store.user()?.cloud ? `<label>Class or study group code <span class="muted small">Optional: from your teacher or friends. You can join more later from your dashboard.</span>
+        <input name="classCode" class="code-input" maxlength="7" autocapitalize="characters" autocomplete="off" value="${esc(pendingClassCode())}" placeholder="Like ABC123"></label>` : ''}
+
       <div class="consents">
         <label class="consent"><input type="checkbox" name="emails" ${s.emails ? 'checked' : ''}> <span>Email me about new courses, features, and study opportunities like scholarships and competitions. You can turn this off anytime in Settings.</span></label>
         <label class="consent"><input type="checkbox" name="agree" required> <span>I agree to the <a href="#/terms" target="_blank">Terms of Use</a> and <a href="#/privacy" target="_blank">Privacy Policy</a>.</span></label>
@@ -130,6 +134,14 @@ export function welcomeView(root) {
       if (r === 'self') return fail("That's your own user number. Enter your friend's number, or leave it blank.", f.friend);
       clearRef();
     } else if (!friend) clearRef();
+
+    // Class or study group code (checked by the server).
+    const classCode = cleanCode(f.classCode?.value);
+    if (classCode && u.cloud) {
+      if (classCode.length !== 6) return fail('Class codes are 6 letters and numbers, like ABC123.', f.classCode);
+      try { await joinClass(db(), classCode, f.name.value.trim()); setPendingClassCode(''); }
+      catch (ex) { return fail(ex.message, f.classCode); }
+    } else setPendingClassCode('');
 
     // Goals keep their old shape (sat, act, ap, ...) so anything reading them still works.
     const goals = [...f.querySelectorAll('[name=goals]:checked')].map((x) => x.value);

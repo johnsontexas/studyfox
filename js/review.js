@@ -1,14 +1,14 @@
-// "Rate StudyFox" card on the dashboard: stars out of 5, a few words, and whether to stay anonymous.
+// Reviews: the dashboard links to Trustpilot (REVIEW_URL) for independent public reviews.
+// The older in-house reviews table helpers below are kept for the admin console and past data.
 // Saved to Supabase table reviews (supabase/avatar_items_and_reviews.sql), one per student, editable.
 // Reviews are private until approved; a home page carousel will later show approved ones with the
 // student's name and fox (or "A StudyFox student" when anonymous). No DOM beyond the card itself.
 import { store } from './store.js';
 import { toast } from './util.js';
 import { icon } from './icons.js';
-import { SUPPORT_FORM_URL } from './config.js';
+import { SUPPORT_FORM_URL, REVIEW_URL } from './config.js';
 import { myAvatar } from './members.js';
 
-const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z"/></svg>';
 
 /** Save (insert or update) the signed-in student's review. Resolves an error message or ''. */
 export async function saveReview(client, { stars, body, anonymous }, platform = 'web') {
@@ -29,41 +29,21 @@ export async function loadReview(client) {
   return data || null;
 }
 
-export const reviewCardHTML = () => `<div class="card stack review-card" id="reviewCard"><h2 class="h3">${icon('star')} Rate StudyFox</h2>
-  <p class="muted small">How is StudyFox helping you? Your review helps other students find it.</p>
-  <div class="stars" role="radiogroup" aria-label="Stars out of 5">${[1, 2, 3, 4, 5].map((n) => `<button type="button" role="radio" aria-checked="false" aria-label="${n} star${n > 1 ? 's' : ''}" data-star="${n}">${STAR}</button>`).join('')}</div>
-  <textarea id="revBody" rows="3" maxlength="1000" placeholder="What do you like? What helped most?"></textarea>
-  <label class="consent small"><input type="checkbox" id="revAnon"> <span>Stay anonymous. Your review shows as "A StudyFox student" with no name or fox.</span></label>
-  <div class="row between wrap gap"><button class="btn primary" id="revSave">Submit review</button><span class="muted small" id="revStatus"></span></div>
+const DISMISS = 'sf-review-banner-off';
+
+/** Bottom-of-dashboard card that sends students to Trustpilot for an honest, public review. */
+export const reviewCardHTML = () => `<div class="card stack review-card" id="reviewCard"><h2 class="h3">${icon('star')} Review StudyFox</h2>
+  <p class="muted small">Tell other students what you honestly think. Reviews are on Trustpilot, an independent site, so StudyFox can't edit or remove them.</p>
+  <div class="row"><a class="btn primary" href="${REVIEW_URL}" target="_blank" rel="noopener">Write a review on Trustpilot ${icon('arrow')}</a></div>
   <p class="small review-bug">${icon('mail')} Found a bug or have an idea? <a href="${SUPPORT_FORM_URL}" target="_blank" rel="noopener">Send it with the suggestion and bug form</a>.</p></div>`;
 
-export function wireReview(root, client) {
-  const card = root.querySelector('#reviewCard');
-  if (!card) return;
-  let stars = 0;
-  const paint = () => card.querySelectorAll('[data-star]').forEach((b) => { const on = +b.dataset.star <= stars; b.classList.toggle('on', on); b.setAttribute('aria-checked', String(+b.dataset.star === stars)); });
-  card.addEventListener('click', async (e) => {
-    const s = e.target.closest('[data-star]');
-    if (s) { stars = +s.dataset.star; return paint(); }
-    if (!e.target.closest('#revSave')) return;
-    if (!stars) return toast('Pick 1 to 5 stars first.');
-    const err = await saveReview(client, { stars, body: card.querySelector('#revBody').value, anonymous: card.querySelector('#revAnon').checked });
-    if (err) return toast(err);
-    card.querySelector('#revStatus').textContent = 'Thanks! You can edit your review anytime.';
-    card.querySelector('#revSave').textContent = 'Update review';
-    toast('Review saved. Thank you!', 'good');
-  });
-  if (!store.user()?.cloud) {
-    card.querySelector('#revSave').disabled = true;
-    card.querySelector('#revStatus').innerHTML = '<a href="#/login">Sign in</a> with a synced account to leave a review.';
-    return;
-  }
-  loadReview(client).then((r) => {
-    if (!r || !card.isConnected) return;
-    stars = r.stars; paint();
-    card.querySelector('#revBody').value = r.body || '';
-    card.querySelector('#revAnon').checked = !!r.anonymous;
-    card.querySelector('#revSave').textContent = 'Update review';
-    card.querySelector('#revStatus').textContent = 'Your review is saved.';
-  });
+/** Slim banner near the top of the dashboard. Hidden for good once dismissed or clicked. */
+export const reviewBannerHTML = () => (localStorage.getItem(DISMISS) ? '' : `<div class="banner accent row between wrap gap" id="reviewBanner"><span>${icon('star')} Enjoying StudyFox? Leave an honest review on Trustpilot.</span><span class="row gap"><a class="btn primary sm" id="revGo" href="${REVIEW_URL}" target="_blank" rel="noopener">Write a review</a><button class="btn sm ghost" id="revHide" aria-label="Hide this">Not now</button></span></div>`);
+
+export function wireReview(root) {
+  const b = root.querySelector('#reviewBanner');
+  if (!b) return;
+  const off = () => { localStorage.setItem(DISMISS, '1'); b.remove(); };
+  b.querySelector('#revGo').addEventListener('click', off);
+  b.querySelector('#revHide').addEventListener('click', off);
 }

@@ -72,6 +72,10 @@ const contentAdminView = lazy(load_content_admin, 'contentAdminView');
 const load_ap = () => import('./views/ap.js');
 const apHubView = lazy(load_ap, 'apHubView');
 const apCourseView = lazy(load_ap, 'apCourseView');
+const load_classes = () => import('./views/classes.js');
+const classesView = lazy(load_classes, 'classesView');
+const classView = lazy(load_classes, 'classView');
+const joinLinkView = lazy(load_classes, 'joinLinkView');
 const load_about = () => import('./views/about.js');
 const aboutView = lazy(load_about, 'aboutView');
 const load_contributors = () => import('./views/contributors.js');
@@ -82,7 +86,7 @@ export const BRAND = 'StudyFox';
 
 const routes = [
   ['/', homeView], ['/home', homeView], ['/login', loginView], ['/signup', signupView], ['/settings', settingsView], ['/fox', (root) => foxView(root, store.user()?.cloud ? db() : null)],
-  ['/dashboard', dashboardView], ['/practice', practiceView], ['/review', reviewView], ['/exams', examsView],
+  ['/dashboard', dashboardView], ['/classes', classesView], ['/classes/:id', classView], ['/join/:code', joinLinkView], ['/practice', practiceView], ['/review', reviewView], ['/exams', examsView],
   ['/test', runnerView], ['/results/:id', resultsView],
   ['/flashcards', libraryView], ['/flashcards/new', editView], ['/flashcards/:id', setView], ['/flashcards/:id/edit', editView],
   ['/flashcards/:id/learn', learnView], ['/flashcards/:id/test', testView], ['/flashcards/:id/match', matchView], ['/share/:data', importView],
@@ -133,7 +137,7 @@ function navHTML(path) {
 // Related pages share one nav item and show as tabs: settings and support inside the dashboard,
 // and every SAT/ACT tool under SAT & ACT.
 const TAB_GROUPS = {
-  DASH: [['/dashboard', 'Overview'], ['/fox', 'Your fox'], ['/settings', 'Settings'], ['/contact', 'Support']],
+  DASH: [['/dashboard', 'Overview'], ['/classes', 'Classes'], ['/fox', 'Your fox'], ['/settings', 'Settings'], ['/contact', 'Support']],
   SAT: [['/practice', 'Practice'], ['/hardest', 'Hardest questions'], ['/speed', 'Speed practice'], ['/exams', 'Practice tests'], ['/formulas', 'Formula sheets'], ['/calculator', 'Calculator']],
 };
 const tabGroup = (pat) => Object.entries(TAB_GROUPS).find(([g, tabs]) => (g !== 'DASH' || store.user()) && tabs.some(([p]) => p === pat));
