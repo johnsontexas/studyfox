@@ -154,6 +154,8 @@ let cleanup = null;
 // Maintenance mode from the admin console. Admins still see the site; sign-in stays open so they can get in.
 let status = null, admin = false;
 function router() {
+  // Practice screens turn on the test-day look themselves; every other page uses the normal one.
+  document.body.classList.remove('look-digital', 'look-act');
   const path = (location.hash.slice(1) || '/').split('?')[0];
   if (status?.maintenance && !admin && !['/login', '/admin', '/privacy', '/terms'].includes(path)) {
     if (cleanup) { try { cleanup(); } catch {} cleanup = null; }

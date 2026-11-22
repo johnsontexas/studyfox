@@ -1,6 +1,7 @@
 // AP question bank: multiple-choice practice for every AP class, organized by unit and concept.
 // Questions live in Supabase (table ap_questions) and are cached per course in localStorage.
 import { icon, sticker, courseIcon } from '../icons.js';
+import { lookOnByDefault, lookStyle, setLook, lookSwitchHTML } from '../test-look.js';
 import { $, esc, tex, toast, DIFF_LABEL } from '../util.js';
 import { store } from '../store.js';
 import { db, cloudEnabled } from '../cloud.js';
@@ -70,6 +71,7 @@ export function apCourseView(main, { course: cid }) {
   const stats = apStats;
 
   function drawIndex() {
+    setLook(null);
     const units = unitOrder(course, st.qs);
     const all = stats(st.qs);
     host().innerHTML = `
@@ -108,6 +110,7 @@ export function apCourseView(main, { course: cid }) {
     const qs = pickAP(pool, st.count, st.mode);
     if (!qs.length) return toast(st.mode === 'missed' ? 'Nothing missed here yet.' : st.mode === 'new' ? "You've done every question here. Try New first." : 'No questions here yet.');
     st.session = { title, qs: qs.map((q) => ({ ...q })), i: 0, picked: null, right: 0, log: [] };
+    st.look = lookOnByDefault(); setLook(st.look ? lookStyle('AP') : null);
     drawQ();
   }
 
@@ -119,7 +122,7 @@ export function apCourseView(main, { course: cid }) {
     const fb = setting('question_feedback');
     const retry = s.firstWrong != null && !shown;
     host().innerHTML = `
-      <div class="row between wrap gap"><button class="link sm" id="apQuit">${icon('left')} ${esc(course.title)}</button><span class="muted small">${esc(s.title)}</span></div>
+      <div class="row between wrap gap"><button class="link sm" id="apQuit">${icon('left')} ${esc(course.title)}</button><span class="row gap"><span class="muted small">${esc(s.title)}</span>${lookSwitchHTML(st.look, 'AP')}</span></div>
       <div class="ap-prog"><div class="bar thin"><i style="width:${(100 * s.i) / s.qs.length}%"></i></div><span class="small muted">Question ${s.i + 1} of ${s.qs.length} · ${s.right} right</span></div>
       <div class="card ap-q">
         <div class="row gap wrap small muted"><span class="tag subtle">${esc(q.unit)}</span>${q.concept ? `<span class="tag subtle">${esc(q.concept)}</span>` : ''}<span>${DIFF_LABEL[q.difficulty] || ''}</span></div>
@@ -162,6 +165,7 @@ export function apCourseView(main, { course: cid }) {
     const s = st.session;
     s.i++; s.picked = null; s.firstWrong = null; s.hint = false; s.peek = null;
     if (s.i < s.qs.length) return drawQ();
+    setLook(null);
     const missed = s.log.filter((x) => !x.ok);
     const pctRight = Math.round((100 * s.right) / s.qs.length);
     host().innerHTML = `<div class="card center stack">
@@ -178,6 +182,7 @@ export function apCourseView(main, { course: cid }) {
   }
 
   root.addEventListener('click', (e) => {
+    if (e.target.closest('[data-act="look"]')) { st.look = !st.look; setLook(st.look ? lookStyle('AP') : null); return drawQ(); }
     if (e.target.closest('#apHint')) { st.session.hint = true; return drawQ(); }
     const pk = e.target.closest('[data-apeek]');
     if (pk) { const i = +pk.dataset.apeek; st.session.peek = st.session.peek === i ? null : i; return drawQ(); }

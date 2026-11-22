@@ -13,6 +13,7 @@ import { db } from '../cloud.js';
 import { loadMember, referralUrl, updateMemberProfile, ordinal, myAvatar } from '../members.js';
 import { openShare } from '../share.js';
 import { foxSVG } from '../avatar.js';
+import { LOOK_OPTIONS } from '../test-look.js';
 
 // Where to go after signing in: the page a guest was bounced from, else the dashboard.
 export function takeAfterLogin() {
@@ -128,6 +129,7 @@ export function settingsView(root) {
       <div><b class="small">What you're studying for</b><div id="studyPick"></div></div>
       ${langFields(s.lang || 'en', s.english)}
       <label class="consent"><input type="checkbox" id="emails" ${s.emails ? 'checked' : ''}> <span>Email me about new courses, features, and study opportunities.</span></label>
+      <label>Practice look<select id="practiceLook">${LOOK_OPTIONS.map(([v, n]) => `<option value="${v}" ${(s.practiceLook || 'studyfox') === v ? 'selected' : ''}>${n}</option>`).join('')}</select><span class="muted small">How SAT, ACT, and AP practice looks when you start. You can switch it in any session with the Test-day look switch.</span></label>
       <label>Theme<select id="theme"><option value="system">Match system</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
       <div class="row gap"><button class="btn primary" id="saveBtn">Save changes</button>${u ? '<button class="btn ghost" id="logout">Sign out</button>' : ''}</div>
     </div>
@@ -187,7 +189,7 @@ export function settingsView(root) {
     if (u) store.updateProfile({ name: $('#name', root).value.trim() || u.name });
     if (u?.cloud) updateMemberProfile(db(), $('#name', root).value.trim() || u.name);
     const em = $('#emails', root).checked; if (em !== !!s.emails) { s.emails = em; s.emailsAt = new Date().toISOString(); }
-    Object.assign(s, { focus: $('#focus', root).value, testDate: $('#testDate', root).value, theme: $('#theme', root).value, lang: $('#lang', root).value });
+    Object.assign(s, { focus: $('#focus', root).value, testDate: $('#testDate', root).value, theme: $('#theme', root).value, practiceLook: $('#practiceLook', root).value, lang: $('#lang', root).value });
     s.english = s.lang === 'en' ? '' : $('#english', root).value;
     s.target = { SAT: +$('#tSAT', root).value || 1400, ACT: +$('#tACT', root).value || 30 };
     store.save(); store.emit(); toast('Saved.', 'good');

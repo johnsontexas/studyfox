@@ -3,8 +3,8 @@ import { icon, sticker } from '../icons.js';
 import { $, esc, toast, timeAgo } from '../util.js';
 import { store } from '../store.js';
 import { db, isAdmin, cloudEnabled } from '../cloud.js';
-import { confirmBox } from '../tools.js';
-import { CONTACT_EMAIL, SUPPORT_EMAIL, SUPPORT_FORM_URL } from '../config.js';
+import { confirmBox, modal } from '../tools.js';
+import { CONTACT_EMAIL, SUPPORT_EMAIL, SUPPORT_FORM_URL, SITE_URL } from '../config.js';
 import { setting } from '../content/settings.js';
 import { SOCIAL_PLATFORMS } from '../content/socials.js';
 import { initContent, invalidateContent } from '../content/live.js';
@@ -35,11 +35,11 @@ export async function fetchStatus() {
 // Posts without a photo get a colored cover so the feed never looks bare.
 const COVERS = [['#1f6b47', '#5fcf94', 'news'], ['#9a6200', '#f2b33d', 'star'], ['#21507a', '#5fa8e0', 'book'], ['#7a2f5a', '#e07ab0', 'heart'], ['#3d3a8a', '#8b86e8', 'trophy']];
 const cover = (n) => { const [c1, c2, ic] = COVERS[Number(n.id) % COVERS.length]; return `<div class="news-cover" style="--c1:${c1};--c2:${c2}" aria-hidden="true">${icon(ic)}</div>`; };
-const postHTML = (n, admin) => `<article class="news-post card${n.pinned ? ' pinned' : ''}">
+const postHTML = (n, admin) => `<article class="news-post card${n.pinned ? ' pinned' : ''}" id="post-${n.id}">
   ${n.image_url ? `<img class="news-img" src="${esc(n.image_url)}" alt="" loading="lazy">` : cover(n)}
   <div class="news-meta">${n.pinned ? `<span class="tag">Pinned</span>` : ''}${admin && n.popup ? `<span class="tag">${icon('megaphone')} Pop-up${n.popup_until ? ` until ${date(n.popup_until)}` : ''}</span>` : ''}${admin && n.notified_at ? `<span class="tag subtle">${icon('bell')} Pushed ${date(n.notified_at)}</span>` : ''}<time class="muted small" datetime="${esc(n.created_at)}">${date(n.created_at)}</time>
     ${admin ? `<span class="grow"></span><button class="btn sm ghost" data-pin="${n.id}" data-on="${n.pinned ? 1 : 0}">${n.pinned ? 'Unpin' : 'Pin'}</button><button class="btn sm ghost" data-popup="${n.id}" data-on="${n.popup ? 1 : 0}">${n.popup ? 'Stop pop-up' : 'Pop up'}</button><button class="btn sm ghost" data-push="${n.id}">${icon('bell')} ${n.notified_at ? 'Push again' : 'Send push'}</button><button class="btn sm ghost danger-text" data-del="${n.id}">${icon('trash')} Delete</button>` : ''}</div>
-  <h2 class="h3">${esc(n.title)}</h2><div class="news-body">${body(n.body)}</div>${ctaHTML(n)}</article>`;
+  <h2 class="h3">${esc(n.title)}</h2><div class="news-body">${body(n.body)}</div><div class="news-foot">${ctaHTML(n)}<button class="btn sm ghost news-share" data-share-post="${n.id}" data-title="${esc(n.title)}">${icon('upload')} Share</button></div></article>`;
 
 // Optional button under an announcement. Site routes (#/learn/...) stay on the site; https links open a new tab.
 const ctaHref = (u) => (u.startsWith('/') ? `#${u}` : u);
@@ -155,9 +155,42 @@ export function newsView(root) {
       const list = await fetchNews();
       $('#feed', root).innerHTML = list.length ? list.map((n) => postHTML(n, admin)).join('') : `<div class="card empty-note center"><div class="big-emoji">${sticker('mailbox')}</div><p class="muted">No news yet. Check back soon.</p></div>`;
     } catch { $('#feed', root).innerHTML = `<p class="muted">News couldn't load. Try again in a minute.</p>`; }
+    // A shared link (#/news?post=12) scrolls to that post.
+    const want = new URLSearchParams(location.hash.split('?')[1] || '').get('post');
+    const el = want && root.querySelector(`#post-${CSS.escape(want)}`);
+    if (el) { el.scrollIntoView({ block: 'start' }); el.classList.add('news-flash'); }
   };
+  root.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-share-post]');
+    if (b) sharePost(b.dataset.sharePost, b.dataset.title);
+  });
   isAdmin().then((a) => { admin = a; if (a) $('#compose', root).innerHTML = composerHTML(false); draw(); });
   wireComposer(root, draw);
+}
+
+// Share one announcement: the phone's share sheet when there is one (texts, Instagram, and so on),
+// otherwise a small menu of places to send the link.
+const postUrl = (id) => `${SITE_URL}/#/news?post=${encodeURIComponent(id)}`;
+function sharePost(id, title) {
+  const url = postUrl(id), text = `${title} on StudyFox`;
+  if (navigator.share && matchMedia('(pointer: coarse)').matches) { navigator.share({ title, text, url }).catch(() => {}); return; }
+  const u = encodeURIComponent(url), t = encodeURIComponent(text);
+  const places = [
+    ['copy', 'Copy link', 'link', null],
+    ['text', 'Text', 'mail', `sms:?&body=${t}%20${u}`],
+    ['email', 'Email', 'mail', `mailto:?subject=${t}&body=${u}`],
+    ['x', 'X', 'x-social', `https://x.com/intent/post?text=${t}&url=${u}`],
+    ['threads', 'Threads', 'threads', `https://www.threads.net/intent/post?text=${t}%20${u}`],
+    ['facebook', 'Facebook', 'globe', `https://www.facebook.com/sharer/sharer.php?u=${u}`],
+    ['whatsapp', 'WhatsApp', 'mail', `https://wa.me/?text=${t}%20${u}`],
+  ];
+  const m = modal(`<div class="post-share"><p class="muted small">${esc(title)}</p>
+    <div class="post-share-grid">${places.map(([k, n, ic, href]) => href ? `<a class="post-share-btn" href="${href}"${href.startsWith('http') ? ' target="_blank" rel="noopener"' : ''}>${icon(ic)}<span>${n}</span></a>` : `<button class="post-share-btn" data-copy>${icon(ic)}<span>${n}</span></button>`).join('')}</div>
+    <code class="post-share-url">${esc(url.replace(/^https:\/\//, ''))}</code></div>`, { title: 'Share this announcement' });
+  m.el.addEventListener('click', async (e) => {
+    if (e.target.closest('[data-copy]')) { try { await navigator.clipboard.writeText(url); toast('Link copied.', 'good'); } catch { toast("Couldn't copy. Select the link below instead."); } }
+    else if (e.target.closest('a.post-share-btn')) setTimeout(() => m.close(), 100);
+  });
 }
 
 // Small "Latest news" block for the dashboard and home page. Posting lives on the news page only.
@@ -168,7 +201,7 @@ export function newsWidget(host) {
     if (!list.length) { host.innerHTML = ''; return; }
     host.innerHTML = `<div class="news-widget">
       <div class="row between"><h2 class="h3">${icon('news')} Latest news</h2><a class="small" href="#/news">All news ${icon('right')}</a></div>
-      ${list.map((n) => `<a class="news-item" href="#/news">${n.image_url ? `<img class="news-thumb" src="${esc(n.image_url)}" alt="" loading="lazy">` : ''}<b>${esc(n.title)}</b><span class="muted small">${timeAgo(new Date(n.created_at).getTime())}</span></a>`).join('')}</div>`;
+      ${list.map((n) => `<a class="news-item" href="#/news?post=${n.id}">${n.image_url ? `<img class="news-thumb" src="${esc(n.image_url)}" alt="" loading="lazy">` : ''}<b>${esc(n.title)}</b><span class="muted small">${timeAgo(new Date(n.created_at).getTime())}</span></a>`).join('')}</div>`;
   };
   draw();
 }
