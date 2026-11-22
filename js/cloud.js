@@ -9,6 +9,8 @@ let sb = null, pushTimer = null, ready = null;
 // Id of the account whose cloud copy has been downloaded and merged. Until then nothing is uploaded,
 // so a fresh device can never overwrite newer progress with its own blank or older copy.
 let pulledFor = null;
+// The progress JSON last known to match the cloud copy; pushes that would send the same thing are skipped.
+let lastPushed = null;
 
 async function client() {
   if (!cloudEnabled) return null;
@@ -110,19 +112,26 @@ async function pull(user) {
   if (error) { console.warn(error); setTimeout(() => { if (store.user()?.id === user.id) pull(user); }, 30000); return; }
   store.mergeIn(data?.data || null);
   pulledFor = user.id;
+  lastPushed = data?.data ? JSON.stringify(data.data) : null;
   logActivity(user.id);
   await push();
 }
 
 // One row per student per day (duplicates ignored) so retention can be measured in Supabase.
+// Remembered per device so a page load only writes once a day.
 function logActivity(id) {
+  const key = 'sf_act_' + id, today = new Date().toISOString().slice(0, 10);
+  try { if (localStorage.getItem(key) === today) return; localStorage.setItem(key, today); } catch {}
   sb.from('user_activity').upsert({ user_id: id, platform: 'web' }, { onConflict: 'user_id,day', ignoreDuplicates: true }).then(({ error }) => error && console.warn(error));
 }
 
 async function push() {
   const u = store.user();
   if (!sb || !u?.cloud || pulledFor !== u.id) return;
+  const json = JSON.stringify(store.data());
+  if (json === lastPushed) return;
   const { error } = await sb.from('progress').upsert({ user_id: u.id, data: store.data(), updated_at: new Date().toISOString() });
+  if (!error) lastPushed = json;
   // Offline or a server hiccup: try again shortly so no progress is left only on this device.
   if (error) { console.warn('Sync failed', error); clearTimeout(pushTimer); pushTimer = setTimeout(push, 30000); }
 }
@@ -161,7 +170,7 @@ export function initCloud() {
       if (event === 'SIGNED_IN' && s?.user && store.user()?.id !== s.user.id) adopt(s.user, true);
     });
   })();
-  // Debounced push after every local save; flush when the tab is hidden.
-  store.onSave(() => { clearTimeout(pushTimer); pushTimer = setTimeout(push, 2000); });
+  // Debounced push 20s after the last local save (keeps database writes low); flush when the tab is hidden.
+  store.onSave(() => { clearTimeout(pushTimer); pushTimer = setTimeout(push, 20000); });
   addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { clearTimeout(pushTimer); push(); } });
 }

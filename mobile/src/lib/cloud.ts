@@ -18,6 +18,8 @@ let pushTimer: ReturnType<typeof setTimeout> | null = null;
 // Id of the account whose cloud copy has been downloaded and merged. Until then nothing is uploaded,
 // so a fresh device can never overwrite newer progress with its own blank or older copy.
 let pulledFor: string | null = null;
+// The progress JSON last known to match the cloud copy; pushes that would send the same thing are skipped.
+let lastPushed: string | null = null;
 
 function client() {
   if (!cloudEnabled) return null;
@@ -51,15 +53,25 @@ async function pull(user: User) {
   if (error) { console.warn(error); syncError = true; store.emit(); setTimeout(() => { if (store.user()?.id === user.id) pull(user).catch(console.warn); }, 30000); return; }
   store.mergeIn(data?.data || null);
   pulledFor = user.id;
-  // One row per student per day so retention can be measured in Supabase.
-  sb!.from('user_activity').upsert({ user_id: user.id, platform: 'ios' }, { onConflict: 'user_id,day', ignoreDuplicates: true }).then(({ error }) => { if (error) console.warn(error); });
+  lastPushed = data?.data ? JSON.stringify(data.data) : null;
+  logActivity(user.id);
   await push();
+}
+
+// One row per student per day so retention can be measured in Supabase; remembered on the device so it writes once a day.
+async function logActivity(id: string) {
+  const key = 'sf_act_' + id, today = new Date().toISOString().slice(0, 10);
+  try { if ((await AsyncStorage.getItem(key)) === today) return; await AsyncStorage.setItem(key, today); } catch {}
+  sb!.from('user_activity').upsert({ user_id: id, platform: 'ios' }, { onConflict: 'user_id,day', ignoreDuplicates: true }).then(({ error }) => { if (error) console.warn(error); });
 }
 
 async function push() {
   const u = store.user();
   if (!sb || !u?.cloud || pulledFor !== u.id) return;
+  const json = JSON.stringify(store.data());
+  if (json === lastPushed) { syncError = false; lastSync = Date.now(); return; }
   const { error } = await sb.from('progress').upsert({ user_id: u.id, data: store.data(), updated_at: new Date().toISOString() });
+  if (!error) lastPushed = json;
   if (error) { console.warn('Sync failed', error); if (pushTimer) clearTimeout(pushTimer); pushTimer = setTimeout(push, 30000); }
   syncError = !!error;
   if (!error) lastSync = Date.now();
@@ -107,7 +119,7 @@ export async function initCloud() {
     if (event === 'SIGNED_IN' && s?.user && store.user()?.id !== s.user.id) adopt(s.user, pendingName);
   });
   // Debounced push after every local save; flush when the app goes to the background.
-  store.onSave(() => { if (pushTimer) clearTimeout(pushTimer); pushTimer = setTimeout(push, 2000); });
+  store.onSave(() => { if (pushTimer) clearTimeout(pushTimer); pushTimer = setTimeout(push, 20000); });
   AppState.addEventListener('change', (st) => {
     if (st === 'active') { c.auth.startAutoRefresh(); const u = store.user(); if (u?.cloud) c.auth.getUser().then(({ data }) => data.user && pull(data.user)); }
     else { c.auth.stopAutoRefresh(); if (pushTimer) clearTimeout(pushTimer); push(); flush(); }
