@@ -1,7 +1,7 @@
 // The fox editor: a big preview, a tab per part, every choice drawn on a small fox, and Shuffle.
 // Exclusive items show a lock and how to earn them. Used by the Your fox page (#/fox) and Settings.
-import { foxSVG, PARTS, PART_NAMES, defaultAvatar, isUnlocked, unlockText } from './avatar.js';
-import { myAvatar, saveAvatar, foxStats, foxUnlocked } from './members.js';
+import { foxSVG, PARTS, PART_NAMES, defaultAvatar, isUnlocked, unlockText, followUrl } from './avatar.js';
+import { myAvatar, saveAvatar, foxStats, foxUnlocked, earnFoxItem } from './members.js';
 import { icon } from './icons.js';
 import { esc, toast } from './util.js';
 
@@ -40,6 +40,12 @@ export function wireAvatar(root, client) {
     const o = e.target.closest('.fox-opt');
     if (o) {
       const item = PARTS[part].find((x) => x.id === o.dataset.id);
+      if (!isUnlocked(item, foxStats(), foxUnlocked()) && followUrl(item)) {
+        window.open(followUrl(item), '_blank', 'noopener');
+        earnFoxItem(item.id);
+        toast(`${item.unlock.kind === 'review' ? 'Thanks for the review!' : 'Thanks for following!'} The ${item.name.toLowerCase()} is yours.`);
+        return set({ ...a, [part]: o.dataset.id });
+      }
       if (!isUnlocked(item, foxStats(), foxUnlocked())) return toast(`Locked. ${unlockText(item.unlock)} to earn the ${item.name.toLowerCase()}.`);
       return set({ ...a, [part]: o.dataset.id });
     }

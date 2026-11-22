@@ -119,6 +119,11 @@ export function foxStats() {
     lessons: Object.keys(d.learned || {}).length,
   };
 }
+/** Mark an exclusive item earned (follow items, which unlock when tapped). Syncs with progress. */
+export function earnFoxItem(id) {
+  const s = store.data().settings;
+  if (!(s.foxUnlocked || []).includes(id)) { s.foxUnlocked = [...(s.foxUnlocked || []), id]; store.save(); }
+}
 /** Exclusive items this student has earned. Once earned, an item stays unlocked (settings.foxUnlocked). */
 export function foxUnlocked() {
   const s = store.data().settings, stats = foxStats(), had = s.foxUnlocked || [];

@@ -1,16 +1,16 @@
 // Your fox: pick fur, eyes, mouth, shirt and its color, hat, and glasses. Same items, locks, and saving
 // as the website's Your fox page (js/avatar-editor.js). Exclusive items show how to earn them.
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, View } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, View } from 'react-native';
 import { Text } from '../../../../components/AppText';
 import Fox from '../../../../components/Fox';
 import Icon from '../../../../components/Icon';
 import { Button, Card, Screen, tap } from '../../../../components/ui';
 import { contentClient } from '../../../../lib/cloud';
-import { defaultAvatar, foxStats, foxUnlocked, isUnlocked, myAvatar, PART_NAMES, PARTS, saveAvatar, store, unlockText } from '../../../../lib/shared';
+import { defaultAvatar, earnFoxItem, followUrl, foxStats, foxUnlocked, isUnlocked, myAvatar, PART_NAMES, PARTS, saveAvatar, store, unlockText } from '../../../../lib/shared';
 import { type, useColors } from '../../../../lib/theme';
 
-type Item = { id: string; name: string; unlock?: { kind: string; n: number } };
+type Item = { id: string; name: string; unlock?: { kind: string; n?: number; ig?: string } };
 
 export default function FoxScreen() {
   const c = useColors();
@@ -36,7 +36,7 @@ export default function FoxScreen() {
           const on = a[part] === o.id, open = isUnlocked(o, stats, had);
           return (
             <Pressable key={o.id} accessibilityRole="button" accessibilityLabel={open ? o.name : `${o.name}, locked. ${unlockText(o.unlock)}`} accessibilityState={{ selected: on }}
-              onPress={() => (open ? set({ ...a, [part]: o.id }) : Alert.alert(`${o.name} is locked`, `${unlockText(o.unlock)} to earn it.`))}
+              onPress={() => (open ? set({ ...a, [part]: o.id }) : followUrl(o) ? (Linking.openURL(followUrl(o)!), earnFoxItem(o.id), set({ ...a, [part]: o.id })) : Alert.alert(`${o.name} is locked`, `${unlockText(o.unlock)} to earn it.`))}
               style={{ width: 96, alignItems: 'center', gap: 4, paddingVertical: 8, borderRadius: 14, borderWidth: 2, borderColor: on ? c.tint : 'transparent', backgroundColor: on ? c.tintSoft : o.unlock ? c.amber + '22' : 'transparent' }}>
               <View style={{ opacity: open ? 1 : 0.4 }}><Fox avatar={{ ...a, [part]: o.id }} size={60} /></View>
               {!open ? <View style={{ position: 'absolute', top: 6, right: 8 }}><Icon name="lock" size={14} color={c.label2} /></View> : null}

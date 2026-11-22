@@ -9,6 +9,8 @@ let sb = null, pushTimer = null, ready = null;
 // Id of the account whose cloud copy has been downloaded and merged. Until then nothing is uploaded,
 // so a fresh device can never overwrite newer progress with its own blank or older copy.
 let pulledFor = null;
+/** True once this cloud account's saved progress has been loaded on this page (or there is no cloud). */
+export const cloudSynced = (id) => !cloudEnabled || pulledFor === id;
 // The progress JSON last known to match the cloud copy; pushes that would send the same thing are skipped.
 let lastPushed = null;
 

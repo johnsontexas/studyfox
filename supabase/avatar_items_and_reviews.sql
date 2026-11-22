@@ -24,7 +24,10 @@ create table if not exists public.avatar_items (
   name text not null check (char_length(name) between 1 and 40),
   art text not null default '' check (char_length(art) <= 6000 and art !~* '(<script|on[a-z]+\s*=|href|javascript:|foreignObject|<image|<use)'),
   colors jsonb,
-  unlock jsonb check (unlock is null or (unlock->>'kind' in ('shares', 'streak', 'questions', 'lessons') and (unlock->>'n')::int > 0)),
+  unlock jsonb constraint avatar_items_unlock_check check (unlock is null
+    or (unlock->>'kind' in ('shares', 'streak', 'questions', 'lessons') and (unlock->>'n')::int > 0)
+    or unlock->>'kind' = 'review'
+    or (unlock->>'kind' = 'follow' and coalesce(unlock->>'ig', unlock->>'tiktok', unlock->>'yt', unlock->>'x') ~ '^[A-Za-z0-9._]{1,30}$')),
   sort int not null default 0,
   hidden boolean not null default false,
   created_at timestamptz not null default now(),

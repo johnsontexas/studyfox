@@ -11,7 +11,7 @@ import { confirmBox } from '../tools.js';
 import { COURSES } from '../content/courses.js';
 import { BUILTIN_DECKS } from '../content/decks.js';
 import { newsWidget } from './news.js';
-import { cloudEnabled } from '../cloud.js';
+import { cloudEnabled, cloudSignOut } from '../cloud.js';
 import { reviewCardHTML, reviewBannerHTML, wireReview } from '../review.js';
 
 const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; };
@@ -190,11 +190,13 @@ export function dashboardView(root) {
       <div id="newsSlot"></div>
       ${reviewCardHTML()}
     </div>
+    ${u ? `<div class="signout-bar"><span class="muted small">Signed in as ${esc(u.email || u.name)}</span><button class="btn" id="dashLogout">${icon('power')} Sign out</button></div>` : ''}
   </div>`;
 
   qotdRaceWidget(root.querySelector('#qotd'));
   wireReview(root);
   newsWidget(root.querySelector('#newsSlot'));
+  root.querySelector('#dashLogout')?.addEventListener('click', async () => { if (u?.cloud) await cloudSignOut(); store.logout(); location.hash = '#/'; });
   root.querySelector('#moveCloud')?.addEventListener('click', () => { const em = u.email; store.logout(); location.hash = '#/login'; setTimeout(() => { const f = document.querySelector('[name=email]'); if (f) f.value = em; }, 50); });
   root.querySelector('#focusSeg').onclick = (e) => { const f = e.target.dataset.f; if (f) { d.settings.focus = f; store.save(); dashboardView(root); } };
   root.querySelector('#discard')?.addEventListener('click', async () => { if (await confirmBox('Discard your in-progress test? Your answers will be lost.', { ok: 'Discard', danger: true })) { discardInProgress(); dashboardView(root); } });

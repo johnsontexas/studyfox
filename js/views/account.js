@@ -159,6 +159,7 @@ export function settingsView(root) {
         ${u?.cloud ? '<button class="btn danger ghost" id="deleteBtn">Delete account</button>' : ''}
       </div>
     </div>
+    ${u ? `<div class="signout-bar"><span class="muted small">Signed in as ${esc(u.email || u.name)}</span><button class="btn" id="logout2">${icon('power')} Sign out</button></div>` : ''}
   </div>`;
   $('#theme', root).value = s.theme;
   $('#pwForm', root)?.addEventListener('submit', async (e) => {
@@ -194,7 +195,7 @@ export function settingsView(root) {
     s.target = { SAT: +$('#tSAT', root).value || 1400, ACT: +$('#tACT', root).value || 30 };
     store.save(); store.emit(); toast('Saved.', 'good');
   };
-  $('#logout', root)?.addEventListener('click', async () => { if (u?.cloud) await cloudSignOut(); store.logout(); location.hash = '#/'; });
+  for (const id of ['#logout', '#logout2']) $(id, root)?.addEventListener('click', async () => { if (u?.cloud) await cloudSignOut(); store.logout(); location.hash = '#/'; });
   $('#deleteBtn', root)?.addEventListener('click', async () => {
     if (!(await confirmBox('This permanently deletes your account, synced progress, and leaderboard times from our servers and this device. It cannot be undone.', { ok: 'Delete my account', danger: true }))) return;
     try { await deleteAccount(); store.resetAll(); await cloudSignOut(); store.logout(); toast('Your account was deleted.'); location.hash = '#/'; } catch (ex) { toast(ex.message, 'bad'); }

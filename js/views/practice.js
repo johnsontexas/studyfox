@@ -1,4 +1,4 @@
-import { sticker } from '../icons.js';
+import { sticker, icon } from '../icons.js';
 import { $, $$, esc, toast, newSeed, rng, timeAgo, DIFF_LABEL } from '../util.js';
 import { store } from '../store.js';
 import { taxonomy, SECTIONS, buildSet, regen } from '../gen/index.js';
@@ -40,29 +40,45 @@ export function practiceView(root) {
     const list = matching();
     const avail = list.filter((e) => st.pool === 'all' || (st.pool === 'new' ? !done[e.id] : status(e) === 'miss')).length;
     const shown = st.showAll ? list : list.slice(0, 240);
+    const missed = all.filter((e) => e.section === st.section && status(e) === 'miss').length;
+    const hardNew = all.filter((e) => e.section === st.section && e.difficulty === 3 && !done[e.id]).length;
+    const secName = SECTIONS[st.test][st.section];
+    const pct = all.length ? Math.round((100 * did.length) / all.length) : 0;
+    const quick = [
+      ['mixed', 'shuffle', 'Quick 10', `Mixed ${secName} questions you haven't done`],
+      ['hard', 'flame', 'Hard 10', `${hardNew} hard ones left in ${secName}`],
+      ['missed', 'target', 'Retry missed', missed ? `${missed} to get right this time` : 'Nothing missed yet'],
+      ['timed', 'timer', 'Timed 20', 'Test-day pacing, answers at the end'],
+    ];
     root.innerHTML = `
-    <div class="page">
+    <div class="page pq">
       ${classesBar('practice')}
-      <div class="row between wrap gap"><div><h1>${st.test} question bank</h1><p class="muted">${all.length.toLocaleString()} numbered questions, every one with a worked explanation. Pick skills to build a set, or open any question by its number.</p></div>
-      <div class="seg" id="testSeg">${['SAT', 'ACT'].map((t) => `<button data-t="${t}" class="${st.test === t ? 'on' : ''}">${t}</button>`).join('')}</div></div>
+      <header class="pq-head">
+        <div><h1>${st.test} practice</h1><p class="muted">${all.length.toLocaleString()} questions, each with a worked explanation.</p></div>
+        <div class="seg" id="testSeg">${['SAT', 'ACT'].map((t) => `<button data-t="${t}" class="${st.test === t ? 'on' : ''}">${t}</button>`).join('')}</div>
+      </header>
 
-      <div class="bank-progress">
-        <div><span class="bp-num">${did.length.toLocaleString()}</span><span class="bp-of"> / ${all.length.toLocaleString()}</span><span class="bp-label">questions done</span></div>
-        <div><span class="bp-num">${right.toLocaleString()}</span><span class="bp-label">answered correctly</span></div>
-        <div><span class="bp-num">${(did.length - right).toLocaleString()}</span><span class="bp-label">missed, worth a retry</span></div>
-        <div class="bp-bar"><div class="bar"><i style="width:${all.length ? (100 * did.length) / all.length : 0}%"></i></div></div>
+      <div class="pq-stats">
+        <div class="pq-ring" style="--p:${pct}"><b>${pct}%</b></div>
+        <div><b>${did.length.toLocaleString()}</b><span>done</span></div>
+        <div><b>${right.toLocaleString()}</b><span>correct</span></div>
+        <div><b>${(did.length - right).toLocaleString()}</b><span>missed</span></div>
       </div>
 
       <div class="tabs" id="secTabs">${Object.keys(tax).map((k) => `<button data-s="${k}" class="${k === st.section ? 'on' : ''}">${SECTIONS[st.test][k]} <span class="tab-count">${secDone(k)}/${secTotal(k)}</span></button>`).join('')}</div>
 
-      <div class="bank">
-        <div class="stack">
-          <div class="row between"><b>Domains & skills</b><span class="row gap"><button class="link sm" id="allOn">Select all</button><button class="link sm" id="allOff">Clear</button></span></div>
+      <h2 class="pq-h">Start fast</h2>
+      <div class="pq-quick">${quick.map(([k, ic, t, d]) => `<button class="pq-card" data-quick="${k}" ${k === 'missed' && !missed ? 'disabled' : ''}><span class="pq-ic">${icon(ic)}</span><b>${t}</b><span class="muted small">${esc(d)}</span></button>`).join('')}</div>
+
+      <h2 class="pq-h">Build your own set</h2>
+      <div class="pq-build">
+        <section class="card pq-skills">
+          <div class="row between"><b>Skills</b><span class="row gap"><button class="link sm" id="allOn">All</button><button class="link sm" id="allOff">None</button></span></div>
           ${Object.entries(doms).map(([dom, skills]) => {
             const skillNames = Object.keys(skills);
             const onCount = skillNames.filter((k) => !st.off.has(`${dom}|${k}`)).length;
-            return `<div class="dom card ${onCount ? '' : 'dim'}">
-              <label class="dom-head"><input type="checkbox" data-dom="${esc(dom)}" ${onCount === skillNames.length ? 'checked' : ''} ${onCount && onCount < skillNames.length ? 'data-mixed="1"' : ''}><b>${esc(dom)}</b><span class="muted small">${onCount}/${skillNames.length} skills</span></label>
+            return `<div class="pq-dom">
+              <label class="pq-dom-head"><input type="checkbox" data-dom="${esc(dom)}" ${onCount === skillNames.length ? 'checked' : ''} ${onCount && onCount < skillNames.length ? 'data-mixed="1"' : ''}><span>${esc(dom)}</span></label>
               <div class="skills">${skillNames.map((sk) => {
                 const ss = stats[`${st.test}|${st.section}|${sk}`];
                 const acc = ss?.t ? Math.round((100 * ss.c) / ss.t) + '%' : '';
@@ -70,33 +86,29 @@ export function practiceView(root) {
               }).join('')}</div>
             </div>`;
           }).join('')}
-        </div>
-        <aside class="card sticky stack">
-          <div><b>Difficulty</b><div class="seg full" id="diffSeg">${['mixed', '1', '2', '3'].map((d) => `<button data-d="${d}" class="${st.diff === d ? 'on' : ''}">${d === 'mixed' ? 'Mixed' : DIFF_LABEL[d]}</button>`).join('')}</div></div>
-          <div><b>Which questions</b><div class="seg full" id="poolSeg">${[['new', 'New'], ['miss', 'Missed'], ['all', 'Any']].map(([k, v]) => `<button data-p="${k}" class="${st.pool === k ? 'on' : ''}">${v}</button>`).join('')}</div>
-            <p class="muted small" style="margin:.4rem 0 0">${avail} available with these filters.</p></div>
-          <div><b>Number of questions</b><div class="seg full" id="countSeg">${[5, 10, 20, 30].map((c) => `<button data-c="${c}" class="${st.count === c ? 'on' : ''}">${c}</button>`).join('')}</div></div>
-          <div><b>Mode</b>
-            <label class="radio"><input type="radio" name="mode" value="tutor" ${st.mode === 'tutor' ? 'checked' : ''}><span><b>Tutor</b><br><span class="muted small">Check each answer and see the explanation right away. Untimed.</span></span></label>
-            <label class="radio"><input type="radio" name="mode" value="timed" ${st.mode === 'timed' ? 'checked' : ''}><span><b>Timed</b><br><span class="muted small">Test pacing (~${Math.round((SEC_PER_Q[st.section] || 70) / 6) / 10} min/question). Answers at the end.</span></span></label>
-          </div>
+        </section>
+        <aside class="card sticky pq-opts">
+          <div><span class="pq-lbl">Difficulty</span><div class="seg full" id="diffSeg">${['mixed', '1', '2', '3'].map((d) => `<button data-d="${d}" class="${st.diff === d ? 'on' : ''}">${d === 'mixed' ? 'Mixed' : DIFF_LABEL[d]}</button>`).join('')}</div></div>
+          <div><span class="pq-lbl">Questions</span><div class="seg full" id="poolSeg">${[['new', 'New'], ['miss', 'Missed'], ['all', 'Any']].map(([k, v]) => `<button data-p="${k}" class="${st.pool === k ? 'on' : ''}">${v}</button>`).join('')}</div></div>
+          <div><span class="pq-lbl">How many</span><div class="seg full" id="countSeg">${[5, 10, 20, 30].map((c) => `<button data-c="${c}" class="${st.count === c ? 'on' : ''}">${c}</button>`).join('')}</div></div>
+          <div><span class="pq-lbl">Mode</span><div class="seg full">${[['tutor', 'Tutor'], ['timed', 'Timed']].map(([k, v]) => `<button data-m="${k}" class="${st.mode === k ? 'on' : ''}">${v}</button>`).join('')}</div>
+            <p class="muted small pq-note">${st.mode === 'tutor' ? 'See each answer and explanation right away.' : `About ${Math.round((SEC_PER_Q[st.section] || 70) / 6) / 10} min per question. Answers at the end.`}</p></div>
           <button class="btn primary lg block" id="go" ${avail ? '' : 'disabled'}>Start ${Math.min(st.count, avail) || ''} question${Math.min(st.count, avail) === 1 ? '' : 's'}</button>
-          <p class="muted small center">Every question has the Desmos calculator, reference sheet, answer eliminator, highlighter, and mark for review.</p>
+          <p class="muted small center pq-note">${avail} match these filters</p>
         </aside>
       </div>
 
-      <div class="qgrid-head">
-        <div><h2>All ${SECTIONS[st.test][st.section]} questions</h2><p class="muted small">${list.length} match your skills and difficulty. Tap a number to try that question.</p></div>
-        <div class="legend"><span><i class="lgd q-new"></i>Not done</span><span><i class="lgd q-right"></i>Correct</span><span><i class="lgd q-miss"></i>Missed</span></div>
-      </div>
-      <div class="qgrid">${shown.map((e) => `<button class="qn q-${status(e)}" data-no="${e.no}" title="${esc(e.skill)} · ${DIFF_LABEL[e.difficulty]}">${e.no}</button>`).join('')}</div>
-      ${list.length > shown.length ? `<div class="center"><button class="btn" id="showAll">Show all ${list.length}</button></div>` : ''}
+      <details class="pq-browse" ${st.browse ? 'open' : ''}>
+        <summary><span><b>Browse by number</b><span class="muted small"> · ${list.length} ${esc(secName)} questions</span></span><span class="legend"><span><i class="lgd q-new"></i>Not done</span><span><i class="lgd q-right"></i>Correct</span><span><i class="lgd q-miss"></i>Missed</span></span></summary>
+        <div class="qgrid">${shown.map((e) => `<button class="qn q-${status(e)}" data-no="${e.no}" title="${esc(e.skill)} · ${DIFF_LABEL[e.difficulty]}">${e.no}</button>`).join('')}</div>
+        ${list.length > shown.length ? `<div class="center"><button class="btn" id="showAll">Show all ${list.length}</button></div>` : ''}
+      </details>
     </div>`;
     $$('[data-mixed]', root).forEach((c) => (c.indeterminate = true));
   }
 
   root.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-t],[data-s],[data-d],[data-c],[data-p],[data-no],#go,#allOn,#allOff,#showAll');
+    const t = e.target.closest('[data-t],[data-s],[data-d],[data-c],[data-p],[data-m],[data-quick],[data-no],#go,#allOn,#allOff,#showAll');
     if (!t) return;
     const secName = SECTIONS[st.test][st.section];
     if (t.dataset.no) {
@@ -108,7 +120,18 @@ export function practiceView(root) {
     else if (t.dataset.d) st.diff = t.dataset.d;
     else if (t.dataset.c) st.count = +t.dataset.c;
     else if (t.dataset.p) st.pool = t.dataset.p;
-    else if (t.id === 'showAll') st.showAll = true;
+    else if (t.dataset.m) st.mode = t.dataset.m;
+    else if (t.dataset.quick) {
+      const q = t.dataset.quick, sec = bank(st.test).filter((x) => x.section === st.section);
+      const pool = q === 'missed' ? sec.filter((x) => status(x) === 'miss') : sec.filter((x) => !done[x.id] && (q !== 'hard' || x.difficulty === 3));
+      const n = q === 'timed' ? 20 : 10;
+      const src = pool.length ? pool : sec.filter((x) => q !== 'hard' || x.difficulty === 3);
+      const pick = rng(newSeed()).shuffle([...src]).slice(0, n).sort((a, b) => a.no - b.no);
+      if (!pick.length) return toast('No questions to start.');
+      const label = { mixed: 'quick set', hard: 'hard set', missed: 'missed retry', timed: 'timed set' }[q];
+      return launchPractice({ test: st.test, section: st.section, questions: pick.map((x) => regen(x.id)).filter(Boolean), feedback: q !== 'timed', timed: q === 'timed', title: `${st.test} ${secName} ${label}` });
+    }
+    else if (t.id === 'showAll') { st.showAll = true; st.browse = true; }
     else if (t.id === 'allOn') st.off.clear();
     else if (t.id === 'allOff') { const tax = taxonomy(st.test)[st.section]; for (const [d, sk] of Object.entries(tax)) for (const k of Object.keys(sk)) st.off.add(`${d}|${k}`); }
     else if (t.id === 'go') {
@@ -128,7 +151,6 @@ export function practiceView(root) {
   });
   root.addEventListener('change', (e) => {
     const t = e.target;
-    if (t.name === 'mode') { st.mode = t.value; return; }
     if (t.dataset.dom) {
       const tax = taxonomy(st.test)[st.section][t.dataset.dom];
       for (const k of Object.keys(tax)) { const id = `${t.dataset.dom}|${k}`; t.checked ? st.off.delete(id) : st.off.add(id); }

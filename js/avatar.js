@@ -9,6 +9,8 @@
 // (supabase/avatar_items.sql, how-to in docs/avatar-items.md). loadAvatarItems() merges those rows
 // into the lists below at startup. Items can be exclusive: unlock = { kind, n } (see UNLOCKS).
 
+import { INSTAGRAM, STUDYFOX_INSTAGRAM, REVIEW_URL } from './config.js';
+
 const INK = '#22201c';
 
 /** Fur colors: natural fox shades only. New foxes start with a random one (defaultAvatar). */
@@ -124,6 +126,7 @@ export const HATS = [
   { id: 'crown', name: 'Crown', unlock: { kind: 'shares', n: 10 } },
   { id: 'flame', name: 'Streak flame', unlock: { kind: 'streak', n: 14 } },
   { id: 'laurel', name: 'Laurel wreath', unlock: { kind: 'lessons', n: 50 } },
+  { id: 'foxcap', name: 'StudyFox cap', unlock: { kind: 'follow', ig: STUDYFOX_INSTAGRAM } },
 ];
 
 export const GLASSES = [
@@ -138,6 +141,7 @@ export const GLASSES = [
   { id: 'goggles', name: 'Lab goggles' },
   // Exclusive
   { id: 'gold', name: 'Gold frames', unlock: { kind: 'questions', n: 250 } },
+  { id: 'aviators', name: 'Founder aviators', unlock: { kind: 'follow', ig: INSTAGRAM } },
 ];
 
 export const PARTS = { fur: FURS, eyes: EYES, mouth: MOUTHS, shirt: SHIRTS, color: COLORS, hat: HATS, glasses: GLASSES };
@@ -149,12 +153,29 @@ export const UNLOCKS = {
   streak: (n) => `Reach a ${n}-day study streak`,
   questions: (n) => `Answer ${n.toLocaleString()} practice questions`,
   lessons: (n) => `Finish ${n} lessons`,
+  // Tap-to-earn items: tapping opens the page and unlocks it (we can't check follows or reviews).
+  // { kind: 'follow', ig | tiktok | yt | x: 'handle' } or { kind: 'review' } (Trustpilot).
+  follow: (n, u) => `Follow @${u.ig || u.tiktok || u.yt || u.x} on ${u.ig ? 'Instagram' : u.tiktok ? 'TikTok' : u.yt ? 'YouTube' : 'X'}`,
+  review: () => 'Write a StudyFox review on Trustpilot',
 };
-export const unlockText = (u) => (u && UNLOCKS[u.kind] ? UNLOCKS[u.kind](u.n) : '');
+export const unlockText = (u) => (u && UNLOCKS[u.kind] ? UNLOCKS[u.kind](u.n, u) : '');
+const TAP = ['follow', 'review'];
+/** For tap-to-earn items (follow, review): the page to open. null for every other item. */
+export function followUrl(item) {
+  const u = item?.unlock;
+  if (u?.kind === 'review') return REVIEW_URL;
+  if (u?.kind !== 'follow') return null;
+  if (u.ig) return `https://instagram.com/${u.ig}`;
+  if (u.tiktok) return `https://www.tiktok.com/@${u.tiktok}`;
+  if (u.yt) return `https://www.youtube.com/@${u.yt}`;
+  if (u.x) return `https://x.com/${u.x}`;
+  return null;
+}
 /** True if the item is free, or the student has met its unlock goal (or unlocked it before). */
 export function isUnlocked(item, stats = {}, had = []) {
   if (!item?.unlock) return true;
   if (had.includes(item.id)) return true;
+  if (TAP.includes(item.unlock.kind)) return false;
   return (stats[item.unlock.kind] || 0) >= item.unlock.n;
 }
 
@@ -219,7 +240,11 @@ export function addItems(rows) {
     const list = PARTS[r.part];
     if (!list || !/^[a-z]{1,20}$/.test(r.item_id || '') || list.some((x) => x.id === r.item_id)) continue;
     const item = { id: r.item_id, name: String(r.name || r.item_id).slice(0, 40) };
-    if (r.unlock && UNLOCKS[r.unlock.kind] && Number(r.unlock.n) > 0) item.unlock = { kind: r.unlock.kind, n: Number(r.unlock.n) };
+    const handle = (v) => /^[A-Za-z0-9._]{1,30}$/.test(v || '');
+    const site = r.unlock?.kind === 'follow' && ['ig', 'tiktok', 'yt', 'x'].find((k) => handle(r.unlock[k]));
+    if (site) item.unlock = { kind: 'follow', [site]: r.unlock[site] };
+    else if (r.unlock?.kind === 'review') item.unlock = { kind: 'review' };
+    else if (r.unlock && UNLOCKS[r.unlock.kind] && Number(r.unlock.n) > 0) item.unlock = { kind: r.unlock.kind, n: Number(r.unlock.n) };
     const hex = (v) => (/^#[0-9a-f]{6}$/i.test(v || '') ? v : null);
     if (r.part === 'fur') { const c = r.colors || {}; if (!hex(c.fur)) continue; Object.assign(item, { fur: c.fur, dark: hex(c.dark) || c.fur, light: hex(c.light) || '#ffffff' }); }
     else if (r.part === 'color') { if (!hex(r.colors?.hex)) continue; item.hex = r.colors.hex; }
@@ -281,8 +306,8 @@ function shirt(id, c) {
 
 function hat(id) {
   switch (id) {
-    case 'cap': return S('M28 33c2-12 11-18 22-18s20 6 22 18z', '#2f5d9e') + S('M60 33c8-1 16 1 22 5-8 1-15 0-22-1z', '#24497c') + C(50, 15, 2.2, '#24497c');
-    case 'backwards': return S('M28 33c2-12 11-18 22-18s20 6 22 18z', '#c8413f') + S('M40 33c-8-1-16 1-22 5 8 1 15 0 22-1z', '#a33331') + S('M45 30h10v4H45z', '#f7f5f0', ' stroke-width="1.4"');
+    case 'cap': return S('M27 34c0-13 10-21 23-21s23 8 23 21z', '#2f5d9e') + L('M50 14v19M38 17c-2 5-3 10-3 16M62 17c2 5 3 10 3 16', 1.2, '#24497c') + S('M24 32c9-3 43-3 52 0 3 4-1 10-6 11-11-3-29-3-40 0-5-1-9-7-6-11z', '#24497c') + C(50, 13.5, 2, '#24497c', 0);
+    case 'backwards': return S('M33 21c3-17 31-17 34 0-9-3-25-3-34 0z', '#a33331') + S('M27 34c0-13 10-21 23-21s23 8 23 21z', '#c8413f') + L('M38 17c-2 5-3 10-3 16M62 17c2 5 3 10 3 16', 1.2, '#a33331') + S('M42 34c0-5 3-8 8-8s8 3 8 8z', '#a33331') + S('M42 31h16v3H42z', '#f7f5f0');
     case 'beanie': return S('M27 36c0-15 10-24 23-24s23 9 23 24z', '#c8413f') + S('M25 32h50v7H25z', '#a33331') + C(50, 11, 5, '#ffffff', 2);
     case 'grad': return S('M32 30c0-5 8-8 18-8s18 3 18 8v6H32z', INK) + S('M50 12l30 10-30 10-30-10z', '#2b2926') + L('M76 23v12', 1.8, '#d9a53a') + C(76, 36, 2, '#d9a53a', 0);
     case 'beret': return S('M26 30c0-10 12-16 26-15s24 7 22 15c-1 4-8 6-24 6s-24-2-24-6z', '#7c2a35') + L('M52 15v-4', 2.4);
@@ -294,6 +319,7 @@ function hat(id) {
     case 'crown': return S('M33 32l-2-16 10 8 9-12 9 12 10-8-2 16z', '#d9a53a') + C(50, 25, 2.2, '#c8413f', 1.4);
     case 'flame': return S('M50 30c-7 0-11-5-10-11 1-5 5-6 5-11 4 3 4 6 4 8 2-2 2-5 1-8 6 4 11 9 10 15-1 5-5 7-10 7z', '#e8772e') + S('M50 29c-3 0-5-2-4-5 1-2 3-3 3-5 3 2 5 4 5 6 0 3-2 4-4 4z', '#f2c14e', ' stroke-width="1.2"');
     case 'laurel': return [0, 1, 2, 3, 4].map((i) => `<ellipse cx="${30 + i * 3}" cy="${36 - i * 4}" rx="2.6" ry="5" fill="#7a9a4a" stroke="${INK}" stroke-width="1.2" transform="rotate(${-40 + i * 12} ${30 + i * 3} ${36 - i * 4})"/><ellipse cx="${70 - i * 3}" cy="${36 - i * 4}" rx="2.6" ry="5" fill="#7a9a4a" stroke="${INK}" stroke-width="1.2" transform="rotate(${40 - i * 12} ${70 - i * 3} ${36 - i * 4})"/>`).join('');
+    case 'foxcap': return S('M27 34c0-13 10-21 23-21s23 8 23 21z', '#d9772e') + L('M50 14v19M38 17c-2 5-3 10-3 16M62 17c2 5 3 10 3 16', 1.2, '#b25d1f') + S('M43 30l2-9 5 4 5-4 2 9c-2 2-4 3-7 3s-5-1-7-3z', '#f7f5f0') + S('M24 32c9-3 43-3 52 0 3 4-1 10-6 11-11-3-29-3-40 0-5-1-9-7-6-11z', '#b25d1f') + C(50, 13.5, 2, '#b25d1f', 0);
     default: return '';
   }
 }
@@ -303,6 +329,7 @@ function glasses(id) {
   switch (id) {
     case 'round': return lens(39) + lens(61) + L('M46 50c2-2 6-2 8 0M32 50l-8-3M68 50l8-3', 2);
     case 'wire': return lens(39, 6.5, '#8a8f96', 1.4) + lens(61, 6.5, '#8a8f96', 1.4) + L('M45.5 50c2-1.5 7-1.5 9 0M32.5 50l-8-3M67.5 50l8-3', 1.3, '#8a8f96');
+    case 'aviators': { const lensP = (d) => `<path d="${d}" fill="#3d6f78" fill-opacity=".75" stroke="#c9a24a" stroke-width="2" stroke-linejoin="round"/>`; return lensP('M29 46c5-1 13-1 17 0 0 6-2 12-8 12s-9-6-9-12z') + lensP('M54 46c4-1 12-1 17 0 0 6-3 12-9 12s-8-6-8-12z') + L('M46 47c2-1.5 6-1.5 8 0M29 47l-5-2M71 47l5-2', 1.8, '#c9a24a'); }
     case 'gold': return lens(39, 7, '#c9a24a', 2.2) + lens(61, 7, '#c9a24a', 2.2) + L('M46 50c2-2 6-2 8 0M32 50l-8-3M68 50l8-3', 1.8, '#c9a24a');
     case 'square': return SO('M30 45h17v12H30z', '#ffffff', ' fill-opacity=".25"') + SO('M53 45h17v12H53z', '#ffffff', ' fill-opacity=".25"') + L('M47 49h6M30 48l-6-2M70 48l6-2', 2.4);
     case 'half': return SO('M31 52h15l-1 4c-1 2-3 3-6 3s-6-1-7-3z', '#ffffff', ' fill-opacity=".3"') + SO('M54 52h15l-1 4c-1 2-3 3-6 3s-6-1-7-3z', '#ffffff', ' fill-opacity=".3"') + L('M46 53h8M31 52l-6-2M69 52l6-2', 1.8);

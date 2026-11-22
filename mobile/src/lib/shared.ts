@@ -19,8 +19,8 @@ export { CREATOR, INSTAGRAM, SITE_URL, CONTACT_EMAIL, SUPPORT_EMAIL, SUPPORT_FOR
 export { blocksFor, screens, isQuestion, gradeInput, gradeMulti, gradeOrder, gradeMatch, youtubeId } from '../../../js/content/blocks.js';
 export { choiceNotes, hasChoiceNotes, detectSlip } from '../../../js/explain.js';
 export { setting, SETTING_DEFAULTS } from '../../../js/content/settings.js';
-export { pendingRef, clearRef, setReferrer, updateMemberProfile, loadMember, ordinal, referralUrl, myNumber, topSharers, withRanks, myAvatar, saveAvatar, foxStats, foxUnlocked } from '../../../js/members.js';
-export { foxSVG, cleanAvatar, defaultAvatar, PARTS, PART_NAMES, isUnlocked, unlockText, loadAvatarItems } from '../../../js/avatar.js';
+export { pendingRef, clearRef, setReferrer, updateMemberProfile, loadMember, ordinal, referralUrl, myNumber, topSharers, withRanks, myAvatar, saveAvatar, foxStats, foxUnlocked, earnFoxItem } from '../../../js/members.js';
+export { foxSVG, cleanAvatar, defaultAvatar, PARTS, PART_NAMES, isUnlocked, unlockText, followUrl, loadAvatarItems } from '../../../js/avatar.js';
 export { saveReview, loadReview } from '../../../js/review.js';
 export { myClasses, classDetail, createClass, joinClass, leaveClass, updateClass, newJoinCode, removeMember, deleteClass, classSet, shareSet, unshareSet, cleanCode, topicLabel, kindLabel, classTopics } from '../../../js/classes.js';
 export { qotdStatus, qotdStart, qotdAnswer, qotdBoard, qotdYesterday, fmtMs } from '../../../js/qotd.js';

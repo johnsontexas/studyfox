@@ -12,9 +12,9 @@ export const setSession = (s: Session) => { pending = s; };
 export const takeSession = () => pending;
 
 /** Pick `count` bank questions the student hasn't done yet, spread across skills (like the website). */
-export function quickSet(test: Test, section: string | null, count: number, pool: 'new' | 'miss' | 'all' = 'new'): Q[] {
+export function quickSet(test: Test, section: string | null, count: number, pool: 'new' | 'miss' | 'all' = 'new', difficulty?: number): Q[] {
   const done = store.data().bank;
-  const all = bank(test).filter((e) => !section || e.section === section);
+  const all = bank(test).filter((e) => (!section || e.section === section) && (!difficulty || e.difficulty === difficulty));
   let list = all.filter((e) => (pool === 'all' ? true : pool === 'new' ? !done[e.id] : done[e.id] && !done[e.id].c));
   if (!list.length && pool === 'new') list = all;
   const r = rng(newSeed());

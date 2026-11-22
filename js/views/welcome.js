@@ -2,7 +2,7 @@
 import { $, esc, toast } from '../util.js';
 import { store } from '../store.js';
 import { langOptions, profOptions } from '../i18n.js';
-import { cloudSignOut, deleteAccount, db } from '../cloud.js';
+import { cloudSignOut, deleteAccount, db, cloudSynced } from '../cloud.js';
 import { setting } from '../content/settings.js';
 import { pendingRef, clearRef, setReferrer, updateMemberProfile, loadMember, ordinal } from '../members.js';
 import { recordAgreement, takeAfterLogin } from './account.js';
@@ -36,7 +36,9 @@ function saveHeardAbout(f, u) {
   if (u.cloud) db().then((c) => c?.from('signup_sources').upsert({ user_id: u.id, source, detail, platform: 'web' })).then((r) => r?.error && console.warn(r.error)).catch(console.warn);
 }
 
-export const needsOnboarding = () => !!store.user() && !store.data().settings.onboarded;
+// Wait for a cloud account's saved progress before deciding: right after sign-in this device's copy is still
+// blank, so checking early sent returning students to onboarding.
+export const needsOnboarding = () => { const u = store.user(); return !!u && !store.data().settings.onboarded && (!u.cloud || cloudSynced(u.id)); };
 
 export function ageBlockedUntil() {
   let d = null;
