@@ -7,7 +7,7 @@ import { homeView } from './views/home.js';
 import { loginView, signupView, settingsView, requireAgreement } from './views/account.js';
 import { initCloud } from './cloud.js';
 import { welcomeView, ageBlockedView, ageBlockedUntil, needsOnboarding } from './views/welcome.js';
-import { CREATOR, CREATOR_EMAIL, KOFI } from './config.js';
+import { CREATOR, KOFI, SUPPORT_EMAIL } from './config.js';
 import { newsView, adminView, contactView, maintenanceHTML, fetchStatus } from './views/news.js';
 import { isAdmin, db, cloudEnabled } from './cloud.js';
 import { initContent, onContent } from './content/live.js';
@@ -206,7 +206,7 @@ function syncMember() {
 }
 
 // Social accounts from Admin console > Socials (content_settings.socials).
-const footSocials = () => socials().map((l) => `<a class="foot-ig" href="${esc(l.href)}" target="_blank" rel="noopener">${icon(l.icon)}${esc(l.label)}${l.label.startsWith('@') ? ` on ${esc(l.name)}` : ''}</a>`).join('');
+const footSocials = () => socials().map((l) => `<a class="foot-soc" href="${esc(l.href)}" target="_blank" rel="noopener" title="${esc(l.name)}" aria-label="StudyFox on ${esc(l.name)}">${icon(l.icon)}</a>`).join('');
 
 function boot() {
   captureRef();
@@ -216,11 +216,9 @@ function boot() {
   const footer = `<footer class="site-foot"><div class="foot-inner">
       <div class="foot-brand"><b>${BRAND}</b><p>Free study material for school and the SAT and ACT. No ads, no paywalls, no limits.</p>
         <p class="foot-credit" id="footCredit"><a href="#/contributors">${esc(creditLine() || `Made by ${CREATOR}.`)}</a></p>
-        <span id="footSocials">${footSocials()}</span>
-        <a class="foot-ig" href="mailto:${CREATOR_EMAIL}">${icon('mail')}Contact ${CREATOR}: ${CREATOR_EMAIL}</a>
-        <a class="foot-ig" href="mailto:support@studyfox.org">${icon('mail')}Support: support@studyfox.org</a>
-        <a class="foot-ig" href="${KOFI}" target="_blank" rel="noopener">${icon('heart')}Support StudyFox on Ko-fi</a>
-        <a class="foot-ig" id="iosLink" href="#" target="_blank" rel="noopener" hidden>${icon('down')}Download on iOS</a></div>
+        <div class="foot-socs"><span id="footSocials">${footSocials()}</span><a class="foot-soc" href="mailto:${SUPPORT_EMAIL}" title="Email support" aria-label="Email StudyFox support">${icon('mail')}</a><a class="foot-soc" href="${KOFI}" target="_blank" rel="noopener" title="Ko-fi" aria-label="Support StudyFox on Ko-fi">${icon('heart')}</a></div>
+        <a class="foot-ig" id="iosLink" href="#" target="_blank" rel="noopener" hidden>${icon('down')}Download on iOS</a>
+        <p class="foot-mail">Support: <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></p></div>
       <nav class="foot-links" aria-label="Study guides"><a href="/courses/">All study guides</a><a href="/ap/">AP study guides</a><a href="/sat-act/">SAT &amp; ACT guides</a><a href="/flashcards/">Flashcard decks</a><a href="/sitemap/">Site map</a></nav>
       <nav class="foot-links" aria-label="Footer"><a href="#/news">News</a><a href="#/about">About</a><a href="#/contributors">Contributors</a><a href="#/contact">Contact</a><a href="#/donate">Donate</a><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a></nav>
       <p class="foot-legal">SAT®, AP®, and ACT® are trademarks of their respective owners, which are not affiliated with and do not endorse this site. Questions are original and generated for practice; scores are estimates.</p>

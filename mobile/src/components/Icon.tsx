@@ -30,7 +30,7 @@ const MAP = {
   rush: ['bolt.circle.fill', 'bolt'], lock: ['lock.fill', 'shield'], bookmark: ['bookmark', 'bookmark'], bookmarkFill: ['bookmark.fill', 'bookmark'], pause: ['pause.fill', 'pause'],
   eye: ['eye', 'timer'], eyeSlash: ['eye.slash', 'timer'], strike: ['strikethrough', 'x'], chartBar: ['chart.bar.fill', 'chart'], puzzle: ['puzzlepiece', 'puzzle'],
   // Social accounts (js/content/socials.js) and announcements
-  tiktok: ['music.note', 'tiktok'], youtube: ['play.rectangle.fill', 'youtube'], 'x-social': ['xmark', 'x-social'], threads: ['at', 'threads'],
+  tiktok: ['music.note', 'tiktok'], linkedin: ['briefcase.fill', 'linkedin'], youtube: ['play.rectangle.fill', 'youtube'], 'x-social': ['xmark', 'x-social'], threads: ['at', 'threads'],
   discord: ['bubble.left.and.bubble.right.fill', 'discord'], megaphone: ['megaphone.fill', 'megaphone'],
 } as const;
 // Drawn for StudyFox with no matching SF Symbol, so iOS uses the SVG.
