@@ -1,3 +1,4 @@
+/* Dark mode is a soft charcoal (not near-black) with gentler greens, so long study sessions are easier on the eyes. */
 /* Forest theme: soft sage paper, deep green ink, forest-green brand, fox-amber accent, a characterful serif for headlines, a plain sans for UI, and a book serif for passages */
 :root {
   --bg: #f5f7f2; --surface: #ffffff; --surface-2: #ecf1e8; --ink: #14231a; --ink-2: #33463a; --muted: #647368; --line: #e0e7dc; --line-strong: #c9d4c3;
@@ -11,18 +12,18 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0a0f0c; --surface: #121a15; --surface-2: #19231d; --ink: #e8efe9; --ink-2: #c2cfc6; --muted: #8a998e; --line: #212d25; --line-strong: #2f3f34;
-    --brand: #5fcf94; --brand-2: #86dcae; --brand-ink: #08140d; --brand-soft: #1a3326;
-    --accent: #8a6514; --good: #6fcf8f; --good-soft: #183020; --bad: #ff8f80; --bad-soft: #3d1d18; --mid: #f0b456; --mid-soft: #3a2a10;
+    --bg: #151917; --surface: #1c211e; --surface-2: #242a26; --ink: #e3e7e2; --ink-2: #bac2bc; --muted: #8c958f; --line: #2b322e; --line-strong: #39423d;
+    --brand: #74c095; --brand-2: #93d1ad; --brand-ink: #0d1a12; --brand-soft: #213529;
+    --accent: #9a7425; --good: #7cc596; --good-soft: #1f3326; --bad: #ec8f84; --bad-soft: #3a2421; --mid: #e3b265; --mid-soft: #3a2e1a;
     --lilac: #232a3a; --peach: #3a2e14;
     --hard: rgba(0, 0, 0, .5); --shadow: 0 1px 0 rgba(0, 0, 0, .3); --shadow-sm: 0 1px 0 rgba(0, 0, 0, .25); --shadow-lg: 0 2px 0 var(--line-strong), 0 10px 28px rgba(0, 0, 0, .35);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0a0f0c; --surface: #121a15; --surface-2: #19231d; --ink: #e8efe9; --ink-2: #c2cfc6; --muted: #8a998e; --line: #212d25; --line-strong: #2f3f34;
-  --brand: #5fcf94; --brand-2: #86dcae; --brand-ink: #08140d; --brand-soft: #1a3326;
-  --accent: #8a6514; --good: #6fcf8f; --good-soft: #183020; --bad: #ff8f80; --bad-soft: #3d1d18; --mid: #f0b456; --mid-soft: #3a2a10;
+  --bg: #151917; --surface: #1c211e; --surface-2: #242a26; --ink: #e3e7e2; --ink-2: #bac2bc; --muted: #8c958f; --line: #2b322e; --line-strong: #39423d;
+  --brand: #74c095; --brand-2: #93d1ad; --brand-ink: #0d1a12; --brand-soft: #213529;
+  --accent: #9a7425; --good: #7cc596; --good-soft: #1f3326; --bad: #ec8f84; --bad-soft: #3a2421; --mid: #e3b265; --mid-soft: #3a2e1a;
   --lilac: #232a3a; --peach: #3a2e14;
   --hard: rgba(0, 0, 0, .5); --shadow: 0 1px 0 rgba(0, 0, 0, .3); --shadow-sm: 0 1px 0 rgba(0, 0, 0, .25); --shadow-lg: 0 2px 0 var(--line-strong), 0 10px 28px rgba(0, 0, 0, .35);
   color-scheme: dark;
@@ -1535,3 +1536,57 @@ a.hx-t:hover { border-color: var(--brand); }
 .choice-why li { border: 0; background: var(--surface-2); border-radius: 10px; }
 .choice-why li.right { background: color-mix(in srgb, var(--good) 9%, var(--surface)); } .choice-why li.picked { background: color-mix(in srgb, var(--bad) 8%, var(--surface)); }
 .choice-note.wrong { border-left: 0; }
+
+/* Answer letters: the UI sans, bold, not a code font */
+.letter { font-family: var(--font); font-weight: 700; font-size: .85rem; }
+
+/* Test-day look switch (js/test-look.js) */
+.look-switch { display: inline-flex; align-items: center; gap: .45rem; background: none; border: 0; padding: .2rem .3rem; font: inherit; font-size: .82rem; font-weight: 600; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.ls-track { width: 34px; height: 20px; border-radius: 99px; background: var(--line-strong); position: relative; transition: background .15s; flex: none; }
+.ls-knob { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .15s; }
+.look-switch[aria-checked="true"] .ls-track { background: var(--brand); }
+.look-switch[aria-checked="true"] .ls-knob { transform: translateX(14px); }
+@media (max-width: 640px) { .tr-right .ls-label { display: none; } }
+
+/* ---------- Test-day looks ----------
+   Plain exam screens: always light, black on white, no StudyFox colors inside the question area.
+   Digital SAT and AP: serif question text, round answer bubbles, a thin dashed rule under the bar.
+   ACT: Arial-style text, a dark blue top bar, square answer keys. */
+body.look-digital, body.look-act {
+  --bg: #ffffff; --surface: #ffffff; --surface-2: #f2f2f2; --ink: #1a1a1a; --ink-2: #3d3d3d; --muted: #6b6b6b; --line: #d6d6d6; --line-strong: #9e9e9e;
+  --good: #1e7a3c; --good-soft: #e8f4ec; --bad: #b3261e; --bad-soft: #fbe9e7; color-scheme: light;
+}
+body.look-digital { --brand: #324dc7; --brand-soft: #e8ecfb; --brand-ink: #fff; }
+body.look-act { --brand: #1f3f75; --brand-soft: #e6ecf6; --brand-ink: #fff; --font: Arial, Helvetica, sans-serif; }
+body.look-digital .stem, body.look-digital .tr-passage, body.look-digital .ctext, body.look-digital .tr-q { font-family: 'Noto Serif', Georgia, 'Times New Roman', serif; }
+body.look-digital .stem, body.look-digital .ctext { font-size: 1.02rem; }
+body.look-digital .tr-rule { border-top: 2px dashed #1a1a1a; }
+body.look-digital .choice, body.look-digital .choices.tappable .choice-tap { border: 1px solid #1a1a1a; border-radius: 8px; background: #fff; }
+body.look-digital .letter { border-radius: 50%; border: 1.5px solid #1a1a1a; background: #fff; color: #1a1a1a; font-family: Arial, Helvetica, sans-serif; }
+body.look-digital .choices li.sel .choice { border: 2px solid var(--brand); }
+body.look-digital .choices li.sel .letter { background: var(--brand); border-color: var(--brand); color: #fff; }
+body.look-act .tr-top { background: #1f3f75; color: #fff; }
+body.look-act .tr-top .tool, body.look-act .tr-top .link, body.look-act .tr-top .icon-btn, body.look-act .tr-top .look-switch, body.look-act .tr-top .pill { color: #fff; border-color: rgba(255,255,255,.4); }
+body.look-act .choice, body.look-act .choices.tappable .choice-tap { border: 1px solid #9e9e9e; border-radius: 2px; background: #fff; }
+body.look-act .letter { border-radius: 2px; background: #e9e9e9; color: #1a1a1a; font-family: Arial, Helvetica, sans-serif; }
+body.look-act .choices li.sel .choice { border: 2px solid #1f3f75; background: #eef2f9; }
+body.look-act .choices li.sel .letter { background: #1f3f75; color: #fff; }
+body.look-digital .card, body.look-act .card { border: 1px solid var(--line) !important; border-radius: 6px; box-shadow: none !important; }
+body.look-digital .tag, body.look-act .tag { background: #f2f2f2; color: #3d3d3d; }
+
+/* Announcement sharing (js/views/news.js) */
+.news-foot { display: flex; align-items: center; justify-content: space-between; gap: .8rem; flex-wrap: wrap; margin-top: .4rem; }
+.news-foot > p { margin: 0; }
+.news-foot .news-share { margin-left: auto; }
+.news-flash { animation: news-flash 1.6s ease; }
+@keyframes news-flash { 0%, 40% { box-shadow: 0 0 0 3px var(--brand); } 100% { box-shadow: 0 0 0 0 transparent; } }
+.post-share { display: flex; flex-direction: column; gap: .9rem; }
+.post-share > p { margin: 0; }
+.post-share-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; }
+.post-share-btn { display: flex; flex-direction: column; align-items: center; gap: .4rem; padding: .8rem .3rem; border-radius: 14px; background: var(--surface-2); border: 0; color: var(--ink); font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; text-decoration: none !important; }
+.post-share-btn:hover { background: var(--brand-soft); color: var(--brand); }
+.post-share-btn .ico { width: 22px; height: 22px; }
+.post-share-url { display: block; padding: .55rem .75rem; border-radius: 10px; background: var(--surface-2); font-size: .8rem; color: var(--muted); overflow-wrap: anywhere; }
+@media (max-width: 420px) { .post-share-grid { grid-template-columns: repeat(3, 1fr); } }
+body.look-act .tr-top .ls-track { background: rgba(255,255,255,.3); }
+body.look-act .tr-top .look-switch[aria-checked="true"] .ls-track { background: #7fa6e3; }

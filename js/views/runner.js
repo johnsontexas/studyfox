@@ -1,4 +1,5 @@
 // Bluebook-style test runner used for both practice sets and full practice tests.
+import { lookOnByDefault, lookStyle, setLook, lookSwitchHTML } from '../test-look.js';
 import { icon } from '../icons.js';
 import { $, $$, tex, esc, fmtTime, toast, uid, checkSpr, parseSpr } from '../util.js';
 import { store } from '../store.js';
@@ -52,7 +53,8 @@ export function runnerView(root) {
     return;
   }
   document.body.classList.add('testing');
-  const ui = { hideTimer: false, elimMode: false, hlMode: false, navOpen: false };
+  const ui = { hideTimer: false, elimMode: false, hlMode: false, navOpen: false, look: lookOnByDefault() };
+  setLook(ui.look ? lookStyle(run.test) : null);
   root.innerHTML = '<div class="tr" id="tr"></div>';
   const tr = $('#tr', root);
 
@@ -114,6 +116,7 @@ export function runnerView(root) {
         <div class="tr-left"><button class="icon-btn tr-home" data-act="home" title="Home" aria-label="Go home">${icon('home')}</button><div><div class="tr-title">${esc(m.name)}</div><button class="link sm" data-act="directions">Directions ${icon('down')}</button></div></div>
         <div class="tr-mid">${ui.hideTimer ? `<span class="tr-timer hidden-timer">${icon('timer')}</span>` : `<span class="tr-timer ${m.timeLeft != null && m.timeLeft <= 300 ? 'warn' : ''}">${fmtTime(m.timeLeft ?? m.elapsed ?? 0)}</span>`}<button class="pill sm" data-act="timer">${ui.hideTimer ? 'Show' : 'Hide'}</button></div>
         <div class="tr-right">
+          ${lookSwitchHTML(ui.look, run.test)}
           ${split ? `<button class="tool ${ui.hlMode ? 'on' : ''}" data-act="hl" title="Highlight text in the passage"><span>${icon('highlighter')}</span>Highlight</button>` : ''}
           ${isMath ? `<button class="tool" data-act="calc"><span>${icon('calculator')}</span>Calculator</button><button class="tool" data-act="ref"><span>${icon('ruler')}</span>Reference</button>` : ''}
           <button class="tool" data-act="more"><span>⋯</span>More</button>
@@ -339,6 +342,7 @@ export function runnerView(root) {
         break;
       }
       case 'directions': modal(directions(curQ()), { title: 'Directions' }); break;
+      case 'look': ui.look = !ui.look; setLook(ui.look ? lookStyle(run.test) : null); render(); break;
       case 'more': {
         const mm = modal(`<div class="stack">
           <button class="btn block" data-x="save">Save and exit</button>
@@ -375,6 +379,7 @@ export function runnerView(root) {
     if (timer) clearInterval(timer); timer = null;
     destroyCalculator();
     document.body.classList.remove('testing');
+    setLook(null);
   }
 
   if (mod().break) run.view = 'break';
