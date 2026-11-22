@@ -98,7 +98,7 @@ export function classView(root, { id }) {
         <p class="muted small">Answers you practice on StudyFox count here once they sync.</p></div>
 
       <div class="card"><div class="row between wrap gap"><h2 class="h3">${icon('cards')} Shared flashcard sets</h2>
-        ${c.can_share ? `<button class="btn sm primary" id="shareBtn">${icon('plus')} Share a set</button>` : ''}</div>
+        ${c.can_share ? `<button class="btn sm primary" id="shareSetBtn">${icon('plus')} Share a set</button>` : ''}</div>
         ${c.sets.length ? `<div class="class-sets">${c.sets.map((s) => `<div class="class-set row between gap">
             <button class="link-btn" data-open="${s.id}"><b>${esc(s.title)}</b> <span class="muted small">${s.count} cards${s.added_name ? ` · from ${esc(s.added_name)}` : ''}</span></button>
             ${s.mine || c.is_owner ? `<button class="icon-btn" data-unshare="${s.id}" aria-label="Remove ${esc(s.title)}">${icon('trash')}</button>` : ''}</div>`).join('')}</div>`
@@ -123,7 +123,7 @@ export function classView(root, { id }) {
     root.querySelectorAll('[data-remove]').forEach((b) => { b.onclick = () => confirmBox(`Remove ${b.dataset.name} from ${c.name}?`, { ok: 'Remove', danger: true }).then((y) => y && removeMember(db(), id, b.dataset.remove).then(load, (e) => toast(e.message, 'bad'))); });
     root.querySelectorAll('[data-unshare]').forEach((b) => { b.onclick = () => confirmBox('Remove this set from the class? Copies people saved stay theirs.', { ok: 'Remove', danger: true }).then((y) => y && unshareSet(db(), b.dataset.unshare).then(load, (e) => toast(e.message, 'bad'))); });
     root.querySelectorAll('[data-open]').forEach((b) => { b.onclick = () => openSet(b.dataset.open); });
-    const sb = $('#shareBtn', root);
+    const sb = $('#shareSetBtn', root);
     if (sb) sb.onclick = () => pickSet(c, load);
     const lb = $('#leaveBtn', root);
     if (lb) lb.onclick = () => confirmBox(`Leave ${c.name}?`, { ok: 'Leave', danger: true }).then((y) => y && leaveClass(db(), id).then(() => { location.hash = '#/classes'; }, (e) => toast(e.message, 'bad')));
