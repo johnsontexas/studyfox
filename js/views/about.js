@@ -5,7 +5,7 @@ import { icon } from '../icons.js';
 import { esc } from '../util.js';
 import { PEOPLE } from '../content/people.js';
 import { onContent } from '../content/live.js';
-import { teamHTML } from './contributors.js';
+import { teamHTML, fillSharers } from './contributors.js';
 import { socials } from '../content/socials.js';
 import { BETTERU_URL, CREATOR, CREATOR_SITE, CREATOR_EMAIL, INSTAGRAM, SUPPORT_EMAIL } from '../config.js';
 
@@ -32,8 +32,12 @@ function livePage(root, p) {
     <header class="about-hero"><span class="eyebrow">${icon('heart')} About StudyFox</span><h1>${esc(p.title)}</h1>${p.intro ? `<p>${esc(p.intro)}</p>` : ''}
       <div class="about-stats"><span><b>49</b> classes</span><span><b>0</b> ads</span><span><b>$0</b> forever</span></div></header>
     ${(p.sections || []).map(sec).join('')}
+    <a class="card about-sharers stack" href="#/contributors" aria-label="Top sharers. See all contributors">
+      <div class="row between gap"><div><h2 class="h3">Top sharers</h2><p class="muted small">Students who brought the most friends to StudyFox.</p></div><span class="small about-sharers-go">See all ${icon('right')}</span></div>
+      <div id="aboutSharers"><p class="muted small">Loading...</p></div></a>
     ${followHTML()}
   </div>`;
+  fillSharers(root.querySelector('#aboutSharers'), 5, { compact: true });
 }
 
 export function aboutView(root) {

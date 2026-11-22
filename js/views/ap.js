@@ -28,10 +28,11 @@ const apCourses = () => COURSES.filter((c) => c.ap);
 const tone = (s) => `tone-${Math.max(0, SUBJECTS.indexOf(s)) % 10}`;
 
 export function apHubView(root) {
-  root.innerHTML = `<div class="page">${classesBar('ap')}<div class="page-head"><span class="eyebrow">${icon('target')} AP practice</span><h1>AP question bank</h1>
-    <p class="muted">Exam-style multiple choice for every AP class, sorted by unit and concept. Every question has an explanation.</p>
-    <div class="row gap wrap"><a class="btn sm" href="#/formulas?s=calc">${icon('integral')} AP formula sheets</a><a class="btn sm primary" href="#/hardest">${icon('flame')} Hardest questions</a></div></div>
-    <div id="apGrid" class="ap-grid"><p class="muted">Loading the question bank...</p></div></div>`;
+  const st = { q: '', subj: 'All' };
+  root.innerHTML = `<div class="page aph">${classesBar('ap')}<header class="pq-head"><div><h1>AP practice</h1>
+    <p class="muted">Exam-style questions for every AP class, by unit. Every answer explained.</p></div>
+    <div class="row gap wrap"><a class="btn sm" href="#/hardest">${icon('flame')} Hardest questions</a><a class="btn sm" href="#/formulas?s=calc">${icon('integral')} Formula sheets</a></div></header>
+    <div id="apGrid"><p class="muted">Loading the question bank...</p></div></div>`;
   apCounts().then((cnt) => {
     const el = $('#apGrid', root);
     if (!el) return;
@@ -39,28 +40,44 @@ export function apHubView(root) {
     const doneBy = {};
     for (const v of Object.values(done)) if (v.cid) doneBy[v.cid] = (doneBy[v.cid] || 0) + 1;
     const list = apCourses().map((c) => ({ c, n: Object.values(cnt[c.id] || {}).reduce((a, b) => a + b, 0), units: Object.keys(cnt[c.id] || {}).length })).filter((x) => x.n);
+    if (!list.length) { el.innerHTML = `<div class="card empty-note"><p class="muted">The AP question bank couldn't load. Check your connection and try again.</p></div>`; return; }
     const total = list.reduce((a, x) => a + x.n, 0);
     const mineIds = myStudying();
-    const card = ({ c, n, units }) => {
-        const d = doneBy[c.id] || 0, unitNames = Object.keys(cnt[c.id] || {}).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-        return `<a class="course-card ${tone(c.subject)}${d ? ' started' : ''}" href="#/ap/${c.id}">
-        <div class="cc-art" aria-hidden="true"><span class="cc-art-big">${icon(courseIcon(c))}</span><span class="cc-icon">${icon(courseIcon(c))}</span><span class="cc-level">AP exam</span></div>
-        <h3>${esc(c.title)}</h3>
-        <ol class="cc-peek">${unitNames.slice(0, 3).map((u) => `<li>${esc(u)}</li>`).join('')}${unitNames.length > 3 ? `<li class="more">+${unitNames.length - 3} more</li>` : ''}</ol>
-        <div class="cc-foot"><span>${n} questions</span><span>${units} units</span>
-          ${d ? `<span class="cc-done">${d >= n ? `${icon('check')} Done` : `${Math.round((100 * d) / n)}%`}</span>` : `<span class="cc-go">${icon('right')}</span>`}</div>
-        ${d ? `<i class="cc-bar" style="--w:${Math.min(100, (100 * d) / n)}%"></i>` : ''}
-      </a>`;
+    const subjects = SUBJECTS.filter((sj) => list.some((x) => x.c.subject === sj));
+    const name = (c) => (/^AP /.test(c.title) ? c.title : `AP ${c.title}`);
+    const row = ({ c, n, units }) => {
+      const d = doneBy[c.id] || 0, pct = Math.min(100, Math.round((100 * d) / n));
+      return `<a class="aph-row ${tone(c.subject)}" href="#/ap/${c.id}">
+        <span class="aph-ic">${icon(courseIcon(c))}</span>
+        <span class="aph-main"><b>${esc(name(c))}</b><span class="muted small">${n} questions · ${units} units</span></span>
+        <span class="aph-prog">${d ? `<span class="aph-bar"><i style="width:${pct}%"></i></span><span class="small">${pct}%</span>` : `<span class="muted small">Start</span>`}</span>
+        <span class="aph-go">${icon('right')}</span></a>`;
     };
-    el.outerHTML = list.length ? `<p class="muted small">${total.toLocaleString()} questions across ${list.length} AP classes.</p>
-      ${list.some((x) => mineIds.includes(x.c.id)) ? `<h2 class="cc-sec">Your AP classes</h2><div class="course-grid">${list.filter((x) => mineIds.includes(x.c.id)).map(card).join('')}</div><h2 class="cc-sec">All AP classes</h2>` : ''}
-      <div class="course-grid">${list.filter((x) => !mineIds.includes(x.c.id)).map(card).join('')}</div>`
-      : `<div class="card empty-note"><p class="muted">The AP question bank couldn't load. Check your connection and try again.</p></div>`;
+    const draw = () => {
+      const q = st.q.trim().toLowerCase();
+      const hit = (x) => (st.subj === 'All' || x.c.subject === st.subj) && (!q || name(x.c).toLowerCase().includes(q) || x.c.subject.toLowerCase().includes(q));
+      const mine = list.filter((x) => mineIds.includes(x.c.id) && hit(x));
+      const groups = subjects.map((sj) => [sj, list.filter((x) => x.c.subject === sj && hit(x))]).filter(([, l]) => l.length);
+      $('#aphBody', root).innerHTML = (mine.length && !q && st.subj === 'All' ? `<section class="aph-sec"><h2>Your classes</h2><div class="aph-list">${mine.map(row).join('')}</div></section>` : '')
+        + (groups.length ? groups.map(([sj, l]) => `<section class="aph-sec"><h2>${esc(sj)}</h2><div class="aph-list">${l.map(row).join('')}</div></section>`).join('')
+          : `<p class="muted">No AP class matches "${esc(st.q)}".</p>`);
+      root.querySelectorAll('[data-subj]').forEach((b) => b.classList.toggle('on', b.dataset.subj === st.subj));
+    };
+    el.innerHTML = `<div class="aph-tools">
+        <label class="aph-search">${icon('search')}<input id="aphQ" type="search" placeholder="Search ${list.length} AP classes" aria-label="Search AP classes"></label>
+        <div class="aph-chips">${['All', ...subjects].map((sj) => `<button class="chip" data-subj="${esc(sj)}">${esc(sj)}</button>`).join('')}</div>
+      </div>
+      <p class="muted small">${total.toLocaleString()} questions across ${list.length} AP classes.</p>
+      <div id="aphBody"></div>`;
+    $('#aphQ', root).addEventListener('input', (e) => { st.q = e.target.value; draw(); });
+    el.addEventListener('click', (e) => { const b = e.target.closest('[data-subj]'); if (b) { st.subj = b.dataset.subj; draw(); } });
+    draw();
   });
 }
 
 export function apCourseView(main, { course: cid }) {
   // Own container: #main is reused across routes, so listeners on it would pile up.
+  main.replaceChildren();
   const root = main.appendChild(document.createElement('div'));
   const course = cid === HARDEST_ID ? HARDEST : apCourses().find((c) => c.id === cid);
   if (!course) { root.innerHTML = `<div class="page narrow"><h1>Course not found</h1><a class="btn" href="#/ap">All AP classes</a></div>`; return; }
@@ -75,7 +92,7 @@ export function apCourseView(main, { course: cid }) {
     const units = unitOrder(course, st.qs);
     const all = stats(st.qs);
     host().innerHTML = `
-      <a class="small" href="#/ap">${icon('left')} All AP classes</a>
+      ${course.id === HARDEST_ID ? '' : `<a class="small" href="#/ap">${icon('left')} All AP classes</a>`}
       ${course.id === HARDEST_ID ? `<div class="row between wrap gap"><div><span class="eyebrow">${icon('flame')} Challenge</span><h1>${esc(course.title)}</h1><p class="muted">${all.n} max-difficulty SAT and AP questions, harder than the hardest real exam items. Every one is fair, with a full explanation of each choice. Expect to miss some.</p></div></div>`
       : `<div class="row between wrap gap"><div><h1>${esc(course.title)}</h1><p class="muted">${all.n} questions in ${units.length} units. Pick a unit, or narrow it to one concept.</p></div>
         <a class="btn ghost sm" href="#/learn/${course.id}">${icon('book')} Lessons</a></div>`}
@@ -85,10 +102,16 @@ export function apCourseView(main, { course: cid }) {
         <div><span class="bp-num">${all.did - all.right}</span><span class="bp-label">missed, worth a retry</span></div>
         <div class="bp-bar"><div class="bar"><i style="width:${all.n ? (100 * all.did) / all.n : 0}%"></i></div></div>
       </div>
+      <h2 class="pq-h">Start fast</h2>
+      <div class="pq-quick">${[
+        ['mix', 'shuffle', 'Quick 10', 'Mixed from every unit, new first'],
+        ['hard', 'flame', 'Hard 10', `${st.qs.filter((q) => q.difficulty === 3 && !apData()[q.id]).length} hard ones you haven't tried`],
+        ['miss', 'target', 'Retry missed', all.did - all.right ? `${all.did - all.right} to get right this time` : 'Nothing missed yet'],
+      ].filter(([k]) => !(k === 'hard' && course.id === HARDEST_ID)).map(([k, ic, t, d]) => `<button class="pq-card" data-quick="${k}" ${k === 'miss' && !(all.did - all.right) ? 'disabled' : ''}><span class="pq-ic">${icon(ic)}</span><b>${t}</b><span class="muted small">${esc(d)}</span></button>`).join('')}</div>
+      <h2 class="pq-h">Practice by unit</h2>
       <div class="card row between wrap gap ap-opts">
         <div class="row gap wrap"><b>Questions</b><div class="seg sm">${[10, 20, 40].map((n) => `<button data-count="${n}" class="${st.count === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>
         <div class="row gap wrap"><b>Which</b><div class="seg sm">${[['smart', 'New first'], ['new', 'Only new'], ['missed', 'Only missed']].map(([k, t]) => `<button data-mode="${k}" class="${st.mode === k ? 'on' : ''}">${t}</button>`).join('')}</div></div>
-        <button class="btn primary" data-start="*">${icon('shuffle')} Mixed from all units</button>
       </div>
       <div class="stack ap-units">${units.map((u, i) => {
         const pool = st.qs.filter((q) => q.unit === u);
@@ -186,9 +209,16 @@ export function apCourseView(main, { course: cid }) {
     if (e.target.closest('#apHint')) { st.session.hint = true; return drawQ(); }
     const pk = e.target.closest('[data-apeek]');
     if (pk) { const i = +pk.dataset.apeek; st.session.peek = st.session.peek === i ? null : i; return drawQ(); }
-    const t = e.target.closest('[data-count],[data-mode],[data-start],[data-open],[data-concept],[data-pick],#apNext,#apQuit,#apAgain,#apBack');
+    const t = e.target.closest('[data-quick],[data-count],[data-mode],[data-start],[data-open],[data-concept],[data-pick],#apNext,#apQuit,#apAgain,#apBack');
     if (!t) return;
     const units = host()?._units || [];
+    if (t.dataset.quick) {
+      const k = t.dataset.quick, done = apData();
+      const pool = k === 'hard' ? st.qs.filter((q) => q.difficulty === 3) : k === 'miss' ? st.qs.filter((q) => done[q.id] && !done[q.id].c) : st.qs;
+      st.lastPool = pool; st.lastTitle = { mix: 'Quick 10', hard: 'Hard 10', miss: 'Missed questions' }[k];
+      const keep = [st.count, st.mode]; st.count = 10; st.mode = "smart";
+      const r = start(pool, st.lastTitle); [st.count, st.mode] = keep; return r;
+    }
     if (t.dataset.count) { st.count = +t.dataset.count; return drawIndex(); }
     if (t.dataset.mode) { st.mode = t.dataset.mode; return drawIndex(); }
     if (t.dataset.open) { const u = units[+t.dataset.open]; st.open = st.open === u ? null : u; return drawIndex(); }
