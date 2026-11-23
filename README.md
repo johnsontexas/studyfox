@@ -101,3 +101,14 @@ Every generated question has an ID (`generator|test|difficulty|seed`) that regen
 - Review `js/views/legal.js` with someone qualified before launch; it is a reasonable starting draft, not legal advice.
 - The reading/writing bank is hand-written and finite (~85 items plus unlimited generated transitions and data questions), so heavy users will see repeats. Adding items is the highest-value content work.
 - Scores are estimates. The real SAT uses IRT-based equating, which isn't public.
+
+## License
+
+The StudyFox code is licensed under the [GNU Affero General Public License v3.0](LICENSE). If you run a modified version of this code as a website or service, you must publish your full source code under the same license and keep the original copyright notice.
+
+The license covers only the code in this repository. It does not cover:
+
+- The StudyFox name, the fox logo, or the StudyFox branding. These may not be used for other projects or to suggest a connection to StudyFox.
+- The study content (lessons, questions, flashcards) stored in the StudyFox database, which is not part of this repository.
+
+Copyright (C) 2026 Daniel Johnson. See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for how to take part.
