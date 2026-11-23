@@ -62,9 +62,9 @@ export function isAdmin() {
   return adminCheck.p;
 }
 
-// Supabase limits how many emails and sign-ins we can use each day. When that runs out, say so plainly.
+// Our email sender (Resend, through Supabase) has a daily limit. When it runs out, Supabase says it could not send the email; say so plainly.
 const OUT_OF_QUOTA = 'Sorry, we ran out of our data plan for today. Please try a different sign-in method or try again later.';
-const overQuota = (e) => e?.status === 429 || /rate limit|over_email_send|too many requests|quota/i.test(`${e?.code || ''} ${e?.message || ''}`);
+const overQuota = (e) => e?.status === 429 || /rate limit|over_email_send|too many requests|quota|error sending|sending .*email/i.test(`${e?.code || ''} ${e?.message || ''}`);
 
 // Email and password accounts, stored in Supabase like Google and Apple ones so progress syncs too.
 // Returns { confirm: true } when Supabase wants the address confirmed before the first sign-in.
