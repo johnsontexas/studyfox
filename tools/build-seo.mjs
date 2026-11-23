@@ -97,7 +97,8 @@ ${appLink ? `<p class="cta"><a class="btn" href="${appLink}">Open in StudyFox</a
 ${body}
 </main>
 <footer class="foot"><div class="wrap"><p>StudyFox is free study material for school, made by ${esc(CREATOR)}. No ads, no paywalls.</p>
-<p><a href="/courses/">All courses</a> · <a href="/ap/">AP classes</a> · <a href="/sat-act/">SAT &amp; ACT prep</a> · <a href="/flashcards/">Flashcards</a> · <a href="/sitemap/">Site map</a> · <a href="/#/about">About</a> · <a href="/#/privacy">Privacy</a></p></div></footer>
+<p><a href="/courses/">All courses</a> · <a href="/ap/">AP classes</a> · <a href="/sat-act/">SAT &amp; ACT prep</a> · <a href="/flashcards/">Flashcards</a> · <a href="/sitemap/">Site map</a> · <a href="/#/about">About</a> · <a href="/#/privacy">Privacy</a></p>
+<p class="netlify-badge"><a href="https://www.netlify.com" target="_blank" rel="noopener"><img src="https://www.netlify.com/assets/badges/netlify-badge-color-accent.svg" alt="Deploys by Netlify" width="114" height="51"></a></p></div></footer>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$',right:'$',display:false}],throwOnError:false})"></script>
 </body>
