@@ -15,5 +15,6 @@ export function donateView(root) {
       <a class="btn primary lg" href="${KOFI}" target="_blank" rel="noopener">Donate on Ko-fi</a>
     </div>
     <p class="muted small">Can't donate? Sharing StudyFox with a classmate helps just as much. Thank you, from ${CREATOR}.</p>
+    <p class="muted small">Representing a company? <a href="#/sponsor">See sponsorship options</a>.</p>
   </div>`;
 }
