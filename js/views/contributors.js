@@ -26,6 +26,11 @@ export function contributorsView(root) {
         <p class="muted">StudyFox is free for every student. These are the people who build it and help keep it running.</p></div>
       ${teamHTML()}
       <section class="stack">
+        <h2 class="h3">Supported by</h2>
+        <p class="muted small">StudyFox is hosted on Netlify.</p>
+        <div class="card sponsor-logos"><a href="https://www.netlify.com" target="_blank" rel="noopener"><img class="netlify-logo" src="/assets/other/netlify-logo.png" alt="Netlify" width="151" height="40"></a></div>
+      </section>
+      <section class="stack">
         <h2 class="h3">Top sharers</h2>
         <p class="muted small">Students whose StudyFox link brought the most friends. Every account has a user number, and your link is in Settings. Shown by first name only; you can leave the list anytime in Settings.</p>
         <div id="sharers" class="card"><p class="muted small">Loading...</p></div>

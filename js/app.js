@@ -228,7 +228,7 @@ function boot() {
       <nav class="foot-links" aria-label="Study guides"><a href="/courses/">All study guides</a><a href="/ap/">AP study guides</a><a href="/sat-act/">SAT &amp; ACT guides</a><a href="/flashcards/">Flashcard decks</a><a href="/sitemap/">Site map</a></nav>
       <nav class="foot-links" aria-label="Footer"><a href="#/news">News</a><a href="#/about">About</a><a href="#/contributors">Contributors</a><a href="#/contact">Contact</a><a href="#/donate">Donate</a><a href="#/sponsor">Sponsor</a><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a></nav>
       <p class="foot-legal">SAT®, AP®, and ACT® are trademarks of their respective owners, which are not affiliated with and do not endorse this site. Questions are original and generated for practice; scores are estimates.</p>
-      <p class="foot-legal foot-netlify"><a href="https://www.netlify.com" target="_blank" rel="noopener">This site is powered by Netlify</a></p>
+      <p class="foot-legal foot-netlify"><a href="https://www.netlify.com" target="_blank" rel="noopener" aria-label="This site is powered by Netlify"><span>This site is powered by</span><img class="netlify-logo" src="/assets/other/netlify-logo.png" alt="Netlify" width="91" height="24"></a></p>
     </div></footer>`;
   // index.html may already show the nav and home hero (data-shell); keep them and add the footer.
   if ($('#main[data-shell]')) { $('#nav').removeAttribute('data-shell'); document.body.insertAdjacentHTML('beforeend', footer); }

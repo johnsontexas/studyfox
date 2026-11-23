@@ -658,7 +658,13 @@ h3 { font-weight: 650; }
 @media (max-width: 640px) { .foot-links { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: .6rem 1.2rem; } }
 .foot-legal { grid-column: 1 / -1; font-size: .82rem; border-top: 1px solid var(--line); padding-top: 1rem; margin: .5rem 0 0; }
 .foot-netlify { border-top: 0; padding-top: 0; margin-top: .25rem; font-size: .95rem; font-weight: 700; }
-.foot-netlify a { color: var(--ink, inherit); text-decoration: underline; text-underline-offset: 3px; }
+.foot-netlify a { color: var(--ink, inherit); text-decoration: none; display: inline-flex; align-items: center; gap: .5rem; }
+.foot-netlify a:hover span { text-decoration: underline; text-underline-offset: 3px; }
+.netlify-logo { display: block; height: 24px; width: auto; }
+.sponsor-logos { display: flex; flex-wrap: wrap; align-items: center; gap: 1.5rem; padding: 1.25rem 1.5rem; }
+.sponsor-logos .netlify-logo { height: 40px; }
+:root[data-theme="dark"] .netlify-logo { filter: invert(1); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .netlify-logo { filter: invert(1); } }
 @media (max-width: 640px) { .foot-inner { grid-template-columns: 1fr; } .foot-links { justify-content: flex-start; } }
 
 /* ---------- numbered question bank ---------- */
