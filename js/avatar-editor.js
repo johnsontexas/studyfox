@@ -43,7 +43,7 @@ export function wireAvatar(root, client) {
       if (!isUnlocked(item, foxStats(), foxUnlocked()) && followUrl(item)) {
         window.open(followUrl(item), '_blank', 'noopener');
         const set = followSet(item); set.forEach(([, x]) => earnFoxItem(x.id));
-        toast(`${item.unlock.kind === 'review' ? 'Thanks for the review!' : 'Thanks for following!'} Unlocked: ${set.map(([, x]) => x.name).join(', ')}.`);
+        toast(`Thanks for following! Unlocked: ${set.map(([, x]) => x.name).join(', ')}.`);
         return set({ ...a, [part]: o.dataset.id });
       }
       if (!isUnlocked(item, foxStats(), foxUnlocked())) return toast(`Locked. ${unlockText(item.unlock)} to earn the ${item.name.toLowerCase()}.`);

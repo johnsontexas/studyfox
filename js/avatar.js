@@ -154,18 +154,16 @@ export const UNLOCKS = {
   questions: (n) => `Answer ${n.toLocaleString()} practice questions`,
   lessons: (n) => `Finish ${n} lessons`,
   // Tap-to-earn items: tapping opens the page and unlocks it (we can't check follows or reviews).
-  // { kind: 'follow', ig | tiktok | yt | x: 'handle' } or { kind: 'review' } (Trustpilot).
+  // { kind: 'follow', ig | tiktok | yt | x: 'handle' }. Never reward reviews: Trustpilot bans review incentives.
   follow: (n, u) => `Follow @${u.ig || u.tiktok || u.yt || u.x} on ${u.ig ? 'Instagram' : u.tiktok ? 'TikTok' : u.yt ? 'YouTube' : 'X'}`,
-  review: () => 'Write a StudyFox review on Trustpilot',
   // Any other page, with your own wording: { kind: 'link', url: 'https://...', text: 'Subscribe on YouTube' }.
   link: (n, u) => u.text,
 };
 export const unlockText = (u) => (u && UNLOCKS[u.kind] ? UNLOCKS[u.kind](u.n, u) : '');
-const TAP = ['follow', 'review', 'link'];
+const TAP = ['follow', 'link'];
 /** For tap-to-earn items (follow, review): the page to open. null for every other item. */
 export function followUrl(item) {
   const u = item?.unlock;
-  if (u?.kind === 'review') return REVIEW_URL;
   if (u?.kind === 'link') return u.url;
   if (u?.kind !== 'follow') return null;
   if (u.ig) return `https://instagram.com/${u.ig}`;
@@ -248,7 +246,6 @@ export function addItems(rows) {
     const handle = (v) => /^[A-Za-z0-9._]{1,30}$/.test(v || '');
     const site = r.unlock?.kind === 'follow' && ['ig', 'tiktok', 'yt', 'x'].find((k) => handle(r.unlock[k]));
     if (site) item.unlock = { kind: 'follow', [site]: r.unlock[site] };
-    else if (r.unlock?.kind === 'review') item.unlock = { kind: 'review' };
     else if (r.unlock?.kind === 'link' && /^https:\/\/[^\s"<>]{4,300}$/.test(r.unlock.url || '') && r.unlock.text) item.unlock = { kind: 'link', url: r.unlock.url, text: String(r.unlock.text).slice(0, 80) };
     else if (r.unlock && UNLOCKS[r.unlock.kind] && Number(r.unlock.n) > 0) item.unlock = { kind: r.unlock.kind, n: Number(r.unlock.n) };
     const hex = (v) => (/^#[0-9a-f]{6}$/i.test(v || '') ? v : null);

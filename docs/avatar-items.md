@@ -15,7 +15,7 @@ Only admins (`public.is_admin()`) can write to the table. Everyone can read rows
 | `name` | what students see (`Top hat`) |
 | `art` | for every part except `fur` and `color`: an SVG fragment drawn in the fox's 100 x 100 space |
 | `colors` | `fur`: `{"fur":"#hex","dark":"#hex","light":"#hex"}`. `color`: `{"hex":"#hex"}` |
-| `unlock` | `null` for everyone, or an exclusive: `{"kind":"shares","n":10}`. Kinds: `shares` (friends who joined with their link), `streak` (days), `questions` (answered), `lessons` (finished). Tap-to-earn (tapping opens the page and unlocks it; we can't check): follow `{"kind":"follow","ig":"studyfoxapp"}` (or `"tiktok"`, `"yt"`, `"x"` instead of `"ig"`), review `{"kind":"review"}` (opens the Trustpilot page), or any page `{"kind":"link","url":"https://...","text":"Subscribe on YouTube"}`. Items that share the same follow/link/review form a set: tapping one unlocks them all. Website/app builds before Nov 22 2026 only know `ig` follows, so keep new kinds `hidden` until the update is live |
+| `unlock` | `null` for everyone, or an exclusive: `{"kind":"shares","n":10}`. Kinds: `shares` (friends who joined with their link), `streak` (days), `questions` (answered), `lessons` (finished). Tap-to-earn (tapping opens the page and unlocks it; we can't check): follow `{"kind":"follow","ig":"studyfoxapp"}` (or `"tiktok"`, `"yt"`, `"x"` instead of `"ig"`), or any page `{"kind":"link","url":"https://...","text":"Subscribe on YouTube"}`. Items that share the same follow/link form a set: tapping one unlocks them all. Website/app builds before Nov 22 2026 only know `ig` follows, so keep new kinds `hidden` until the update is live |
 | `sort` | order within the part (built-ins come first) |
 | `hidden` | `true` hides it without deleting it. Anyone already wearing it falls back to their default for that part. |
 
@@ -23,7 +23,7 @@ Only admins (`public.is_admin()`) can write to the table. Everyone can read rows
 
 Everything here (new items, art, which account or link unlocks them, sets, hiding) is data in Supabase.
 The site and the app read it at startup, so changes show up on the next visit. Only a brand-new kind of
-unlock rule (something other than shares, streak, questions, lessons, follow, review, link) needs code.
+unlock rule (something other than shares, streak, questions, lessons, follow, link) needs code. Never reward Trustpilot reviews: Trustpilot bans review incentives (free items count).
 
 ## Drawing the art
 
