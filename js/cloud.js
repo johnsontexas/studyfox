@@ -62,12 +62,17 @@ export function isAdmin() {
   return adminCheck.p;
 }
 
+// Supabase limits how many emails and sign-ins we can use each day. When that runs out, say so plainly.
+const OUT_OF_QUOTA = 'Sorry, we ran out of our data plan for today. Please try a different sign-in method or try again later.';
+const overQuota = (e) => e?.status === 429 || /rate limit|over_email_send|too many requests|quota/i.test(`${e?.code || ''} ${e?.message || ''}`);
+
 // Email and password accounts, stored in Supabase like Google and Apple ones so progress syncs too.
 // Returns { confirm: true } when Supabase wants the address confirmed before the first sign-in.
 export async function emailSignUp({ name, email, password }) {
   const c = await client();
   if (!c) throw new Error('Accounts are not set up on this site yet.');
   const { data, error } = await c.auth.signUp({ email, password, options: { data: { full_name: name }, emailRedirectTo: location.origin + '/verified.html' } });
+  if (overQuota(error)) throw new Error(OUT_OF_QUOTA);
   if (error) throw new Error(/registered|exists/i.test(error.message) ? 'An account with that email already exists. Sign in instead.' : error.message);
   return { confirm: !data.session };
 }
@@ -77,6 +82,7 @@ export async function emailSignIn(email, password) {
   if (!c) throw new Error('Accounts are not set up on this site yet.');
   const { error } = await c.auth.signInWithPassword({ email, password });
   if (!error) return { ok: true };
+  if (overQuota(error)) throw new Error(OUT_OF_QUOTA);
   if (/confirm/i.test(error.message)) throw new Error('Confirm your email first. Check your inbox for the link we sent.');
   // Accounts made before email sync existed only live on this device: move them to the cloud with the same password.
   if (/invalid/i.test(error.message) && (await store.hasLocalAccount(email, password))) {
@@ -90,6 +96,7 @@ export async function resetPassword(email) {
   const c = await client();
   if (!c) throw new Error('Accounts are not set up on this site yet.');
   const { error } = await c.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname + '#/settings' });
+  if (overQuota(error)) throw new Error(OUT_OF_QUOTA);
   if (error) throw error;
 }
 

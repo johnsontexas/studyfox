@@ -191,6 +191,10 @@ export async function signInWithApple() {
   return true;
 }
 
+// Supabase limits how many emails and sign-ins we can use each day. When that runs out, say so plainly.
+const OUT_OF_QUOTA = 'Sorry, we ran out of our data plan for today. Please try a different sign-in method or try again later.';
+const overQuota = (e: any) => e?.status === 429 || /rate limit|over_email_send|too many requests|quota/i.test(`${e?.code || ''} ${e?.message || ''}`);
+
 // Email and password accounts live in Supabase too (same as studyfox.org), so their progress syncs.
 // Returns { confirm: true } when the address must be confirmed before the first sign-in.
 export async function emailSignUp({ name, email, password }: { name: string; email: string; password: string }) {
@@ -198,6 +202,7 @@ export async function emailSignUp({ name, email, password }: { name: string; ema
   if (!c) throw new Error('Accounts are not set up yet.');
   pendingName = name || undefined;
   const { data, error } = await c.auth.signUp({ email, password, options: { data: { full_name: name }, emailRedirectTo: `${SITE_URL}/verified.html` } });
+  if (overQuota(error)) throw new Error(OUT_OF_QUOTA);
   if (error) throw new Error(/registered|exists/i.test(error.message) ? 'An account with that email already exists. Sign in instead.' : error.message);
   return { confirm: !data.session, moved: false };
 }
@@ -207,6 +212,7 @@ export async function emailSignIn(email: string, password: string): Promise<{ co
   if (!c) throw new Error('Accounts are not set up yet.');
   const { error } = await c.auth.signInWithPassword({ email, password });
   if (!error) return {};
+  if (overQuota(error)) throw new Error(OUT_OF_QUOTA);
   if (/confirm/i.test(error.message)) throw new Error('Confirm your email first. Check your inbox for the link we sent.');
   // Accounts made before email sync only lived on this phone: move them to the cloud with the same password.
   if (/invalid/i.test(error.message) && (await store.hasLocalAccount(email, password))) {
