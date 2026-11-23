@@ -661,6 +661,8 @@ h3 { font-weight: 650; }
 .foot-netlify a { color: var(--ink, inherit); text-decoration: none; display: inline-flex; align-items: center; gap: .5rem; }
 .foot-netlify a:hover span { text-decoration: underline; text-underline-offset: 3px; }
 .netlify-logo { display: block; height: 24px; width: auto; }
+.hx-netlify { display: inline-block; margin-top: 1rem; line-height: 0; }
+.hx-netlify img { height: 38px; width: auto; }
 .sponsor-logos { display: flex; flex-wrap: wrap; align-items: center; gap: 1.5rem; padding: 1.25rem 1.5rem; }
 .sponsor-logos .netlify-logo { height: 40px; }
 :root[data-theme="dark"] .netlify-logo { filter: invert(1); }

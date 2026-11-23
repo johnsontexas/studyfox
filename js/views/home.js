@@ -83,6 +83,7 @@ export function homeView(root) {
         <p class="lead">Courses for ${COURSES.length} classes including every AP subject, flashcards, and a <span class="bank-n">${(nSat + nAct).toLocaleString()}</span>-question SAT and ACT bank. Built by a student, for students. No ads, ever.</p>
         <div class="row gap wrap">${cta}<a class="btn lg ghost" href="#/learn">Browse courses</a></div>
         <nav class="hx-links" aria-label="Explore StudyFox"><a href="/courses/">All courses</a><a href="/ap/">AP classes</a><a href="/sat-act/">SAT &amp; ACT prep</a><a href="/flashcards/">Flashcards</a><a href="/sitemap/">Site map</a></nav>
+        <a class="hx-netlify" href="https://www.netlify.com" target="_blank" rel="noopener"><img src="https://www.netlify.com/assets/badges/netlify-badge-color-accent.svg" alt="Deploys by Netlify" width="86" height="38"></a>
         <p class="join-n"${nStu ? '' : ' hidden'}><span class="join-ic">${joinFoxes(nStu)}</span><span><b class="stu-n">${nStu.toLocaleString()}</b><span class="stu-l">${nStu === 1 ? 'student already studies here. Join them.' : 'students already study here. Join them.'}</span></span></p>
       </div>
       <div class="hx-pop">
