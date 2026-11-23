@@ -657,6 +657,8 @@ h3 { font-weight: 650; }
 .foot-links a { color: var(--ink-2); font-weight: 700; font-size: 1.1rem; }
 @media (max-width: 640px) { .foot-links { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: .6rem 1.2rem; } }
 .foot-legal { grid-column: 1 / -1; font-size: .82rem; border-top: 1px solid var(--line); padding-top: 1rem; margin: .5rem 0 0; }
+.foot-netlify { border-top: 0; padding-top: 0; margin-top: .25rem; font-size: .95rem; font-weight: 700; }
+.foot-netlify a { color: var(--ink, inherit); text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 640px) { .foot-inner { grid-template-columns: 1fr; } .foot-links { justify-content: flex-start; } }
 
 /* ---------- numbered question bank ---------- */
