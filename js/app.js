@@ -67,6 +67,8 @@ const privacyView = lazy(load_legal, 'privacyView');
 const termsView = lazy(load_legal, 'termsView');
 const load_donate = () => import('./views/donate.js');
 const donateView = lazy(load_donate, 'donateView');
+const load_sponsor = () => import('./views/sponsor.js');
+const sponsorView = lazy(load_sponsor, 'sponsorView');
 const load_content_admin = () => import('./views/content-admin.js');
 const contentAdminView = lazy(load_content_admin, 'contentAdminView');
 const load_ap = () => import('./views/ap.js');
@@ -93,7 +95,7 @@ const routes = [
   ['/learn', learnHubView], ['/learn/:course', courseView], ['/learn/:course/:lesson', lessonView],
   ['/formulas', formulasView], ['/calculator', calculatorView], ['/speed', speedView],
   ['/ap', apHubView], ['/ap/:course', apCourseView], ['/hardest', (m) => apCourseView(m, { course: 'hardest' })], ['/about', aboutView], ['/contributors', contributorsView], ['/contributors/sharers', sharersView], ['/news', newsView], ['/admin', adminView], ['/admin/content', contentAdminView], ['/contact', contactView],
-  ['/donate', donateView], ['/privacy', privacyView], ['/terms', termsView], ['/welcome', welcomeView], ['/too-young', ageBlockedView],
+  ['/donate', donateView], ['/sponsor', sponsorView], ['/privacy', privacyView], ['/terms', termsView], ['/welcome', welcomeView], ['/too-young', ageBlockedView],
 ];
 
 function match(path) {
@@ -151,7 +153,7 @@ function tabShell(main, m, tabs) {
   return r;
 }
 
-const PUBLIC = ['/', '/about', '/contributors', '/contributors/sharers', '/news', '/contact', '/donate', '/login', '/signup', '/privacy', '/terms', '/too-young'];
+const PUBLIC = ['/', '/about', '/contributors', '/contributors/sharers', '/news', '/contact', '/donate', '/sponsor', '/login', '/signup', '/privacy', '/terms', '/too-young'];
 export const AFTER_LOGIN = 'sf_after_login';
 
 let cleanup = null;
@@ -194,7 +196,7 @@ function router() {
   try { cleanup = (tabGroup(m.pat) ? tabShell(main, m, tabGroup(m.pat)[1]) : m.view(main, m.params)) || null; }
   catch (e) { console.error(e); main.innerHTML = `<div class="page narrow"><h1>Something went wrong</h1><pre class="err">${esc(e.stack || e)}</pre><a class="btn" href="#/">Go home</a></div>`; }
   delete main.dataset.shell;
-  const title = { '/': store.user() ? 'Dashboard' : 'Free Study Material for School', '/learn': 'Free Courses', '/privacy': 'Privacy Policy', '/terms': 'Terms of Use', '/speed': 'Speed Practice', '/donate': 'Donate', '/news': 'News', '/contact': 'Contact', '/about': 'About', '/contributors': 'Contributors', '/contributors/sharers': 'Top sharers', '/admin': 'Admin', '/welcome': 'Welcome', '/too-young': 'Welcome' }[path] || (path.startsWith('/learn') ? 'Free Courses' : path.startsWith('/ap') ? 'AP Practice' : null) || path.split('/')[1]?.replace(/^\w/, (c) => c.toUpperCase());
+  const title = { '/': store.user() ? 'Dashboard' : 'Free Study Material for School', '/learn': 'Free Courses', '/privacy': 'Privacy Policy', '/terms': 'Terms of Use', '/speed': 'Speed Practice', '/donate': 'Donate', '/sponsor': 'Sponsor', '/news': 'News', '/contact': 'Contact', '/about': 'About', '/contributors': 'Contributors', '/contributors/sharers': 'Top sharers', '/admin': 'Admin', '/welcome': 'Welcome', '/too-young': 'Welcome' }[path] || (path.startsWith('/learn') ? 'Free Courses' : path.startsWith('/ap') ? 'AP Practice' : null) || path.split('/')[1]?.replace(/^\w/, (c) => c.toUpperCase());
   document.title = `${BRAND} · ${title || 'Free Study Material for School'}`;
 }
 
@@ -224,7 +226,7 @@ function boot() {
         <a class="foot-ig" id="iosLink" href="#" target="_blank" rel="noopener" hidden>${icon('down')}Download on iOS</a>
         <p class="foot-mail">Support: <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></p></div>
       <nav class="foot-links" aria-label="Study guides"><a href="/courses/">All study guides</a><a href="/ap/">AP study guides</a><a href="/sat-act/">SAT &amp; ACT guides</a><a href="/flashcards/">Flashcard decks</a><a href="/sitemap/">Site map</a></nav>
-      <nav class="foot-links" aria-label="Footer"><a href="#/news">News</a><a href="#/about">About</a><a href="#/contributors">Contributors</a><a href="#/contact">Contact</a><a href="#/donate">Donate</a><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a></nav>
+      <nav class="foot-links" aria-label="Footer"><a href="#/news">News</a><a href="#/about">About</a><a href="#/contributors">Contributors</a><a href="#/contact">Contact</a><a href="#/donate">Donate</a><a href="#/sponsor">Sponsor</a><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a></nav>
       <p class="foot-legal">SAT®, AP®, and ACT® are trademarks of their respective owners, which are not affiliated with and do not endorse this site. Questions are original and generated for practice; scores are estimates.</p>
     </div></footer>`;
   // index.html may already show the nav and home hero (data-shell); keep them and add the footer.
