@@ -77,6 +77,11 @@ export function sponsorView(root) {
         <button class="btn lg" id="spPrint" type="button">${icon('upload')} Save media kit as PDF</button>
       </div>
     </header>
+    <section class="card sp-backers row gap wrap">
+      <p class="kicker">Supported by</p>
+      <a href="https://www.netlify.com" target="_blank" rel="noopener"><img class="netlify-logo" src="/assets/other/netlify-logo.png" alt="Netlify" width="121" height="32"></a>
+      <p class="muted small">StudyFox is hosted free through Netlify's Open Source program.</p>
+    </section>
     <section class="card stack sp-costs">
       <h2 class="h3">${icon('coins')} Why sponsors matter right now</h2>
       <p>StudyFox is built by students, and right now I'm paying the bills out of my own pocket. Hosting, the database that saves every student's progress, and email currently cost about <b id="spCost">$50</b> a month, and that number goes up as more students join.</p>
